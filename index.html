@@ -557,9 +557,9 @@ Sugestões
 <div class="toast" id="toast"></div>
 
 <script>
-const BANCOS_DEFAULT=["Sicredi Mossoró","Banco do Brasil","BTG Pactual","C6 Bank","InfinityPay","Sicredi Solanea","XP Banco"];
-const CARTOES_DEFAULT=["Amazon/Bradesco","XP Bank","Sicredi Mossoró","C6 Bank","BTG Pactual","Riachuello","BB Solanea"];
-const VENCS_DEFAULT=[1,1,8,10,17,23,25];
+const BANCOS_DEFAULT=["Banco Principal"];
+const CARTOES_DEFAULT=["Cartão Principal"];
+const VENCS_DEFAULT=[10];
 function getBancos(){return D.bancos||BANCOS_DEFAULT}
 function getCartoes(){return D.cartoes||CARTOES_DEFAULT}
 function getVencs(){return D.vencs||VENCS_DEFAULT}
@@ -583,8 +583,8 @@ function getSubsFor(cat){const sc=getSubCats();return sc[cat]||[]}
 const MN=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const MA=["JAN","FEV","MAR","ABR","MAI","JUN","JUL","AGO","SET","OUT","NOV","DEZ"];
 const CC=["#3b82f6","#ef4444","#f59e0b","#10b981","#8b5cf6","#06b6d4","#f97316","#ec4899","#14b8a6","#6366f1","#84cc16","#e11d48","#78716c","#64748b"];
-const DSALDOS={"Sicredi Mossoró":19.55,"Banco do Brasil":19.93,"BTG Pactual":12.45,"C6 Bank":21.94,"InfinityPay":0.77,"Sicredi Solanea":2.05,"XP Banco":1.06};
-const DCARDS={"Amazon/Bradesco":"BTG Pactual","XP Bank":"BTG Pactual","Sicredi Mossoró":"BTG Pactual","C6 Bank":"BTG Pactual","BTG Pactual":"Sicredi Mossoró","Riachuello":"Sicredi Mossoró","BB Solanea":"BTG Pactual"};
+const DSALDOS={};
+const DCARDS={"Cartão Principal":"Banco Principal"};
 const BASE_YEAR=2026;
 
 const $=id=>document.getElementById(id);
