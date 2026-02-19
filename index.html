@@ -2339,7 +2339,7 @@ function onAgCatChange(){
     const subs=(D.subCats&&D.subCats[cat])||[];
     const row=$('agSubCatRow');
     const sel=$('agSubCat');
-    if(subs.length){
+    if(subs.length||cat){
         row.style.display='block';
         sel.innerHTML='<option value="">Sem subcategoria</option>';
         subs.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o)});
@@ -2347,6 +2347,38 @@ function onAgCatChange(){
         row.style.display='none';
         sel.innerHTML='';
     }
+}
+
+function addAgCat(){
+    const nome=prompt('Nome da nova categoria:');
+    if(!nome||!nome.trim())return;
+    const n=nome.trim();
+    const list=agType==='recebimento'?'catsR':'catsD';
+    if(!D[list])D[list]=[];
+    if(D[list].includes(n)){toast('Categoria já existe');return}
+    D[list].push(n);
+    save();
+    // Refresh categories and select the new one
+    setAgType(agType,document.querySelector('#agTypeTabs .toggle-tab.active'));
+    $('agCat').value=n;
+    onAgCatChange();
+    toast('✅ Categoria "'+n+'" criada!');
+}
+
+function addAgSubCat(){
+    const cat=$('agCat').value;
+    if(!cat){toast('Selecione uma categoria primeiro');return}
+    const nome=prompt('Nova subcategoria para "'+cat+'":');
+    if(!nome||!nome.trim())return;
+    const n=nome.trim();
+    if(!D.subCats)D.subCats={};
+    if(!D.subCats[cat])D.subCats[cat]=[];
+    if(D.subCats[cat].includes(n)){toast('Subcategoria já existe');return}
+    D.subCats[cat].push(n);
+    save();
+    onAgCatChange();
+    $('agSubCat').value=n;
+    toast('✅ Subcategoria "'+n+'" criada!');
 }
 
 function openAgendaAdd(dateStr){
@@ -2425,13 +2457,19 @@ function saveAgenda(){
         repeat:$('agRepeat').value||'none',
         notes:$('agNotes').value.trim(),
         color:agColor,
-        done:false
+        done:false,
+        txId:null
     };
     if(agEditId){
         const idx=D.ag.findIndex(e=>e.id===agEditId);
-        if(idx>=0){ev.done=D.ag[idx].done;D.ag[idx]=ev}
+        if(idx>=0){ev.done=D.ag[idx].done;ev.txId=D.ag[idx].txId;D.ag[idx]=ev}
     } else {
         D.ag.push(ev);
+        // Auto-create pending transaction for payments/receipts
+        if(ev.type!=='lembrete' && ev.valor>0 && ev.destino!=='nenhum'){
+            const txId=launchAgendaTxPending(ev);
+            ev.txId=txId;
+        }
     }
     save();closeAgendaModal();refresh();
     toast(agEditId?'Compromisso atualizado!':'Compromisso agendado!');
@@ -2441,28 +2479,36 @@ function toggleAgDone(id){
     const ev=(D.ag||[]).find(e=>e.id===id);
     if(!ev)return;
     ev.done=!ev.done;
-    // If it's a payment and being marked done, offer to create transaction
-    if(ev.done && ev.type!=='lembrete' && ev.valor>0 && ev.destino!=='nenhum'){
-        if(confirm('Deseja lançar este '+({pagamento:'pagamento',recebimento:'recebimento'}[ev.type]||'lançamento')+' de '+fmt(ev.valor)+' no '+({conta:'banco '+ev.banco,cartao:'cartão '+ev.cartao}[ev.destino]||'extrato')+'?')){
-            launchAgendaTx(ev);
-        }
+    // When marking done, efetivate the linked transaction
+    if(ev.done && ev.txId){
+        const tx=D.tx.find(t=>t.id===ev.txId);
+        if(tx){tx.st='efetivado';toast('✅ Lançamento efetivado!')}
+        const cp=D.cp.find(c=>c.id===ev.txId);
+        if(cp){cp.st='paga';toast('✅ Compra marcada como paga!')}
+    }
+    // When unmarking, set back to pending
+    if(!ev.done && ev.txId){
+        const tx=D.tx.find(t=>t.id===ev.txId);
+        if(tx)tx.st='agendado';
+        const cp=D.cp.find(c=>c.id===ev.txId);
+        if(cp)cp.st='aberta';
     }
     save();refresh();
 }
 
-function launchAgendaTx(ev){
+function launchAgendaTxPending(ev){
     const tp=ev.type==='recebimento'?'Receita':'Despesa';
+    const txId='tx_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
     if(ev.destino==='conta'){
-        const tx={id:'tx_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),dt:ev.date,desc:ev.title,v:ev.valor,tp,banco:ev.banco,cat:ev.cat,sub:ev.sub||'',st:'agendado',m:parseInt(ev.date.split('-')[1])-1,y:parseInt(ev.date.split('-')[0])};
+        const tx={id:txId,dt:ev.date,desc:ev.title,v:ev.valor,tp,banco:ev.banco,cat:ev.cat,sub:ev.sub||'',st:'agendado',m:parseInt(ev.date.split('-')[1])-1,y:parseInt(ev.date.split('-')[0])};
         D.tx.push(tx);
     } else if(ev.destino==='cartao'){
         const m=parseInt(ev.date.split('-')[1])-1;
         const y=parseInt(ev.date.split('-')[0]);
-        const cp={id:'cp_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),dt:ev.date,desc:ev.title,v:ev.valor,card:ev.cartao,cat:ev.cat,sub:ev.sub||'',tipo:'À Vista',m,y,st:'aberta'};
+        const cp={id:txId,dt:ev.date,desc:ev.title,v:ev.valor,card:ev.cartao,cat:ev.cat,sub:ev.sub||'',tipo:'À Vista',m,y,st:'aberta'};
         D.cp.push(cp);
     }
-    save();
-    toast('✅ Lançamento criado como pendente!');
+    return txId;
 }
 
 function delAgenda(id){
@@ -2657,8 +2703,8 @@ function selectAgDay(dateStr){
 <div id="agContaField"><div class="form-group"><label class="form-label">Banco/Conta</label><select class="form-input" id="agBanco"></select></div></div>
 <div id="agCartaoField" style="display:none"><div class="form-group"><label class="form-label">Cartão</label><select class="form-input" id="agCartao"></select></div></div>
 
-<div class="form-group"><label class="form-label">Categoria</label><select class="form-input" id="agCat" onchange="onAgCatChange()"></select></div>
-<div class="form-group" id="agSubCatRow" style="display:none"><label class="form-label">Subcategoria</label><select class="form-input" id="agSubCat"></select></div>
+<div class="form-group"><label class="form-label">Categoria</label><div style="display:flex;gap:6px"><select class="form-input" id="agCat" onchange="onAgCatChange()" style="flex:1"></select><button class="btn btn-outline btn-sm" onclick="addAgCat()" style="white-space:nowrap;padding:6px 10px">+ Nova</button></div></div>
+<div class="form-group" id="agSubCatRow" style="display:none"><label class="form-label">Subcategoria</label><div style="display:flex;gap:6px"><select class="form-input" id="agSubCat" style="flex:1"></select><button class="btn btn-outline btn-sm" onclick="addAgSubCat()" style="white-space:nowrap;padding:6px 10px">+ Nova</button></div></div>
 </div>
 
 <!-- Recurrence -->
