@@ -77,6 +77,8 @@ input,select{font-family:var(--font);outline:none}
 .kpi-val-hide.hidden-val{color:transparent!important;background:var(--surface2);border-radius:4px;user-select:none}
 .kpi-val-hide.hidden-val div{color:transparent!important}
 .bank-balance.hidden-val{color:transparent!important;background:var(--surface2);border-radius:4px;user-select:none}
+.ag-color-dot.active{border:2px solid #fff!important;box-shadow:0 0 8px rgba(255,255,255,0.3)}
+#maisMenu button:hover{background:var(--surface2)}
 
 .form-group{margin-bottom:14px}
 .form-label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.3px}
@@ -296,6 +298,11 @@ Entrar com Google
 <div class="card-title"><div class="dot" style="background:var(--green)"></div>Saldo das Contas</div>
 <div class="bank-list" id="bankList"></div>
 </div>
+<div class="card" id="dashAgendaCard">
+<div class="card-title" style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;align-items:center;gap:8px"><div class="dot" style="background:var(--purple)"></div>Próximos Compromissos</div><button onclick="goPage('agenda')" style="background:none;border:none;color:var(--primary);font-size:11px;cursor:pointer;font-family:var(--font)">Ver todos →</button></div>
+<div id="dashAgendaList"></div>
+<div id="dashAgendaEmpty" style="display:none;text-align:center;padding:12px;color:var(--text3);font-size:12px">📅 Nenhum compromisso próximo</div>
+</div>
 </div>
 
 <!-- EXTRATO -->
@@ -435,6 +442,110 @@ Entrar com Google
 <button class="btn btn-green" onclick="saveTx()" id="btnSave">✓ Salvar Lançamento</button>
 </div>
 
+<!-- AGENDA -->
+<div class="page" id="page-agenda">
+<h2 style="font-size:20px;font-weight:700;margin-bottom:16px">📅 Agenda</h2>
+
+<!-- Month selector -->
+<div class="month-selector">
+<button class="month-btn" onclick="chgMonth(-1)">‹</button>
+<div class="month-label"></div>
+<button class="month-btn" onclick="chgMonth(1)">›</button>
+</div>
+
+<!-- Calendar Grid -->
+<div id="agendaCal" style="margin-bottom:16px"></div>
+
+<!-- Quick Actions -->
+<div style="display:flex;gap:8px;margin-bottom:16px">
+<button class="btn btn-primary btn-sm" onclick="openAgendaAdd()" style="flex:1">+ Novo Compromisso</button>
+</div>
+
+<!-- Events for selected day -->
+<div id="agendaDayTitle" style="font-size:14px;font-weight:700;margin-bottom:8px;display:none"></div>
+<div id="agendaDayEvents"></div>
+
+<!-- Upcoming Section -->
+<div class="card">
+<div class="card-title"><div class="dot" style="background:var(--primary)"></div>Próximos Compromissos</div>
+<div id="agendaUpcoming"></div>
+<div class="empty" id="agendaEmpty" style="display:none"><p>Nenhum compromisso agendado</p></div>
+</div>
+
+<!-- Overdue Section -->
+<div class="card" id="agendaOverdueCard" style="display:none">
+<div class="card-title"><div class="dot" style="background:var(--red)"></div>⚠️ Vencidos / Pendentes</div>
+<div id="agendaOverdue"></div>
+</div>
+</div>
+
+<!-- AGENDA ADD MODAL -->
+<div class="modal-overlay" id="agendaModal" onclick="if(event.target===this)closeAgendaModal()">
+<div class="modal" style="max-height:90vh;overflow-y:auto">
+<div class="modal-handle"></div>
+<div class="modal-title">📅 Novo Compromisso</div>
+
+<div class="form-group"><label class="form-label">Título</label><input type="text" class="form-input" id="agTitle" placeholder="Ex: Pagar conta de luz, Reunião..."></div>
+
+<div class="form-row">
+<div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input" id="agDate"></div>
+<div class="form-group"><label class="form-label">Hora (opcional)</label><input type="time" class="form-input" id="agTime"></div>
+</div>
+
+<div class="form-group"><label class="form-label">Tipo</label>
+<div class="toggle-tabs" id="agTypeTabs">
+<button class="toggle-tab t-red active" onclick="setAgType('pagamento',this)">💰 Pagamento</button>
+<button class="toggle-tab t-blue" onclick="setAgType('lembrete',this)">🔔 Lembrete</button>
+<button class="toggle-tab t-green" onclick="setAgType('recebimento',this)">💵 Recebimento</button>
+</div></div>
+
+<!-- Payment fields -->
+<div id="agPayFields">
+<div class="form-group"><label class="form-label">Valor</label><div class="valor-input-wrap"><span class="valor-prefix">R$</span><input type="number" step="0.01" min="0" class="form-input" id="agValor" placeholder="0,00" inputmode="decimal"></div></div>
+
+<div class="form-group"><label class="form-label">Onde lançar?</label>
+<div class="toggle-tabs" id="agDestinoTabs">
+<button class="toggle-tab t-blue active" onclick="setAgDestino('conta',this)">🏦 Conta</button>
+<button class="toggle-tab t-blue" onclick="setAgDestino('cartao',this)">💳 Cartão</button>
+<button class="toggle-tab t-blue" onclick="setAgDestino('nenhum',this)">📝 Só lembrete</button>
+</div></div>
+
+<div id="agContaField"><div class="form-group"><label class="form-label">Banco/Conta</label><select class="form-input" id="agBanco"></select></div></div>
+<div id="agCartaoField" style="display:none"><div class="form-group"><label class="form-label">Cartão</label><select class="form-input" id="agCartao"></select></div></div>
+
+<div class="form-group"><label class="form-label">Categoria</label><select class="form-input" id="agCat"></select></div>
+</div>
+
+<!-- Recurrence -->
+<div class="form-group"><label class="form-label">Repetir</label>
+<select class="form-input" id="agRepeat">
+<option value="none">Não repetir</option>
+<option value="weekly">Semanal</option>
+<option value="biweekly">Quinzenal</option>
+<option value="monthly">Mensal</option>
+<option value="yearly">Anual</option>
+</select></div>
+
+<div class="form-group"><label class="form-label">Notas (opcional)</label>
+<textarea class="form-input" id="agNotes" rows="2" placeholder="Observações..." style="resize:vertical;font-family:var(--font)"></textarea></div>
+
+<div class="form-group">
+<label class="form-label">Cor</label>
+<div style="display:flex;gap:8px" id="agColorPicker">
+<div onclick="setAgColor('#cc2222',this)" class="ag-color-dot active" style="width:28px;height:28px;border-radius:50%;background:#cc2222;cursor:pointer;border:2px solid transparent"></div>
+<div onclick="setAgColor('#f59e0b',this)" class="ag-color-dot" style="width:28px;height:28px;border-radius:50%;background:#f59e0b;cursor:pointer;border:2px solid transparent"></div>
+<div onclick="setAgColor('#10b981',this)" class="ag-color-dot" style="width:28px;height:28px;border-radius:50%;background:#10b981;cursor:pointer;border:2px solid transparent"></div>
+<div onclick="setAgColor('#3b82f6',this)" class="ag-color-dot" style="width:28px;height:28px;border-radius:50%;background:#3b82f6;cursor:pointer;border:2px solid transparent"></div>
+<div onclick="setAgColor('#8b5cf6',this)" class="ag-color-dot" style="width:28px;height:28px;border-radius:50%;background:#8b5cf6;cursor:pointer;border:2px solid transparent"></div>
+</div></div>
+
+<div style="display:flex;gap:8px;margin-top:12px">
+<button class="btn btn-green" onclick="saveAgenda()" style="flex:1">✓ Salvar</button>
+<button class="btn btn-outline" onclick="closeAgendaModal()">Cancelar</button>
+</div>
+</div>
+</div>
+
 <!-- CARTÕES (visualização) -->
 <div class="page" id="page-card">
 <div class="month-selector">
@@ -519,18 +630,23 @@ Extrato
 </div>
 <span style="margin-top:2px">Novo</span>
 </button>
+<button class="nav-item" data-page="agenda" onclick="goPage('agenda',this)">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="12" cy="16" r="1"/></svg>
+Agenda
+</button>
 <button class="nav-item" data-page="card" onclick="goPage('card',this)">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
 Cartões
 </button>
-<button class="nav-item" data-page="cfg" onclick="goPage('cfg',this)">
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-Config
+<button class="nav-item" data-page="cfg" onclick="toggleMaisMenu(event,this)">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+Mais
 </button>
-<button class="nav-item" data-page="sug" onclick="goPage('sug',this)">
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-Sugestões
-</button>
+</nav>
+<div id="maisMenu" style="display:none;position:fixed;bottom:70px;right:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 8px 32px rgba(0,0,0,0.5);z-index:999;min-width:180px;overflow:hidden">
+<button onclick="closeMaisMenu();goPage('cfg')" style="width:100%;padding:14px 16px;background:none;border:none;color:var(--text);font-size:14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;font-family:var(--font);border-bottom:1px solid var(--border)">⚙️ Configurações</button>
+<button onclick="closeMaisMenu();goPage('sug')" style="width:100%;padding:14px 16px;background:none;border:none;color:var(--text);font-size:14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;font-family:var(--font)">💬 Sugestões</button>
+</div>
 </nav>
 </div>
 
@@ -792,9 +908,18 @@ function goPage(p,el){
     $('page-'+p).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
     if(el)el.classList.add('active');
+    else if(p==='cfg'||p==='sug') document.querySelector('.nav-item[data-page="cfg"]')?.classList.add('active');
     else document.querySelector(`.nav-item[data-page="${p}"]`)?.classList.add('active');
     refresh();
 }
+
+function toggleMaisMenu(e,el){
+    e.stopPropagation();
+    const m=$('maisMenu');
+    if(m.style.display==='none'){m.style.display='block';document.addEventListener('click',closeMaisMenu,{once:true})}
+    else m.style.display='none';
+}
+function closeMaisMenu(){$('maisMenu').style.display='none'}
 
 function chgMonth(d){
     cMonth+=d;
@@ -927,7 +1052,7 @@ function stepMonth(m,y,delta){
 function refresh(){
     const ml=MN[cMonth]+' '+cYear;
     document.querySelectorAll('.month-label').forEach(e=>e.textContent=ml);
-    if(cPage==='dash')rDash();if(cPage==='ext')rExt();if(cPage==='add')rAdd();if(cPage==='card')rCard();if(cPage==='cfg')rCfg();if(cPage==='sug')rSug();
+    if(cPage==='dash')rDash();if(cPage==='ext')rExt();if(cPage==='add')rAdd();if(cPage==='agenda')rAgenda();if(cPage==='card')rCard();if(cPage==='cfg')rCfg();if(cPage==='sug')rSug();
 }
 
 function rDash(){
@@ -983,6 +1108,27 @@ function rDash(){
         const bal=bankBal(b,cMonth,cYear);
         return`<div class="bank-item"><span class="bank-name">${b}</span><span class="bank-balance${bal<0?' neg':''}">${fmt(bal)}</span></div>`;
     }).join('');
+    // Dashboard Agenda Widget
+    const todayStr2=new Date().toISOString().split('T')[0];
+    const agUpcoming=(D.ag||[]).filter(e=>!e.done&&e.date>=todayStr2).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
+    const agOverdue=(D.ag||[]).filter(e=>!e.done&&e.date<todayStr2).length;
+    if(agUpcoming.length||agOverdue){
+        $('dashAgendaEmpty').style.display='none';
+        let agHtml='';
+        if(agOverdue) agHtml+=`<div style="padding:8px 12px;background:var(--red-bg);border-radius:var(--radius-sm);margin-bottom:8px;font-size:12px;color:var(--red);cursor:pointer" onclick="goPage('agenda')">⚠️ ${agOverdue} compromisso${agOverdue>1?'s':''} vencido${agOverdue>1?'s':''}</div>`;
+        agUpcoming.forEach(e=>{
+            const dt=new Date(e.date+'T12:00:00');
+            const isToday=e.date===todayStr2;
+            const dayLabel=isToday?'Hoje':dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+            const typeIcon={pagamento:'💰',lembrete:'🔔',recebimento:'💵'}[e.type]||'📅';
+            const valorStr=e.valor?' · '+fmt(e.valor):'';
+            agHtml+=`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="goPage('agenda')"><div style="width:4px;height:28px;border-radius:2px;background:${e.color};flex-shrink:0"></div><div style="flex:1"><div style="font-size:12px;font-weight:600">${typeIcon} ${e.title}</div><div style="font-size:11px;color:var(--text3)">${dayLabel}${e.time?' '+e.time:''}${valorStr}</div></div></div>`;
+        });
+        $('dashAgendaList').innerHTML=agHtml;
+    } else {
+        $('dashAgendaEmpty').style.display='block';
+        $('dashAgendaList').innerHTML='';
+    }
     // Reapply hidden state
     if(valHidden){
         document.querySelectorAll('.kpi-val-hide').forEach(el=>el.classList.add('hidden-val'));
@@ -2218,6 +2364,241 @@ checkAutoLogin();
 // Enter key on login
 document.getElementById('loginPass').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin()});
 document.getElementById('loginUser').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('loginPass').focus()});
+
+// ============== AGENDA ==============
+let agType='pagamento', agDestino='conta', agColor='#cc2222', agEditId=null, agSelectedDay=null;
+
+function setAgType(t,el){
+    agType=t;
+    document.querySelectorAll('#agTypeTabs .toggle-tab').forEach(b=>b.classList.remove('active'));
+    el.classList.add('active');
+    $('agPayFields').style.display=(t==='lembrete')?'none':'block';
+}
+function setAgDestino(d,el){
+    agDestino=d;
+    document.querySelectorAll('#agDestinoTabs .toggle-tab').forEach(b=>b.classList.remove('active'));
+    el.classList.add('active');
+    $('agContaField').style.display=(d==='conta')?'block':'none';
+    $('agCartaoField').style.display=(d==='cartao')?'block':'none';
+}
+function setAgColor(color,el){
+    agColor=color;
+    document.querySelectorAll('.ag-color-dot').forEach(d=>{d.style.border='2px solid transparent';d.classList.remove('active')});
+    el.style.border='2px solid #fff';el.classList.add('active');
+}
+
+function openAgendaAdd(dateStr){
+    agEditId=null;
+    $('agTitle').value='';
+    $('agDate').value=dateStr||new Date().toISOString().split('T')[0];
+    $('agTime').value='';
+    $('agValor').value='';
+    $('agNotes').value='';
+    $('agRepeat').value='none';
+    // Populate selects
+    const bs=$('agBanco');bs.innerHTML='';getBancos().forEach(b=>{const o=document.createElement('option');o.value=b;o.textContent=b;bs.appendChild(o)});
+    const cs=$('agCartao');cs.innerHTML='';getCartoes().forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;cs.appendChild(o)});
+    const cats=$('agCat');cats.innerHTML='<option value="">Sem categoria</option>';
+    (D.catsD||[]).forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;cats.appendChild(o)});
+    setAgType('pagamento',document.querySelector('#agTypeTabs .toggle-tab:first-child'));
+    setAgDestino('conta',document.querySelector('#agDestinoTabs .toggle-tab:first-child'));
+    setAgColor('#cc2222',document.querySelector('.ag-color-dot'));
+    $('agendaModal').classList.add('show');
+}
+
+function openAgendaEdit(id){
+    const ev=(D.ag||[]).find(e=>e.id===id);
+    if(!ev)return;
+    agEditId=id;
+    openAgendaAdd(ev.date);
+    $('agTitle').value=ev.title||'';
+    $('agDate').value=ev.date||'';
+    $('agTime').value=ev.time||'';
+    $('agValor').value=ev.valor||'';
+    $('agNotes').value=ev.notes||'';
+    $('agRepeat').value=ev.repeat||'none';
+    if(ev.type){
+        const idx={pagamento:0,lembrete:1,recebimento:2}[ev.type]||0;
+        setAgType(ev.type,document.querySelectorAll('#agTypeTabs .toggle-tab')[idx]);
+    }
+    if(ev.destino){
+        const idx={conta:0,cartao:1,nenhum:2}[ev.destino]||0;
+        setAgDestino(ev.destino,document.querySelectorAll('#agDestinoTabs .toggle-tab')[idx]);
+    }
+    if(ev.banco)$('agBanco').value=ev.banco;
+    if(ev.cartao)$('agCartao').value=ev.cartao;
+    if(ev.cat)$('agCat').value=ev.cat;
+    if(ev.color){
+        const dots=document.querySelectorAll('.ag-color-dot');
+        dots.forEach(d=>{if(d.style.background===ev.color||d.style.backgroundColor===ev.color)setAgColor(ev.color,d)});
+    }
+    $('agendaModal').classList.add('show');
+}
+
+function closeAgendaModal(){$('agendaModal').classList.remove('show')}
+
+function saveAgenda(){
+    const title=$('agTitle').value.trim();
+    if(!title){toast('Preencha o título');return}
+    const date=$('agDate').value;
+    if(!date){toast('Preencha a data');return}
+    if(!D.ag)D.ag=[];
+    const ev={
+        id:agEditId||'ag_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
+        title,date,
+        time:$('agTime').value||'',
+        type:agType,
+        valor:agType!=='lembrete'?parseFloat($('agValor').value)||0:0,
+        destino:agType!=='lembrete'?agDestino:'nenhum',
+        banco:agDestino==='conta'?$('agBanco').value:'',
+        cartao:agDestino==='cartao'?$('agCartao').value:'',
+        cat:$('agCat').value||'',
+        repeat:$('agRepeat').value||'none',
+        notes:$('agNotes').value.trim(),
+        color:agColor,
+        done:false
+    };
+    if(agEditId){
+        const idx=D.ag.findIndex(e=>e.id===agEditId);
+        if(idx>=0){ev.done=D.ag[idx].done;D.ag[idx]=ev}
+    } else {
+        D.ag.push(ev);
+    }
+    save();closeAgendaModal();refresh();
+    toast(agEditId?'Compromisso atualizado!':'Compromisso agendado!');
+}
+
+function toggleAgDone(id){
+    const ev=(D.ag||[]).find(e=>e.id===id);
+    if(!ev)return;
+    ev.done=!ev.done;
+    // If it's a payment and being marked done, offer to create transaction
+    if(ev.done && ev.type!=='lembrete' && ev.valor>0 && ev.destino!=='nenhum'){
+        if(confirm('Deseja lançar este '+({pagamento:'pagamento',recebimento:'recebimento'}[ev.type]||'lançamento')+' de '+fmt(ev.valor)+' no '+({conta:'banco '+ev.banco,cartao:'cartão '+ev.cartao}[ev.destino]||'extrato')+'?')){
+            launchAgendaTx(ev);
+        }
+    }
+    save();refresh();
+}
+
+function launchAgendaTx(ev){
+    const tp=ev.type==='recebimento'?'Receita':'Despesa';
+    if(ev.destino==='conta'){
+        const tx={id:'tx_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),dt:ev.date,desc:ev.title,v:ev.valor,tp,banco:ev.banco,cat:ev.cat,sub:'',st:'efetivado',m:parseInt(ev.date.split('-')[1])-1,y:parseInt(ev.date.split('-')[0])};
+        D.tx.push(tx);
+    } else if(ev.destino==='cartao'){
+        const m=parseInt(ev.date.split('-')[1])-1;
+        const y=parseInt(ev.date.split('-')[0]);
+        const cp={id:'cp_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),dt:ev.date,desc:ev.title,v:ev.valor,card:ev.cartao,cat:ev.cat,sub:'',tipo:'À Vista',m,y,st:'aberta'};
+        D.cp.push(cp);
+    }
+    save();
+    toast('✅ Lançamento criado no extrato!');
+}
+
+function delAgenda(id){
+    if(!confirm('Excluir este compromisso?'))return;
+    D.ag=(D.ag||[]).filter(e=>e.id!==id);
+    save();refresh();
+    toast('Compromisso excluído');
+}
+
+function rAgenda(){
+    if(!D.ag)D.ag=[];
+    const today=new Date();today.setHours(0,0,0,0);
+    const todayStr=today.toISOString().split('T')[0];
+    
+    // === CALENDAR GRID ===
+    const firstDay=new Date(cYear,cMonth,1).getDay();
+    const daysInMonth=new Date(cYear,cMonth+1,0).getDate();
+    const dayNames=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    
+    let cal='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center">';
+    dayNames.forEach(d=>cal+=`<div style="font-size:10px;color:var(--text3);padding:4px 0;font-weight:600">${d}</div>`);
+    for(let i=0;i<firstDay;i++)cal+='<div></div>';
+    for(let d=1;d<=daysInMonth;d++){
+        const dateStr=`${cYear}-${String(cMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const evts=D.ag.filter(e=>e.date===dateStr);
+        const isToday=dateStr===todayStr;
+        const isSelected=dateStr===agSelectedDay;
+        const hasPending=evts.some(e=>!e.done);
+        const hasDone=evts.some(e=>e.done);
+        let dotHtml='';
+        if(evts.length){
+            const colors=[...new Set(evts.map(e=>e.color))].slice(0,3);
+            dotHtml='<div style="display:flex;gap:2px;justify-content:center;margin-top:1px">'+colors.map(c=>`<div style="width:4px;height:4px;border-radius:50%;background:${c}"></div>`).join('')+'</div>';
+        }
+        const bg=isSelected?'var(--primary)':isToday?'var(--surface3)':'transparent';
+        const border=isToday&&!isSelected?'1px solid var(--primary)':'1px solid transparent';
+        const textColor=isSelected?'#fff':'var(--text)';
+        cal+=`<div onclick="selectAgDay('${dateStr}')" style="padding:6px 2px;border-radius:var(--radius-xs);cursor:pointer;background:${bg};border:${border};color:${textColor};font-size:13px;font-weight:${isToday?'700':'400'}">${d}${dotHtml}</div>`;
+    }
+    cal+='</div>';
+    $('agendaCal').innerHTML=cal;
+    
+    // === SELECTED DAY EVENTS ===
+    if(agSelectedDay){
+        const dayEvts=D.ag.filter(e=>e.date===agSelectedDay).sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
+        const dayDate=new Date(agSelectedDay+'T12:00:00');
+        $('agendaDayTitle').style.display='block';
+        $('agendaDayTitle').innerHTML=`📅 ${dayDate.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'})} <button onclick="openAgendaAdd('${agSelectedDay}')" style="background:none;border:none;color:var(--primary);font-size:12px;cursor:pointer;margin-left:8px">+ Adicionar</button>`;
+        if(dayEvts.length){
+            $('agendaDayEvents').innerHTML=dayEvts.map(e=>renderAgEvent(e)).join('');
+        } else {
+            $('agendaDayEvents').innerHTML='<div style="text-align:center;padding:12px;color:var(--text3);font-size:13px">Nenhum compromisso neste dia</div>';
+        }
+    } else {
+        $('agendaDayTitle').style.display='none';
+        $('agendaDayEvents').innerHTML='';
+    }
+    
+    // === UPCOMING (next 30 days, not done) ===
+    const upcoming=D.ag.filter(e=>!e.done&&e.date>=todayStr).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||'')).slice(0,15);
+    if(upcoming.length){
+        $('agendaEmpty').style.display='none';
+        $('agendaUpcoming').innerHTML=upcoming.map(e=>renderAgEvent(e)).join('');
+    } else {
+        $('agendaEmpty').style.display='block';
+        $('agendaUpcoming').innerHTML='';
+    }
+    
+    // === OVERDUE (past, not done) ===
+    const overdue=D.ag.filter(e=>!e.done&&e.date<todayStr).sort((a,b)=>b.date.localeCompare(a.date));
+    if(overdue.length){
+        $('agendaOverdueCard').style.display='block';
+        $('agendaOverdue').innerHTML=overdue.map(e=>renderAgEvent(e,true)).join('');
+    } else {
+        $('agendaOverdueCard').style.display='none';
+    }
+}
+
+function renderAgEvent(e,isOverdue){
+    const dt=new Date(e.date+'T12:00:00');
+    const dayStr=dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+    const timeStr=e.time?(' · '+e.time):'';
+    const typeIcon={pagamento:'💰',lembrete:'🔔',recebimento:'💵'}[e.type]||'📅';
+    const valorStr=e.valor?(' · '+fmt(e.valor)):'';
+    const destStr=e.destino==='conta'?(' · 🏦 '+e.banco):e.destino==='cartao'?(' · 💳 '+e.cartao):'';
+    const opacity=e.done?'0.4':'1';
+    const textDeco=e.done?'line-through':'none';
+    const overdueStyle=isOverdue?'border-left:3px solid var(--red);':'border-left:3px solid '+e.color+';';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;opacity:${opacity};${overdueStyle}">
+        <div onclick="toggleAgDone('${e.id}')" style="width:22px;height:22px;border-radius:50%;border:2px solid ${e.done?'var(--green)':e.color};display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;background:${e.done?'var(--green)':'transparent'};font-size:12px;color:#fff">${e.done?'✓':''}</div>
+        <div style="flex:1;cursor:pointer" onclick="openAgendaEdit('${e.id}')">
+            <div style="font-size:13px;font-weight:600;text-decoration:${textDeco}">${typeIcon} ${e.title}</div>
+            <div style="font-size:11px;color:var(--text3)">${dayStr}${timeStr}${valorStr}${destStr}${e.cat?' · '+e.cat:''}</div>
+            ${e.notes?'<div style="font-size:11px;color:var(--text3);margin-top:2px;font-style:italic">'+e.notes+'</div>':''}
+            ${isOverdue?'<div style="font-size:10px;color:var(--red);margin-top:2px">⚠️ Vencido</div>':''}
+        </div>
+        <button onclick="delAgenda('${e.id}')" style="background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px">&times;</button>
+    </div>`;
+}
+
+function selectAgDay(dateStr){
+    agSelectedDay=(agSelectedDay===dateStr)?null:dateStr;
+    rAgenda();
+}
+
 </script>
 
 <!-- LGPD MODAL -->
