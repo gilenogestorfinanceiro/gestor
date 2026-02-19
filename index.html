@@ -1049,12 +1049,14 @@ function rExt(){
             const hoje=new Date();
             const vencDate=new Date(cYear,cMonth,vencDia);
             const diasPraVenc=Math.ceil((vencDate-hoje)/(1000*60*60*24));
-            let vencStyle='background:var(--surface3);color:var(--text2)';
-            let vencExtra='';
-            if(diasPraVenc<0){vencStyle='background:var(--red-bg);color:var(--red)';vencExtra=' · Vencida'}
-            else if(diasPraVenc<=5){vencStyle='background:rgba(245,158,11,0.15);color:#f59e0b';vencExtra=' · '+diasPraVenc+'d'}
             const grpTotal=grp.reduce((s,t)=>s+t.v,0);
             const grpPago=grp.filter(t=>t.st==='paga').reduce((s,t)=>s+t.v,0);
+            const allPaid=grp.length>0&&grp.every(t=>t.st==='paga');
+            let vencStyle='background:var(--surface3);color:var(--text2)';
+            let vencExtra='';
+            if(allPaid){vencStyle='background:var(--green-bg);color:var(--green)';vencExtra=' · ✅ Paga'}
+            else if(diasPraVenc<0){vencStyle='background:var(--red-bg);color:var(--red)';vencExtra=' · Vencida'}
+            else if(diasPraVenc<=5){vencStyle='background:rgba(245,158,11,0.15);color:#f59e0b';vencExtra=' · '+diasPraVenc+'d'}
             const grpAberto=grpTotal-grpPago;
             html+=`<div style="margin-bottom:12px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">`;
             html+=`<div style="padding:10px 14px;background:var(--surface2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">`;
@@ -1076,8 +1078,11 @@ function rExt(){
         const hoje=new Date();
         const vencDate=new Date(cYear,cMonth,vencDia);
         const diasPraVenc=Math.ceil((vencDate-hoje)/(1000*60*60*24));
+        const cardCps=mCp(cMonth,cYear).filter(x=>x.card===subVal);
+        const allCardPaid=cardCps.length>0&&cardCps.every(x=>x.st==='paga');
         let vencColor='var(--text2)';let vencBg='var(--surface3)';let vencMsg='';
-        if(diasPraVenc<0){vencColor='var(--red)';vencBg='var(--red-bg)';vencMsg=' · ⚠️ VENCIDA'}
+        if(allCardPaid){vencColor='var(--green)';vencBg='var(--green-bg)';vencMsg=' · ✅ PAGA'}
+        else if(diasPraVenc<0){vencColor='var(--red)';vencBg='var(--red-bg)';vencMsg=' · ⚠️ VENCIDA'}
         else if(diasPraVenc<=5){vencColor='#f59e0b';vencBg='rgba(245,158,11,0.15)';vencMsg=' · '+diasPraVenc+' dias restantes'}
         else{vencMsg=' · '+diasPraVenc+' dias restantes'}
         let cardHeader=`<div style="padding:12px 14px;background:${vencBg};border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:10px;text-align:center">
@@ -1915,7 +1920,8 @@ function rCard(){
         const vencDate=new Date(cYear,cMonth,vencDia);
         const diasPraVenc=Math.ceil((vencDate-hoje)/(1000*60*60*24));
         let vencBadge='';
-        if(diasPraVenc<0) vencBadge=`<span style="font-size:11px;background:var(--red-bg);color:var(--red);padding:2px 8px;border-radius:4px;font-weight:600">Venc. ${vencDia} · Vencida</span>`;
+        if(allPaid&&items>0) vencBadge=`<span style="font-size:11px;background:var(--green-bg);color:var(--green);padding:2px 8px;border-radius:4px;font-weight:600">Venc. ${vencDia} · ✅ Paga</span>`;
+        else if(diasPraVenc<0) vencBadge=`<span style="font-size:11px;background:var(--red-bg);color:var(--red);padding:2px 8px;border-radius:4px;font-weight:600">Venc. ${vencDia} · Vencida</span>`;
         else if(diasPraVenc<=5) vencBadge=`<span style="font-size:11px;background:rgba(245,158,11,0.15);color:#f59e0b;padding:2px 8px;border-radius:4px;font-weight:600">Venc. ${vencDia} · ${diasPraVenc}d</span>`;
         else vencBadge=`<span style="font-size:11px;background:var(--surface3);color:var(--text2);padding:2px 8px;border-radius:4px;font-weight:600">Venc. dia ${vencDia}</span>`;
         return`<div class="card-sum-item" onclick="showCardDetail('${c}')"><div class="card-sum-left"><div class="card-sum-name" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">${c} ${vencBadge} ${stLabel}</div><div class="card-sum-details">${items} compra${items!==1?'s':''} · Paga com ${D.ca[c]||'—'}</div>${payBtn}${reopenBtn}</div><div class="card-sum-amount">${fmt(val)}</div></div>`;
