@@ -882,7 +882,7 @@ function bankBal(banco,toM,toY){
         const startM=(y===BASE_YEAR)?0:0;
         const endM=(y===toY)?toM:11;
         for(let m=startM;m<=endM;m++){
-            mTx(m,y).forEach(t=>{if(t.banco===banco){if(t.tp==='Receita')b+=t.v;else b-=t.v}});
+            mTx(m,y).forEach(t=>{if(t.banco===banco&&(t.st==='efetivado'||!t.st)){if(t.tp==='Receita')b+=t.v;else b-=t.v}});
         }
     }
     return b;
@@ -1227,15 +1227,24 @@ function rExtConta(banco){
     const saldoAnterior=bankBal(banco,prev.m,prev.y);
     
     // Get all transactions for this bank this month, sorted by date ASC
-    const txs=mTx(cMonth,cYear).filter(t=>t.banco===banco).sort((a,b)=>{
+    const txsAll=mTx(cMonth,cYear).filter(t=>t.banco===banco).sort((a,b)=>{
         const da=new Date(a.dt||'2000-01-01'),db=new Date(b.dt||'2000-01-01');
         return da-db||a.id.localeCompare(b.id);
     });
     
-    // Calc totals
+    // Separate efetivados and agendados
+    const txsEf=txsAll.filter(t=>t.st==='efetivado'||!t.st);
+    const txsAg=txsAll.filter(t=>t.st==='agendado');
+    
+    // Calc totals ONLY from efetivados
     let totalCred=0,totalDeb=0;
-    txs.forEach(t=>{if(t.tp==='Receita')totalCred+=t.v;else totalDeb+=t.v});
+    txsEf.forEach(t=>{if(t.tp==='Receita')totalCred+=t.v;else totalDeb+=t.v});
     const saldoFinal=saldoAnterior+totalCred-totalDeb;
+    
+    // Calc agendados totals
+    let agCred=0,agDeb=0;
+    txsAg.forEach(t=>{if(t.tp==='Receita')agCred+=t.v;else agDeb+=t.v});
+    const saldoPrevisto=saldoFinal+agCred-agDeb;
     
     // Header: resumo da conta
     let html=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px">
@@ -1244,15 +1253,16 @@ function rExtConta(banco){
 <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px;text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Saldo Anterior</div><div style="font-family:var(--mono);font-size:15px;font-weight:700;color:${saldoAnterior>=0?'var(--text)':'var(--red)'}">${fmt(saldoAnterior)}</div></div>
 <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px;text-align:center"><div style="font-size:10px;color:var(--text3);text-transform:uppercase;margin-bottom:4px">Saldo Atual</div><div style="font-family:var(--mono);font-size:15px;font-weight:700;color:${saldoFinal>=0?'var(--green)':'var(--red)'}">${fmt(saldoFinal)}</div></div>
 </div>
+${txsAg.length?`<div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:var(--radius-sm);padding:8px 10px;margin-top:8px;text-align:center"><div style="font-size:10px;color:#f59e0b;text-transform:uppercase;margin-bottom:2px">🕐 Saldo Previsto (com agendados)</div><div style="font-family:var(--mono);font-size:14px;font-weight:700;color:#f59e0b">${fmt(saldoPrevisto)}</div><div style="font-size:10px;color:var(--text3);margin-top:2px">${txsAg.length} agendado${txsAg.length>1?'s':''}: +${fmt(agCred).replace('R$ ','')} / -${fmt(agDeb).replace('R$ ','')}</div></div>`:''}
 <div style="display:flex;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
 <div style="text-align:center;flex:1"><div style="font-size:10px;color:var(--text3)">Créditos</div><div style="font-family:var(--mono);font-size:14px;font-weight:600;color:var(--primary)">+${fmt(totalCred).replace('R$ ','')}</div></div>
 <div style="width:1px;background:var(--border)"></div>
 <div style="text-align:center;flex:1"><div style="font-size:10px;color:var(--text3)">Débitos</div><div style="font-family:var(--mono);font-size:14px;font-weight:600;color:var(--red)">-${fmt(totalDeb).replace('R$ ','')}</div></div>
 <div style="width:1px;background:var(--border)"></div>
-<div style="text-align:center;flex:1"><div style="font-size:10px;color:var(--text3)">Lançamentos</div><div style="font-size:14px;font-weight:600">${txs.length}</div></div>
+<div style="text-align:center;flex:1"><div style="font-size:10px;color:var(--text3)">Lançamentos</div><div style="font-size:14px;font-weight:600">${txsAll.length}</div></div>
 </div></div>`;
     
-    if(!txs.length){
+    if(!txsAll.length){
         $('txList').innerHTML=html+'<div class="empty"><p>Nenhum lançamento nesta conta neste mês.</p></div>';
         $('txEmpty').style.display='none';
         return;
@@ -1273,24 +1283,21 @@ function rExtConta(banco){
 <div style="width:85px;text-align:right;font-family:var(--mono);font-size:13px;font-weight:700;color:${saldoAnterior>=0?'var(--text)':'var(--red)'}">${fmt(saldoAnterior)}</div>
 </div>`;
     
-    // Transaction rows with running balance
+    // Transaction rows - EFETIVADOS first with running balance
     let saldo=saldoAnterior;
-    txs.forEach(t=>{
+    txsEf.forEach(t=>{
         const isR=t.tp==='Receita';
-        const isEf=t.st==='efetivado'||!t.st;
         if(isR) saldo+=t.v; else saldo-=t.v;
         const dt=t.dt?new Date(t.dt+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}):'';
         const subLabel=t.sub?' › '+t.sub:'';
-        const stIcon=isEf?'':'🕐 ';
-        const opacity=isEf?'1':'0.6';
         const borderColor=isR?'var(--primary)':'var(--red)';
         const valColor=isR?'var(--primary)':'var(--red)';
         const valSign=isR?'+':'−';
         const recLabel=t.rec?' <span style="font-size:9px;color:var(--purple)">♻️'+t.recIdx+'/'+t.recDur+'</span>':'';
         
-        html+=`<div style="display:flex;align-items:center;padding:8px 14px;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:3px;border-left:3px solid ${borderColor};opacity:${opacity};cursor:pointer" onclick="editItem('tx','${t.id}')">
+        html+=`<div style="display:flex;align-items:center;padding:8px 14px;background:var(--surface2);border-radius:var(--radius-sm);margin-bottom:3px;border-left:3px solid ${borderColor};cursor:pointer" onclick="editItem('tx','${t.id}')">
 <div style="flex:1;min-width:0">
-<div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${stIcon}${t.desc}${recLabel}</div>
+<div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.desc}${recLabel}</div>
 <div style="font-size:10px;color:var(--text3);margin-top:1px">${dt} · ${t.cat}${subLabel}</div>
 </div>
 <div style="width:80px;text-align:right;font-family:var(--mono);font-size:13px;font-weight:600;color:${valColor}">${valSign}${fmt(t.v).replace('R$ ','').replace('-R$ ','')}</div>
@@ -1298,12 +1305,35 @@ function rExtConta(banco){
 </div>`;
     });
     
-    // Saldo final row
+    // Saldo final row (only efetivados)
     html+=`<div style="display:flex;align-items:center;padding:10px 14px;background:${saldoFinal>=0?'var(--green-bg)':'var(--red-bg)'};border-radius:var(--radius-sm);margin-top:4px;border-left:3px solid ${saldoFinal>=0?'var(--green)':'var(--red)'}">
 <div style="flex:1"><span style="font-size:12px;font-weight:700;color:${saldoFinal>=0?'var(--green)':'var(--red)'}">💰 Saldo Final</span></div>
 <div style="width:80px"></div>
 <div style="width:85px;text-align:right;font-family:var(--mono);font-size:15px;font-weight:700;color:${saldoFinal>=0?'var(--green)':'var(--red)'}">${fmt(saldoFinal)}</div>
 </div>`;
+    
+    // AGENDADOS section - separate, visually distinct
+    if(txsAg.length){
+        html+=`<div style="margin-top:16px;padding-top:12px;border-top:2px dashed rgba(245,158,11,0.4)">
+<div style="font-size:12px;font-weight:700;color:#f59e0b;margin-bottom:8px;display:flex;align-items:center;gap:6px">🕐 Agendados / Pendentes</div>`;
+        txsAg.forEach(t=>{
+            const isR=t.tp==='Receita';
+            const dt=t.dt?new Date(t.dt+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}):'';
+            const subLabel=t.sub?' › '+t.sub:'';
+            const valColor=isR?'var(--primary)':'var(--red)';
+            const valSign=isR?'+':'−';
+            
+            html+=`<div style="display:flex;align-items:center;padding:8px 14px;background:rgba(245,158,11,0.05);border:1px dashed rgba(245,158,11,0.3);border-radius:var(--radius-sm);margin-bottom:3px;opacity:0.7;cursor:pointer" onclick="editItem('tx','${t.id}')">
+<div style="flex:1;min-width:0">
+<div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🕐 ${t.desc}</div>
+<div style="font-size:10px;color:var(--text3);margin-top:1px">${dt} · ${t.cat}${subLabel}</div>
+</div>
+<div style="width:80px;text-align:right;font-family:var(--mono);font-size:13px;font-weight:600;color:${valColor}">${valSign}${fmt(t.v).replace('R$ ','').replace('-R$ ','')}</div>
+<div style="width:85px"></div>
+</div>`;
+        });
+        html+=`</div>`;
+    }
     
     $('txList').innerHTML=html;
 }
