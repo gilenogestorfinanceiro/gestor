@@ -2552,7 +2552,7 @@ function setInvTab(tab){
 }
 
 async function fetchCotacoes(){
-    const TOP_TICKERS='PETR4,VALE3,ITUB4,BBDC4,WEGE3,ABEV3,RENT3,BBAS3,SUZB3,MGLU3,ELET3,B3SA3';
+    const TOP_TICKERS=['PETR4','VALE3','ITUB4','BBDC4','WEGE3','ABEV3','RENT3','BBAS3','SUZB3','MGLU3','ELET3','B3SA3'];
     
     // AwesomeAPI - moedas (100% gratuita, sem chave)
     try{
@@ -2563,54 +2563,58 @@ async function fetchCotacoes(){
             if(data.EURBRL) cotacoesCache.EUR={price:parseFloat(data.EURBRL.bid),var:parseFloat(data.EURBRL.pctChange)};
             if(data.BTCBRL) cotacoesCache.BTC={price:parseFloat(data.BTCBRL.bid),var:parseFloat(data.BTCBRL.pctChange)};
         }
-    }catch(e){console.log('AwesomeAPI moedas:',e)}
+    }catch(e){console.log('AwesomeAPI:',e)}
     
-    // brapi - top ações + Ibovespa (gratuito para tickers populares)
+    // HG Brasil - Ibovespa (gratuito, CORS liberado)
     try{
-        // Combine carteira tickers with top tickers
-        const carteiraT=(D.investAtivos||[]).map(a=>a.ticker);
-        const allTickers=[...new Set([...TOP_TICKERS.split(','),...carteiraT])];
-        const resp2=await fetch('https://brapi.dev/api/quote/'+allTickers.join(','));
-        if(resp2.ok){
-            const data2=await resp2.json();
-            if(data2.results){
-                data2.results.forEach(r=>{
-                    cotacoesCache[r.symbol]={
-                        price:r.regularMarketPrice,
-                        var:r.regularMarketChangePercent,
-                        name:r.shortName||r.longName||'',
-                        prevClose:r.regularMarketPreviousClose||0,
-                        high:r.regularMarketDayHigh||0,
-                        low:r.regularMarketDayLow||0,
-                        volume:r.regularMarketVolume||0
-                    };
+        const respHg=await fetch('https://api.hgbrasil.com/finance');
+        if(respHg.ok){
+            const dataHg=await respHg.json();
+            if(dataHg.results){
+                const st=dataHg.results.stocks;
+                if(st&&st.IBOVESPA) cotacoesCache.IBOV={price:st.IBOVESPA.points,var:st.IBOVESPA.variation};
+                // Backup moedas caso AwesomeAPI falhe
+                const cur=dataHg.results.currencies;
+                if(!cotacoesCache.USD&&cur&&cur.USD) cotacoesCache.USD={price:cur.USD.buy,var:cur.USD.variation};
+                if(!cotacoesCache.EUR&&cur&&cur.EUR) cotacoesCache.EUR={price:cur.EUR.buy,var:cur.EUR.variation};
+                if(!cotacoesCache.BTC&&cur&&cur.BTC) cotacoesCache.BTC={price:cur.BTC.buy,var:cur.BTC.variation};
+            }
+        }
+    }catch(e){console.log('HG Brasil:',e)}
+    
+    // brapi - ações (com token gratuito)
+    const carteiraT=(D.investAtivos||[]).map(a=>a.ticker);
+    const allTickers=[...new Set([...TOP_TICKERS,...carteiraT])];
+    try{
+        const respBr=await fetch('https://brapi.dev/api/quote/'+allTickers.join(',')+'?token=demoBrapiToken');
+        if(respBr.ok){
+            const dataBr=await respBr.json();
+            if(dataBr.results){
+                dataBr.results.forEach(r=>{
+                    cotacoesCache[r.symbol]={price:r.regularMarketPrice,var:r.regularMarketChangePercent,name:r.shortName||r.longName||''};
                 });
             }
         }
     }catch(e){console.log('brapi ações:',e)}
     
-    // Ibovespa via brapi
-    try{
-        const respIb=await fetch('https://brapi.dev/api/quote/%5EBVSP');
-        if(respIb.ok){
-            const dataIb=await respIb.json();
-            if(dataIb.results&&dataIb.results[0]){
-                const ib=dataIb.results[0];
-                cotacoesCache.IBOV={price:ib.regularMarketPrice,var:ib.regularMarketChangePercent};
-            }
-        }
-    }catch(e){
-        console.log('Ibovespa:',e);
-        // Fallback HG Brasil
-        try{
-            const resp3=await fetch('https://api.hgbrasil.com/finance');
-            if(resp3.ok){
-                const data3=await resp3.json();
-                if(data3.results&&data3.results.stocks&&data3.results.stocks.IBOVESPA){
-                    cotacoesCache.IBOV={price:data3.results.stocks.IBOVESPA.points,var:data3.results.stocks.IBOVESPA.variation};
+    // Se brapi falhou, tentar Yahoo Finance via proxy CORS
+    if(!cotacoesCache.PETR4){
+        for(const tk of allTickers){
+            try{
+                const r=await fetch('https://query1.finance.yahoo.com/v8/finance/chart/'+tk+'.SA?interval=1d&range=1d');
+                if(r.ok){
+                    const d=await r.json();
+                    const meta=d.chart&&d.chart.result&&d.chart.result[0]&&d.chart.result[0].meta;
+                    if(meta){
+                        cotacoesCache[tk]={
+                            price:meta.regularMarketPrice,
+                            var:((meta.regularMarketPrice-meta.chartPreviousClose)/meta.chartPreviousClose*100),
+                            name:meta.shortName||tk
+                        };
+                    }
                 }
-            }
-        }catch(e2){console.log('HG fallback:',e2)}
+            }catch(e2){}
+        }
     }
 }
 
