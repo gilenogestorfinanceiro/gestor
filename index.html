@@ -217,6 +217,22 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 .bk-footer{display:flex;justify-content:space-between;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);font-size:12px}
 .bk-footer-item{text-align:center;flex:1}
 .bk-footer-label{font-size:10px;color:var(--text3);text-transform:uppercase}
+/* Investimentos */
+.inv-cot-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;text-align:center}
+.inv-cot-label{font-size:12px;color:var(--text3);font-weight:600;margin-bottom:4px}
+.inv-cot-price{font-family:var(--mono);font-size:16px;font-weight:700}
+.inv-cot-var{font-size:11px;font-weight:600;margin-top:2px}
+.inv-cot-var.up{color:var(--green)}.inv-cot-var.down{color:var(--red)}
+.inv-tab{background:none;color:var(--text3)}.inv-tab.active{background:var(--primary);color:#fff}
+.inv-ativo{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.inv-ativo:hover{border-color:var(--primary)}
+.inv-ativo-ticker{font-size:15px;font-weight:800;font-family:var(--mono)}
+.inv-ativo-tipo{font-size:10px;padding:2px 6px;border-radius:4px;font-weight:600;text-transform:uppercase}
+.inv-ativo-info{font-size:12px;color:var(--text3)}
+.inv-ativo-val{text-align:right}
+.inv-ativo-current{font-family:var(--mono);font-size:14px;font-weight:700}
+.inv-ativo-gain{font-size:11px;font-weight:600}
+.inv-div-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -559,6 +575,79 @@ Entrar com Google
 </div>
 
 
+<!-- INVESTIMENTOS -->
+<div class="page" id="page-invest">
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+<div>
+<h2 style="font-size:20px;font-weight:700;margin-bottom:2px">📈 Investimentos</h2>
+<p style="font-size:12px;color:var(--text3)">Cotações e carteira pessoal</p>
+</div>
+<button onclick="refreshCotacoes()" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 14px;color:var(--text2);font-size:12px;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:5px">🔄 Atualizar</button>
+</div>
+
+<!-- COTAÇÕES RÁPIDAS -->
+<div id="cotacoesGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:16px">
+<div class="inv-cot-card"><div class="inv-cot-label">💵 Dólar</div><div class="inv-cot-price" id="cotUSD">--</div><div class="inv-cot-var" id="cotUSDvar">--</div></div>
+<div class="inv-cot-card"><div class="inv-cot-label">💶 Euro</div><div class="inv-cot-price" id="cotEUR">--</div><div class="inv-cot-var" id="cotEURvar">--</div></div>
+<div class="inv-cot-card"><div class="inv-cot-label">₿ Bitcoin</div><div class="inv-cot-price" id="cotBTC">--</div><div class="inv-cot-var" id="cotBTCvar">--</div></div>
+<div class="inv-cot-card"><div class="inv-cot-label">📊 Ibovespa</div><div class="inv-cot-price" id="cotIBOV">--</div><div class="inv-cot-var" id="cotIBOVvar">--</div></div>
+</div>
+
+<!-- TABS: Carteira / Dividendos -->
+<div style="display:flex;gap:4px;margin-bottom:12px;background:var(--surface);border-radius:var(--radius-sm);padding:3px;border:1px solid var(--border)">
+<button onclick="setInvTab('carteira')" id="invTabCarteira" class="inv-tab active" style="flex:1;padding:8px;border:none;border-radius:var(--radius-xs);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .2s">💼 Minha Carteira</button>
+<button onclick="setInvTab('dividendos')" id="invTabDividendos" class="inv-tab" style="flex:1;padding:8px;border:none;border-radius:var(--radius-xs);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .2s">💰 Dividendos</button>
+</div>
+
+<!-- CARTEIRA -->
+<div id="invCarteira">
+<div id="invResumo" style="margin-bottom:12px"></div>
+<div id="invCarteiraList"></div>
+<div style="text-align:center;margin-top:12px">
+<button onclick="openInvAdd()" style="background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px 24px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">+ Adicionar Ativo</button>
+</div>
+</div>
+
+<!-- DIVIDENDOS -->
+<div id="invDividendos" style="display:none">
+<div id="invDivResumo" style="margin-bottom:12px"></div>
+<div id="invDivList"></div>
+<div style="text-align:center;margin-top:12px">
+<button onclick="openDivAdd()" style="background:var(--green);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px 24px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">+ Registrar Dividendo</button>
+</div>
+</div>
+</div>
+
+<!-- Modal Adicionar Ativo -->
+<div id="invAddModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px">
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:400px">
+<h3 style="font-size:16px;font-weight:700;margin-bottom:16px" id="invAddTitle">Adicionar Ativo</h3>
+<div class="form-group"><label class="form-label">Ticker (código)</label><input class="form-input" id="invTicker" placeholder="Ex: PETR4, VALE3, ITUB4" style="text-transform:uppercase"></div>
+<div class="form-group"><label class="form-label">Quantidade</label><input class="form-input" id="invQtd" type="number" placeholder="Ex: 100" min="0" step="1"></div>
+<div class="form-group"><label class="form-label">Preço médio (R$)</label><input class="form-input" id="invPreco" type="number" placeholder="Ex: 28.50" min="0" step="0.01"></div>
+<div class="form-group"><label class="form-label">Tipo</label><select class="form-input" id="invTipo"><option value="acao">Ação</option><option value="fii">FII</option><option value="bdr">BDR</option><option value="etf">ETF</option><option value="crypto">Cripto</option></select></div>
+<div style="display:flex;gap:8px;margin-top:16px">
+<button onclick="closeInvAdd()" style="flex:1;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;cursor:pointer;font-family:var(--font)">Cancelar</button>
+<button onclick="saveInvAtivo()" style="flex:1;padding:10px;background:var(--primary);border:none;border-radius:var(--radius-sm);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Salvar</button>
+</div>
+</div>
+</div>
+
+<!-- Modal Registrar Dividendo -->
+<div id="divAddModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px">
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:400px">
+<h3 style="font-size:16px;font-weight:700;margin-bottom:16px">Registrar Dividendo</h3>
+<div class="form-group"><label class="form-label">Ticker</label><select class="form-input" id="divTicker"></select></div>
+<div class="form-group"><label class="form-label">Tipo</label><select class="form-input" id="divTipoRend"><option value="dividendo">Dividendo</option><option value="jcp">JCP</option><option value="rendimento">Rendimento FII</option><option value="bonificacao">Bonificação</option></select></div>
+<div class="form-group"><label class="form-label">Valor total (R$)</label><input class="form-input" id="divValor" type="number" placeholder="Ex: 150.00" min="0" step="0.01"></div>
+<div class="form-group"><label class="form-label">Data</label><input class="form-input" id="divData" type="date"></div>
+<div style="display:flex;gap:8px;margin-top:16px">
+<button onclick="closeDivAdd()" style="flex:1;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;cursor:pointer;font-family:var(--font)">Cancelar</button>
+<button onclick="saveDividendo()" style="flex:1;padding:10px;background:var(--green);border:none;border-radius:var(--radius-sm);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Salvar</button>
+</div>
+</div>
+</div>
+
 <!-- SOBRE -->
 <div class="page" id="page-sobre">
 <h2 style="font-size:20px;font-weight:700;margin-bottom:16px">🏢 Sobre Nós</h2>
@@ -676,6 +765,7 @@ Mais
 <button onclick="closeMaisMenu();goPage('cfg')" style="width:100%;padding:14px 16px;background:none;border:none;color:var(--text);font-size:14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;font-family:var(--font);border-bottom:1px solid var(--border)">⚙️ Configurações</button>
 <button onclick="closeMaisMenu();goPage('sug')" style="width:100%;padding:14px 16px;background:none;border:none;color:var(--text);font-size:14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;font-family:var(--font)">💬 Sugestões</button>
 <button onclick="closeMaisMenu();window.open('guia.html','_blank')" style="width:100%;padding:14px 16px;background:none;border:none;color:var(--text);font-size:14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;font-family:var(--font);border-top:1px solid var(--border)">📖 Como usar</button>
+<button onclick="closeMaisMenu();goPage('invest')" style="width:100%;padding:14px 16px;background:none;border:none;color:var(--text);font-size:14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;font-family:var(--font);border-top:1px solid var(--border)">📈 Investimentos</button>
 <button onclick="closeMaisMenu();goPage('sobre')" style="width:100%;padding:14px 16px;background:none;border:none;color:var(--text);font-size:14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;font-family:var(--font);border-top:1px solid var(--border)">🏢 Sobre nós</button>
 </div>
 </nav>
@@ -942,7 +1032,7 @@ function goPage(p,el){
     $('page-'+p).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
     if(el)el.classList.add('active');
-    else if(p==='cfg'||p==='sug'||p==='sobre') document.querySelector('.nav-item[data-page="cfg"]')?.classList.add('active');
+    else if(p==='cfg'||p==='sug'||p==='sobre'||p==='invest') document.querySelector('.nav-item[data-page="cfg"]')?.classList.add('active');
     else document.querySelector(`.nav-item[data-page="${p}"]`)?.classList.add('active');
     refresh();
 }
@@ -1086,7 +1176,7 @@ function stepMonth(m,y,delta){
 function refresh(){
     const ml=MN[cMonth]+' '+cYear;
     document.querySelectorAll('.month-label').forEach(e=>e.textContent=ml);
-    if(cPage==='dash')rDash();if(cPage==='ext')rExt();if(cPage==='add')rAdd();if(cPage==='agenda')rAgenda();if(cPage==='card')rCard();if(cPage==='cfg')rCfg();if(cPage==='sug')rSug();
+    if(cPage==='dash')rDash();if(cPage==='ext')rExt();if(cPage==='add')rAdd();if(cPage==='agenda')rAgenda();if(cPage==='card')rCard();if(cPage==='cfg')rCfg();if(cPage==='sug')rSug();if(cPage==='invest')rInvest();
 }
 
 function rDash(){
@@ -2436,6 +2526,285 @@ function rSug(){
         const dt=s.dt?new Date(s.dt).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
         return`<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:12px;background:var(--primary-glow);color:var(--primary);padding:2px 8px;border-radius:4px">${s.tipo}</span><span style="font-size:11px;color:var(--text3)">${dt}</span></div><p style="font-size:13px;color:var(--text1);margin:0;line-height:1.4">${s.texto}</p><div style="text-align:right;margin-top:6px"><button style="font-size:11px;padding:2px 8px;background:var(--red-bg);color:var(--red);border:1px solid rgba(239,68,68,0.3);border-radius:4px;cursor:pointer" onclick="delSug(${idx})">Excluir</button></div></div>`;
     }).join('');
+}
+
+// ==================== INVESTIMENTOS ====================
+let invTab='carteira';
+let invEditId=null;
+let cotacoesCache={};
+
+function setInvTab(tab){
+    invTab=tab;
+    $('invTabCarteira').className='inv-tab'+(tab==='carteira'?' active':'');
+    $('invTabDividendos').className='inv-tab'+(tab==='dividendos'?' active':'');
+    $('invCarteira').style.display=tab==='carteira'?'block':'none';
+    $('invDividendos').style.display=tab==='dividendos'?'block':'none';
+}
+
+async function fetchCotacoes(){
+    try{
+        // brapi.dev - cotações gratuitas
+        const resp=await fetch('https://brapi.dev/api/v2/currency?currency=USD-BRL,EUR-BRL,BTC-BRL');
+        if(resp.ok){
+            const data=await resp.json();
+            if(data.currency){
+                data.currency.forEach(c=>{
+                    if(c.fromCurrency==='USD') cotacoesCache.USD={price:c.bidPrice,var:c.bidVariation};
+                    if(c.fromCurrency==='EUR') cotacoesCache.EUR={price:c.bidPrice,var:c.bidVariation};
+                    if(c.fromCurrency==='BTC') cotacoesCache.BTC={price:c.bidPrice,var:c.bidVariation};
+                });
+            }
+        }
+    }catch(e){console.log('Cotações moedas:',e)}
+    
+    try{
+        // Ibovespa via brapi
+        const resp2=await fetch('https://brapi.dev/api/quote/%5EBVSP');
+        if(resp2.ok){
+            const data2=await resp2.json();
+            if(data2.results&&data2.results[0]){
+                const ib=data2.results[0];
+                cotacoesCache.IBOV={price:ib.regularMarketPrice,var:ib.regularMarketChangePercent};
+            }
+        }
+    }catch(e){console.log('Ibovespa:',e)}
+    
+    // Fetch carteira tickers
+    const ativos=(D.investAtivos||[]);
+    if(ativos.length){
+        const tickers=ativos.map(a=>a.ticker).join(',');
+        try{
+            const resp3=await fetch('https://brapi.dev/api/quote/'+tickers);
+            if(resp3.ok){
+                const data3=await resp3.json();
+                if(data3.results){
+                    data3.results.forEach(r=>{
+                        cotacoesCache[r.symbol]={price:r.regularMarketPrice,var:r.regularMarketChangePercent,name:r.shortName||r.longName||''};
+                    });
+                }
+            }
+        }catch(e){console.log('Carteira cotações:',e)}
+    }
+}
+
+function updateCotacoesUI(){
+    const u=cotacoesCache.USD;
+    const e=cotacoesCache.EUR;
+    const b=cotacoesCache.BTC;
+    const i=cotacoesCache.IBOV;
+    
+    if(u){
+        $('cotUSD').textContent='R$ '+Number(u.price).toFixed(2);
+        const v=Number(u.var);
+        $('cotUSDvar').textContent=(v>=0?'+':'')+v.toFixed(2)+'%';
+        $('cotUSDvar').className='inv-cot-var '+(v>=0?'up':'down');
+    }
+    if(e){
+        $('cotEUR').textContent='R$ '+Number(e.price).toFixed(2);
+        const v=Number(e.var);
+        $('cotEURvar').textContent=(v>=0?'+':'')+v.toFixed(2)+'%';
+        $('cotEURvar').className='inv-cot-var '+(v>=0?'up':'down');
+    }
+    if(b){
+        const bp=Number(b.price);
+        $('cotBTC').textContent='R$ '+(bp>=1000?Math.round(bp).toLocaleString('pt-BR'):bp.toFixed(2));
+        const v=Number(b.var);
+        $('cotBTCvar').textContent=(v>=0?'+':'')+v.toFixed(2)+'%';
+        $('cotBTCvar').className='inv-cot-var '+(v>=0?'up':'down');
+    }
+    if(i){
+        $('cotIBOV').textContent=Math.round(Number(i.price)).toLocaleString('pt-BR')+' pts';
+        const v=Number(i.var);
+        $('cotIBOVvar').textContent=(v>=0?'+':'')+v.toFixed(2)+'%';
+        $('cotIBOVvar').className='inv-cot-var '+(v>=0?'up':'down');
+    }
+}
+
+async function refreshCotacoes(){
+    toast('🔄 Atualizando cotações...');
+    await fetchCotacoes();
+    updateCotacoesUI();
+    rInvestCarteira();
+    toast('✅ Cotações atualizadas!');
+}
+
+function rInvest(){
+    fetchCotacoes().then(()=>{
+        updateCotacoesUI();
+        rInvestCarteira();
+        rInvestDividendos();
+    });
+}
+
+function rInvestCarteira(){
+    const ativos=D.investAtivos||[];
+    if(!ativos.length){
+        $('invResumo').innerHTML='';
+        $('invCarteiraList').innerHTML='<div style="text-align:center;padding:30px;color:var(--text3)"><div style="font-size:36px;margin-bottom:8px">💼</div><div style="font-size:13px">Nenhum ativo na carteira</div><div style="font-size:12px;margin-top:4px">Clique em "+ Adicionar Ativo" para começar</div></div>';
+        return;
+    }
+    
+    let totalInvestido=0,totalAtual=0;
+    let html='';
+    
+    ativos.forEach((a,idx)=>{
+        const cot=cotacoesCache[a.ticker];
+        const precoAtual=cot?cot.price:a.precoMedio;
+        const nome=cot?cot.name:'';
+        const varPct=cot?cot.var:0;
+        const investido=a.qtd*a.precoMedio;
+        const atual=a.qtd*precoAtual;
+        const ganho=atual-investido;
+        const ganhoPct=investido>0?((ganho/investido)*100):0;
+        
+        totalInvestido+=investido;
+        totalAtual+=atual;
+        
+        const tipoColors={acao:'var(--primary)',fii:'var(--purple)',bdr:'var(--orange)',etf:'var(--green)',crypto:'#f59e0b'};
+        const tipoLabels={acao:'Ação',fii:'FII',bdr:'BDR',etf:'ETF',crypto:'Cripto'};
+        const tc=tipoColors[a.tipo]||'var(--text3)';
+        
+        html+=`<div class="inv-ativo">
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+<span class="inv-ativo-ticker">${a.ticker}</span>
+<span class="inv-ativo-tipo" style="background:${tc}20;color:${tc}">${tipoLabels[a.tipo]||a.tipo}</span>
+${cot?`<span style="font-size:10px;color:${varPct>=0?'var(--green)':'var(--red)'};font-weight:600">${varPct>=0?'▲':'▼'} ${Math.abs(varPct).toFixed(2)}%</span>`:''}
+</div>
+<div class="inv-ativo-info">${nome?nome+' · ':''}${a.qtd} un × R$ ${a.precoMedio.toFixed(2)}</div>
+</div>
+<div class="inv-ativo-val">
+<div class="inv-ativo-current">${fmt(atual)}</div>
+<div class="inv-ativo-gain" style="color:${ganho>=0?'var(--green)':'var(--red)'}">${ganho>=0?'+':''}${fmt(ganho)} (${ganhoPct>=0?'+':''}${ganhoPct.toFixed(1)}%)</div>
+</div>
+<button onclick="delInvAtivo(${idx})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:4px;margin-left:4px" title="Remover">✕</button>
+</div>`;
+    });
+    
+    const ganhoTotal=totalAtual-totalInvestido;
+    const ganhoPctTotal=totalInvestido>0?((ganhoTotal/totalInvestido)*100):0;
+    
+    $('invResumo').innerHTML=`
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px">
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center">
+<div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">Investido</div><div style="font-family:var(--mono);font-size:14px;font-weight:700">${fmt(totalInvestido)}</div></div>
+<div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">Valor Atual</div><div style="font-family:var(--mono);font-size:14px;font-weight:700">${fmt(totalAtual)}</div></div>
+<div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">Resultado</div><div style="font-family:var(--mono);font-size:14px;font-weight:700;color:${ganhoTotal>=0?'var(--green)':'var(--red)'}">${ganhoTotal>=0?'+':''}${fmt(ganhoTotal)}<br><span style="font-size:11px">(${ganhoPctTotal>=0?'+':''}${ganhoPctTotal.toFixed(1)}%)</span></div></div>
+</div>
+</div>`;
+    
+    $('invCarteiraList').innerHTML=html;
+}
+
+function rInvestDividendos(){
+    const divs=D.investDivs||[];
+    if(!divs.length){
+        $('invDivResumo').innerHTML='';
+        $('invDivList').innerHTML='<div style="text-align:center;padding:30px;color:var(--text3)"><div style="font-size:36px;margin-bottom:8px">💰</div><div style="font-size:13px">Nenhum dividendo registrado</div></div>';
+        return;
+    }
+    
+    // Filter by current month/year
+    const divsMonth=divs.filter(d=>{
+        const dt=new Date(d.data+'T12:00:00');
+        return dt.getMonth()===cMonth&&dt.getFullYear()===cYear;
+    });
+    const totalMonth=divsMonth.reduce((s,d)=>s+d.valor,0);
+    const totalAll=divs.reduce((s,d)=>s+d.valor,0);
+    
+    $('invDivResumo').innerHTML=`
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+<div style="background:var(--green-bg);border:1px solid rgba(16,185,129,0.2);border-radius:var(--radius-sm);padding:12px;text-align:center">
+<div style="font-size:11px;color:var(--green)">Este mês</div>
+<div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--green)">${fmt(totalMonth)}</div>
+</div>
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;text-align:center">
+<div style="font-size:11px;color:var(--text3)">Total acumulado</div>
+<div style="font-family:var(--mono);font-size:16px;font-weight:700">${fmt(totalAll)}</div>
+</div>
+</div>`;
+    
+    const sorted=[...divs].sort((a,b)=>b.data.localeCompare(a.data));
+    const tipoLabels={dividendo:'Dividendo',jcp:'JCP',rendimento:'Rend. FII',bonificacao:'Bonificação'};
+    
+    $('invDivList').innerHTML=sorted.map((d,i)=>{
+        const dt=new Date(d.data+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'});
+        return `<div class="inv-div-item">
+<div><div style="font-size:13px;font-weight:700;font-family:var(--mono)">${d.ticker}</div><div style="font-size:11px;color:var(--text3)">${dt} · ${tipoLabels[d.tipo]||d.tipo}</div></div>
+<div style="display:flex;align-items:center;gap:8px">
+<span style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--green)">+${fmt(d.valor)}</span>
+<button onclick="delDividendo(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px">✕</button>
+</div>
+</div>`;
+    }).join('');
+}
+
+function openInvAdd(){
+    invEditId=null;
+    $('invAddTitle').textContent='Adicionar Ativo';
+    $('invTicker').value='';$('invQtd').value='';$('invPreco').value='';$('invTipo').value='acao';
+    $('invAddModal').style.display='flex';
+}
+function closeInvAdd(){$('invAddModal').style.display='none'}
+
+function saveInvAtivo(){
+    const ticker=$('invTicker').value.trim().toUpperCase();
+    const qtd=parseFloat($('invQtd').value);
+    const preco=parseFloat($('invPreco').value);
+    const tipo=$('invTipo').value;
+    if(!ticker){toast('Informe o ticker',true);return}
+    if(!qtd||qtd<=0){toast('Informe a quantidade',true);return}
+    if(!preco||preco<=0){toast('Informe o preço médio',true);return}
+    if(!D.investAtivos)D.investAtivos=[];
+    // Check duplicate
+    const existing=D.investAtivos.findIndex(a=>a.ticker===ticker);
+    if(existing>=0){
+        D.investAtivos[existing].qtd=qtd;
+        D.investAtivos[existing].precoMedio=preco;
+        D.investAtivos[existing].tipo=tipo;
+        toast('✅ '+ticker+' atualizado!');
+    } else {
+        D.investAtivos.push({ticker,qtd,precoMedio:preco,tipo});
+        toast('✅ '+ticker+' adicionado!');
+    }
+    save();closeInvAdd();rInvest();
+}
+
+function delInvAtivo(idx){
+    if(!confirm('Remover '+D.investAtivos[idx].ticker+' da carteira?'))return;
+    D.investAtivos.splice(idx,1);save();rInvestCarteira();
+    toast('Ativo removido');
+}
+
+function openDivAdd(){
+    const ativos=D.investAtivos||[];
+    const sel=$('divTicker');
+    sel.innerHTML=ativos.length?ativos.map(a=>`<option value="${a.ticker}">${a.ticker}</option>`).join(''):'<option value="">Nenhum ativo</option>';
+    $('divValor').value='';
+    $('divData').value=new Date().toISOString().split('T')[0];
+    $('divTipoRend').value='dividendo';
+    $('divAddModal').style.display='flex';
+}
+function closeDivAdd(){$('divAddModal').style.display='none'}
+
+function saveDividendo(){
+    const ticker=$('divTicker').value;
+    const valor=parseFloat($('divValor').value);
+    const data=$('divData').value;
+    const tipo=$('divTipoRend').value;
+    if(!ticker){toast('Selecione o ativo',true);return}
+    if(!valor||valor<=0){toast('Informe o valor',true);return}
+    if(!data){toast('Informe a data',true);return}
+    if(!D.investDivs)D.investDivs=[];
+    D.investDivs.push({ticker,valor,data,tipo,id:'div_'+Date.now()});
+    save();closeDivAdd();rInvestDividendos();
+    toast('✅ Dividendo registrado!');
+}
+
+function delDividendo(idx){
+    if(!confirm('Remover este dividendo?'))return;
+    D.investDivs.splice(idx,1);save();rInvestDividendos();
+    toast('Dividendo removido');
 }
 
 function saveSug(){
