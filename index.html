@@ -1008,6 +1008,19 @@ function rExt(){
     
     items.sort((a,b)=>new Date(b.dt||'2000-01-01')-new Date(a.dt||'2000-01-01'));
     
+    // For Cartao filter: group by card
+    let groupByCard=(txFilt==='Cartao');
+    let cardGroups={};
+    if(groupByCard){
+        items.forEach(t=>{
+            if(t.type==='cp'){
+                const k=t.card||'Outros';
+                if(!cardGroups[k])cardGroups[k]=[];
+                cardGroups[k].push(t);
+            }
+        });
+    }
+    
     if(!items.length){$('txList').innerHTML='';$('txEmpty').style.display='block';return}
     $('txEmpty').style.display='none';
     
@@ -1024,30 +1037,81 @@ function rExt(){
     else if(txFilt==='Despesa') header=`<div style="padding:10px 14px;background:var(--red-bg);border-radius:var(--radius-sm);margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--red);font-size:13px">✅ Efetivado</span><span style="font-family:var(--mono);font-weight:700;color:var(--red)">${fmt(despEf)}</span></div><div style="display:flex;justify-content:space-between"><span style="color:var(--primary);font-size:13px">🕐 Agendado</span><span style="font-family:var(--mono);font-weight:600;color:var(--primary)">${fmt(despAg)}</span></div></div>`;
     else if(txFilt==='Cartao') header=`<div style="padding:10px 14px;background:var(--red-bg);border-radius:var(--radius-sm);margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--green);font-size:13px">✅ Paga</span><span style="font-family:var(--mono);font-weight:700;color:var(--green)">${fmt(cardPg)}</span></div><div style="display:flex;justify-content:space-between"><span style="color:var(--red);font-size:13px">🔴 Em aberto</span><span style="font-family:var(--mono);font-weight:700;color:var(--red)">${fmt(cardAb)}</span></div></div>`;
     
-    $('txList').innerHTML=header+items.map(t=>{
-        const dt=t.dt?new Date(t.dt+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'}):'';
-        const subLabel=t.sub?' › '+t.sub:'';
-        
-        if(t.type==='tx'){
-            const isR=t.tp==='Receita';
-            const isTransf=t.transf;
-            const isEf=t.st==='efetivado';
-            const stBadge=isTransf?'<span style="font-size:10px;background:var(--primary-glow);color:var(--primary);padding:2px 6px;border-radius:4px;margin-left:4px">🔄</span>':(isEf?'<span style="font-size:10px;background:var(--green-bg);color:var(--green);padding:2px 6px;border-radius:4px;margin-left:4px">✅</span>':'<span style="font-size:10px;background:var(--primary-glow);color:var(--primary);padding:2px 6px;border-radius:4px;margin-left:4px">🕐</span>');
-            const opacity=isEf?'1':'0.6';
-            const recLabel=t.rec?' · <span style="color:var(--purple)">♻️ '+t.recIdx+'/'+t.recDur+'</span>':'';
-            const iconClass=isTransf?'card-icon':isR?'income':'expense';
-            const iconChar=isTransf?'🔄':isR?'↑':'↓';
-            const amtClass=isTransf?'':isR?'positive':'negative';
-            const amtSign=isTransf?'':isR?'+':'−';
-            const metaInfo=isTransf?(dt+' · '+t.transfOrigem+' → '+t.transfDestino):(dt+' · '+t.banco+recLabel+' · '+t.cat+subLabel);
-            return`<div class="tx-item" style="opacity:${opacity}"><div class="tx-icon ${iconClass}" style="cursor:pointer${isTransf?'':''}" onclick="${isTransf?'':'toggleTxStatus(\''+t.id+'\')'}" title="${isTransf?'Transferência':'Toque para alternar status'}">${iconChar}</div><div class="tx-info" style="cursor:pointer" onclick="editItem('tx','${t.id}')"><div class="tx-desc">${t.desc}${stBadge}</div><div class="tx-meta">${metaInfo} <span style="font-size:9px;color:var(--primary)">✏️</span></div></div><div class="tx-amount ${amtClass}" style="${isTransf?'color:var(--primary)':''}">${amtSign}${fmt(t.v).replace('R$ ','').replace('-R$ ','')}</div><button class="tx-del" onclick="delTx('${t.id}')">&times;</button></div>`;
-        } else {
-            const isPaga=t.st==='paga';
-            const stBadge=isPaga?'<span style="font-size:10px;background:var(--green-bg);color:var(--green);padding:2px 6px;border-radius:4px;margin-left:4px">✅ Paga</span>':'<span style="font-size:10px;background:var(--red-bg);color:var(--red);padding:2px 6px;border-radius:4px;margin-left:4px">🔴 Aberta</span>';
-            const opacity=isPaga?'0.6':'1';
-            return`<div class="tx-item" style="opacity:${opacity}"><div class="tx-icon card-icon">💳</div><div class="tx-info" style="cursor:pointer" onclick="editItem('cp','${t.id}')"><div class="tx-desc">${t.desc}${stBadge}</div><div class="tx-meta">${dt} · ${t.card}${t.parc?' · '+t.parc:''} · ${t.cat}${subLabel} <span style="font-size:9px;color:var(--primary)">✏️</span></div></div><div class="tx-amount negative">−${fmt(t.v).replace('R$ ','').replace('-R$ ','')}</div><button class="tx-del" onclick="delCardExt('${t.id}')">✕</button></div>`;
-        }
-    }).join('');
+    // Render grouped by card or flat
+    if(groupByCard && subVal==='__all__'){
+        // Grouped view: each card gets a header
+        let html=header;
+        const cartoes=getCartoes();
+        cartoes.forEach((cardName,ci)=>{
+            const grp=cardGroups[cardName];
+            if(!grp||!grp.length)return;
+            const vencDia=getVencs()[ci];
+            const hoje=new Date();
+            const vencDate=new Date(cYear,cMonth,vencDia);
+            const diasPraVenc=Math.ceil((vencDate-hoje)/(1000*60*60*24));
+            let vencStyle='background:var(--surface3);color:var(--text2)';
+            let vencExtra='';
+            if(diasPraVenc<0){vencStyle='background:var(--red-bg);color:var(--red)';vencExtra=' · Vencida'}
+            else if(diasPraVenc<=5){vencStyle='background:rgba(245,158,11,0.15);color:#f59e0b';vencExtra=' · '+diasPraVenc+'d'}
+            const grpTotal=grp.reduce((s,t)=>s+t.v,0);
+            const grpPago=grp.filter(t=>t.st==='paga').reduce((s,t)=>s+t.v,0);
+            const grpAberto=grpTotal-grpPago;
+            html+=`<div style="margin-bottom:12px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">`;
+            html+=`<div style="padding:10px 14px;background:var(--surface2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">`;
+            html+=`<div style="display:flex;align-items:center;gap:8px"><span style="font-size:14px;font-weight:700">💳 ${cardName}</span><span style="font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600;${vencStyle}">Venc. dia ${vencDia}${vencExtra}</span></div>`;
+            html+=`<div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--red)">${fmt(grpTotal)}</div>`;
+            html+=`</div>`;
+            html+=`<div style="padding:4px 0">`;
+            grp.sort((a,b)=>new Date(b.dt||'2000-01-01')-new Date(a.dt||'2000-01-01'));
+            grp.forEach(t=>{
+                html+=renderExtItem(t);
+            });
+            html+=`</div></div>`;
+        });
+        $('txList').innerHTML=html;
+    } else if(groupByCard && subVal!=='__all__'){
+        // Single card selected: show vencimento prominent
+        const ci=getCartoes().indexOf(subVal);
+        const vencDia=ci>=0?getVencs()[ci]:0;
+        const hoje=new Date();
+        const vencDate=new Date(cYear,cMonth,vencDia);
+        const diasPraVenc=Math.ceil((vencDate-hoje)/(1000*60*60*24));
+        let vencColor='var(--text2)';let vencBg='var(--surface3)';let vencMsg='';
+        if(diasPraVenc<0){vencColor='var(--red)';vencBg='var(--red-bg)';vencMsg=' · ⚠️ VENCIDA'}
+        else if(diasPraVenc<=5){vencColor='#f59e0b';vencBg='rgba(245,158,11,0.15)';vencMsg=' · '+diasPraVenc+' dias restantes'}
+        else{vencMsg=' · '+diasPraVenc+' dias restantes'}
+        let cardHeader=`<div style="padding:12px 14px;background:${vencBg};border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:10px;text-align:center">
+            <div style="font-size:18px;font-weight:700;color:${vencColor}">📅 Vencimento: dia ${vencDia}${vencMsg}</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:4px">Paga com ${D.ca[subVal]||'—'}</div>
+        </div>`;
+        $('txList').innerHTML=cardHeader+header+items.map(t=>renderExtItem(t)).join('');
+    } else {
+        $('txList').innerHTML=header+items.map(t=>renderExtItem(t)).join('');
+    }
+}
+
+function renderExtItem(t){
+    const dt=t.dt?new Date(t.dt+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'}):'';
+    const subLabel=t.sub?' › '+t.sub:'';
+    if(t.type==='tx'){
+        const isR=t.tp==='Receita';
+        const isTransf=t.transf;
+        const isEf=t.st==='efetivado';
+        const stBadge=isTransf?`<span style="font-size:10px;background:var(--primary-glow);color:var(--primary);padding:2px 6px;border-radius:4px;margin-left:4px">🔄</span>`:(isEf?`<span style="font-size:10px;background:var(--green-bg);color:var(--green);padding:2px 6px;border-radius:4px;margin-left:4px">✅</span>`:`<span style="font-size:10px;background:var(--primary-glow);color:var(--primary);padding:2px 6px;border-radius:4px;margin-left:4px">🕐</span>`);
+        const opacity=isEf?'1':'0.6';
+        const recLabel=t.rec?` · <span style="color:var(--purple)">♻️ ${t.recIdx}/${t.recDur}</span>`:'';
+        const iconClass=isTransf?'card-icon':isR?'income':'expense';
+        const iconChar=isTransf?'🔄':isR?'↑':'↓';
+        const amtClass=isTransf?'':isR?'positive':'negative';
+        const amtSign=isTransf?'':isR?'+':'−';
+        const metaInfo=isTransf?`${dt} · ${t.transfOrigem} → ${t.transfDestino}`:`${dt} · ${t.banco}${recLabel} · ${t.cat}${subLabel}`;
+        return`<div class="tx-item" style="opacity:${opacity}"><div class="tx-icon ${iconClass}" style="cursor:pointer" onclick="${isTransf?'':`toggleTxStatus('${t.id}')`}" title="${isTransf?'Transferência':'Toque para alternar status'}">${iconChar}</div><div class="tx-info" style="cursor:pointer" onclick="editItem('tx','${t.id}')"><div class="tx-desc">${t.desc}${stBadge}</div><div class="tx-meta">${metaInfo} <span style="font-size:9px;color:var(--primary)">✏️</span></div></div><div class="tx-amount ${amtClass}" style="${isTransf?'color:var(--primary)':''}">${amtSign}${fmt(t.v).replace('R$ ','').replace('-R$ ','')}</div><button class="tx-del" onclick="delTx('${t.id}')">&times;</button></div>`;
+    } else {
+        const isPaga=t.st==='paga';
+        const stBadge=isPaga?`<span style="font-size:10px;background:var(--green-bg);color:var(--green);padding:2px 6px;border-radius:4px;margin-left:4px">✅ Paga</span>`:`<span style="font-size:10px;background:var(--red-bg);color:var(--red);padding:2px 6px;border-radius:4px;margin-left:4px">🔴 Aberta</span>`;
+        const opacity=isPaga?'0.6':'1';
+        return`<div class="tx-item" style="opacity:${opacity}"><div class="tx-icon card-icon">💳</div><div class="tx-info" style="cursor:pointer" onclick="editItem('cp','${t.id}')"><div class="tx-desc">${t.desc}${stBadge}</div><div class="tx-meta">${dt} · ${t.card}${t.parc?' · '+t.parc:''} · ${t.cat}${subLabel} <span style="font-size:9px;color:var(--primary)">✏️</span></div></div><div class="tx-amount negative">−${fmt(t.v).replace('R$ ','').replace('-R$ ','')}</div><button class="tx-del" onclick="delCardExt('${t.id}')">✕</button></div>`;
+    }
 }
 
 // === EXTRATO BANCÁRIO (visão Conta) ===
