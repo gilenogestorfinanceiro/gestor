@@ -2371,13 +2371,13 @@ let agType='pagamento', agDestino='conta', agColor='#cc2222', agEditId=null, agS
 function setAgType(t,el){
     agType=t;
     document.querySelectorAll('#agTypeTabs .toggle-tab').forEach(b=>b.classList.remove('active'));
-    el.classList.add('active');
+    if(el)el.classList.add('active');
     $('agPayFields').style.display=(t==='lembrete')?'none':'block';
 }
 function setAgDestino(d,el){
     agDestino=d;
     document.querySelectorAll('#agDestinoTabs .toggle-tab').forEach(b=>b.classList.remove('active'));
-    el.classList.add('active');
+    if(el)el.classList.add('active');
     $('agContaField').style.display=(d==='conta')?'block':'none';
     $('agCartaoField').style.display=(d==='cartao')?'block':'none';
 }
@@ -2400,9 +2400,12 @@ function openAgendaAdd(dateStr){
     const cs=$('agCartao');cs.innerHTML='';getCartoes().forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;cs.appendChild(o)});
     const cats=$('agCat');cats.innerHTML='<option value="">Sem categoria</option>';
     (D.catsD||[]).forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;cats.appendChild(o)});
-    setAgType('pagamento',document.querySelector('#agTypeTabs .toggle-tab:first-child'));
-    setAgDestino('conta',document.querySelector('#agDestinoTabs .toggle-tab:first-child'));
-    setAgColor('#cc2222',document.querySelector('.ag-color-dot'));
+    const typeBtn=document.querySelector('#agTypeTabs .toggle-tab:first-child');
+    if(typeBtn)setAgType('pagamento',typeBtn);
+    const destBtn=document.querySelector('#agDestinoTabs .toggle-tab:first-child');
+    if(destBtn)setAgDestino('conta',destBtn);
+    const colorBtn=document.querySelector('.ag-color-dot');
+    if(colorBtn)setAgColor('#cc2222',colorBtn);
     $('agendaModal').classList.add('show');
 }
 
