@@ -1197,62 +1197,100 @@ function rExt(){
     else if(txFilt==='Despesa') header=`<div style="padding:10px 14px;background:var(--red-bg);border-radius:var(--radius-sm);margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--red);font-size:13px">✅ Efetivado</span><span style="font-family:var(--mono);font-weight:700;color:var(--red)">${fmt(despEf)}</span></div><div style="display:flex;justify-content:space-between"><span style="color:var(--primary);font-size:13px">🕐 Agendado</span><span style="font-family:var(--mono);font-weight:600;color:var(--primary)">${fmt(despAg)}</span></div></div>`;
     else if(txFilt==='Cartao') header=`<div style="padding:10px 14px;background:var(--red-bg);border-radius:var(--radius-sm);margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--green);font-size:13px">✅ Paga</span><span style="font-family:var(--mono);font-weight:700;color:var(--green)">${fmt(cardPg)}</span></div><div style="display:flex;justify-content:space-between"><span style="color:var(--red);font-size:13px">🔴 Em aberto</span><span style="font-family:var(--mono);font-weight:700;color:var(--red)">${fmt(cardAb)}</span></div></div>`;
     
-    // Render grouped by card or flat
-    if(groupByCard && subVal==='__all__'){
-        // Grouped view: each card gets a header
-        let html=header;
+    // ====== RENDER GROUPED BY ACCOUNT/CARD ======
+    
+    // Build groups
+    const bancoGroups={};
+    const cardGroupsAll={};
+    items.forEach(t=>{
+        if(t.type==='tx'){
+            const k=t.banco||'Outros';
+            if(!bancoGroups[k])bancoGroups[k]=[];
+            bancoGroups[k].push(t);
+        } else if(t.type==='cp'){
+            const k=t.card||'Outros';
+            if(!cardGroupsAll[k])cardGroupsAll[k]=[];
+            cardGroupsAll[k].push(t);
+        }
+    });
+    
+    let html=header;
+    
+    // --- BANK GROUPS ---
+    const bancos=getBancos();
+    const bancoKeys=Object.keys(bancoGroups).sort((a,b)=>{
+        const ia=bancos.indexOf(a),ib=bancos.indexOf(b);
+        return (ia===-1?999:ia)-(ib===-1?999:ib);
+    });
+    
+    bancoKeys.forEach(banco=>{
+        const grp=bancoGroups[banco];
+        if(!grp||!grp.length)return;
+        const grpRec=grp.filter(t=>t.tp==='Receita'&&(t.st==='efetivado'||!t.st)).reduce((s,t)=>s+t.v,0);
+        const grpDesp=grp.filter(t=>t.tp==='Despesa'&&(t.st==='efetivado'||!t.st)).reduce((s,t)=>s+t.v,0);
+        const grpAg=grp.filter(t=>t.st==='agendado').length;
+        const saldoBanco=bankBal(banco,cMonth,cYear);
+        
+        html+=`<div style="margin-bottom:14px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">`;
+        html+=`<div style="padding:10px 14px;background:var(--surface2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">`;
+        html+=`<div style="display:flex;align-items:center;gap:8px"><span style="font-size:15px;font-weight:700">🏦 ${banco}</span>`;
+        if(grpAg>0) html+=`<span style="font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600;background:rgba(245,158,11,0.12);color:#f59e0b">${grpAg} agendado${grpAg>1?'s':''}</span>`;
+        html+=`</div>`;
+        html+=`<div style="display:flex;gap:12px;align-items:center">`;
+        if(txFilt==='all'){
+            html+=`<span style="font-family:var(--mono);font-size:12px;color:var(--green)">+${fmtN(grpRec)}</span>`;
+            html+=`<span style="font-family:var(--mono);font-size:12px;color:var(--red)">-${fmtN(grpDesp)}</span>`;
+        }
+        html+=`<span style="font-family:var(--mono);font-size:13px;font-weight:700;color:${saldoBanco>=0?'var(--green)':'var(--red)'}">${fmt(saldoBanco)}</span>`;
+        html+=`</div></div>`;
+        html+=`<div style="padding:2px 0">`;
+        grp.sort((a,b)=>new Date(b.dt||'2000-01-01')-new Date(a.dt||'2000-01-01'));
+        grp.forEach(t=>{html+=renderExtItem(t)});
+        html+=`</div></div>`;
+    });
+    
+    // --- CARD GROUPS ---
+    if(txFilt==='all'||txFilt==='Cartao'){
         const cartoes=getCartoes();
-        cartoes.forEach((cardName,ci)=>{
-            const grp=cardGroups[cardName];
+        const cardKeys=Object.keys(cardGroupsAll).sort((a,b)=>{
+            const ia=cartoes.indexOf(a),ib=cartoes.indexOf(b);
+            return (ia===-1?999:ia)-(ib===-1?999:ib);
+        });
+        
+        cardKeys.forEach(cardName=>{
+            const grp=cardGroupsAll[cardName];
             if(!grp||!grp.length)return;
-            const vencDia=getVencs()[ci];
+            const ci=cartoes.indexOf(cardName);
+            const vencDia=ci>=0?getVencs()[ci]:0;
             const hoje=new Date();
             const vencDate=new Date(cYear,cMonth,vencDia);
             const diasPraVenc=Math.ceil((vencDate-hoje)/(1000*60*60*24));
             const grpTotal=grp.reduce((s,t)=>s+t.v,0);
-            const grpPago=grp.filter(t=>t.st==='paga').reduce((s,t)=>s+t.v,0);
             const allPaid=grp.length>0&&grp.every(t=>t.st==='paga');
             let vencStyle='background:var(--surface3);color:var(--text2)';
             let vencExtra='';
             if(allPaid){vencStyle='background:var(--green-bg);color:var(--green)';vencExtra=' · ✅ Paga'}
             else if(diasPraVenc<0){vencStyle='background:var(--red-bg);color:var(--red)';vencExtra=' · Vencida'}
             else if(diasPraVenc<=5){vencStyle='background:rgba(245,158,11,0.15);color:#f59e0b';vencExtra=' · '+diasPraVenc+'d'}
-            const grpAberto=grpTotal-grpPago;
-            html+=`<div style="margin-bottom:12px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">`;
+            
+            html+=`<div style="margin-bottom:14px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">`;
             html+=`<div style="padding:10px 14px;background:var(--surface2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">`;
-            html+=`<div style="display:flex;align-items:center;gap:8px"><span style="font-size:14px;font-weight:700">💳 ${cardName}</span><span style="font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600;${vencStyle}">Venc. dia ${vencDia}${vencExtra}</span></div>`;
-            html+=`<div style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--red)">${fmt(grpTotal)}</div>`;
+            html+=`<div style="display:flex;align-items:center;gap:8px"><span style="font-size:15px;font-weight:700">💳 ${cardName}</span>`;
+            html+=`<span style="font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600;${vencStyle}">Venc. dia ${vencDia}${vencExtra}</span></div>`;
+            html+=`<div style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--red)">${fmt(grpTotal)}</div>`;
             html+=`</div>`;
-            html+=`<div style="padding:4px 0">`;
+            html+=`<div style="padding:2px 0">`;
             grp.sort((a,b)=>new Date(b.dt||'2000-01-01')-new Date(a.dt||'2000-01-01'));
-            grp.forEach(t=>{
-                html+=renderExtItem(t);
-            });
+            grp.forEach(t=>{html+=renderExtItem(t)});
             html+=`</div></div>`;
         });
-        $('txList').innerHTML=html;
-    } else if(groupByCard && subVal!=='__all__'){
-        // Single card selected: show vencimento prominent
-        const ci=getCartoes().indexOf(subVal);
-        const vencDia=ci>=0?getVencs()[ci]:0;
-        const hoje=new Date();
-        const vencDate=new Date(cYear,cMonth,vencDia);
-        const diasPraVenc=Math.ceil((vencDate-hoje)/(1000*60*60*24));
-        const cardCps=mCp(cMonth,cYear).filter(x=>x.card===subVal);
-        const allCardPaid=cardCps.length>0&&cardCps.every(x=>x.st==='paga');
-        let vencColor='var(--text2)';let vencBg='var(--surface3)';let vencMsg='';
-        if(allCardPaid){vencColor='var(--green)';vencBg='var(--green-bg)';vencMsg=' · ✅ PAGA'}
-        else if(diasPraVenc<0){vencColor='var(--red)';vencBg='var(--red-bg)';vencMsg=' · ⚠️ VENCIDA'}
-        else if(diasPraVenc<=5){vencColor='#f59e0b';vencBg='rgba(245,158,11,0.15)';vencMsg=' · '+diasPraVenc+' dias restantes'}
-        else{vencMsg=' · '+diasPraVenc+' dias restantes'}
-        let cardHeader=`<div style="padding:12px 14px;background:${vencBg};border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:10px;text-align:center">
-            <div style="font-size:18px;font-weight:700;color:${vencColor}">📅 Vencimento: dia ${vencDia}${vencMsg}</div>
-            <div style="font-size:12px;color:var(--text3);margin-top:4px">Paga com ${D.ca[subVal]||'—'}</div>
-        </div>`;
-        $('txList').innerHTML=cardHeader+header+items.map(t=>renderExtItem(t)).join('');
-    } else {
-        $('txList').innerHTML=header+items.map(t=>renderExtItem(t)).join('');
     }
+    
+    if(!bancoKeys.length && !Object.keys(cardGroupsAll).length){
+        html+=items.map(t=>renderExtItem(t)).join('');
+    }
+    
+    $('txList').innerHTML=html;
 }
 
 function renderExtItem(t){
