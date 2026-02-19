@@ -2366,15 +2366,34 @@ function rSug(){
 function saveSug(){
     const texto=$('sugTexto').value.trim();
     if(!texto){toast('Escreva sua sugestão',true);return}
+    const tipo=$('sugTipo').value;
+    const user=D.userName||'Anônimo';
+    const dt=new Date().toISOString();
+    
+    // Save locally
     if(!D.sugs) D.sugs=[];
-    D.sugs.push({
-        tipo:$('sugTipo').value,
-        texto:texto,
-        dt:new Date().toISOString(),
-        user:D.userName||'Anônimo'
-    });
+    D.sugs.push({tipo,texto,dt,user});
     save();$('sugTexto').value='';rSug();
-    toast('📩 Sugestão enviada! Obrigado!');
+    toast('📩 Enviando sugestão...');
+    
+    // Send email via FormSubmit
+    fetch('https://formsubmit.co/ajax/gilenopaivalima@gmail.com',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body:JSON.stringify({
+            _subject:'💬 Nova Sugestão - Gestor Financeiro',
+            Tipo:tipo,
+            Sugestão:texto,
+            Usuário:user,
+            Email:currentUser||'Não logado',
+            Data:new Date().toLocaleString('pt-BR')
+        })
+    }).then(r=>r.json()).then(data=>{
+        if(data.success) toast('✅ Sugestão enviada com sucesso!');
+        else toast('⚠️ Salva localmente, email pendente',true);
+    }).catch(()=>{
+        toast('⚠️ Salva localmente, email pendente',true);
+    });
 }
 
 function delSug(idx){
