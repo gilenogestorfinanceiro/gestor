@@ -479,72 +479,7 @@ Entrar com Google
 </div>
 </div>
 
-<!-- AGENDA ADD MODAL -->
-<div class="modal-overlay" id="agendaModal" onclick="if(event.target===this)closeAgendaModal()">
-<div class="modal" style="max-height:90vh;overflow-y:auto">
-<div class="modal-handle"></div>
-<div class="modal-title">📅 Novo Compromisso</div>
 
-<div class="form-group"><label class="form-label">Título</label><input type="text" class="form-input" id="agTitle" placeholder="Ex: Pagar conta de luz, Reunião..."></div>
-
-<div class="form-row">
-<div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input" id="agDate"></div>
-<div class="form-group"><label class="form-label">Hora (opcional)</label><input type="time" class="form-input" id="agTime"></div>
-</div>
-
-<div class="form-group"><label class="form-label">Tipo</label>
-<div class="toggle-tabs" id="agTypeTabs">
-<button class="toggle-tab t-red active" onclick="setAgType('pagamento',this)">💰 Pagamento</button>
-<button class="toggle-tab t-blue" onclick="setAgType('lembrete',this)">🔔 Lembrete</button>
-<button class="toggle-tab t-green" onclick="setAgType('recebimento',this)">💵 Recebimento</button>
-</div></div>
-
-<!-- Payment fields -->
-<div id="agPayFields">
-<div class="form-group"><label class="form-label">Valor</label><div class="valor-input-wrap"><span class="valor-prefix">R$</span><input type="number" step="0.01" min="0" class="form-input" id="agValor" placeholder="0,00" inputmode="decimal"></div></div>
-
-<div class="form-group"><label class="form-label">Onde lançar?</label>
-<div class="toggle-tabs" id="agDestinoTabs">
-<button class="toggle-tab t-blue active" onclick="setAgDestino('conta',this)">🏦 Conta</button>
-<button class="toggle-tab t-blue" onclick="setAgDestino('cartao',this)">💳 Cartão</button>
-<button class="toggle-tab t-blue" onclick="setAgDestino('nenhum',this)">📝 Só lembrete</button>
-</div></div>
-
-<div id="agContaField"><div class="form-group"><label class="form-label">Banco/Conta</label><select class="form-input" id="agBanco"></select></div></div>
-<div id="agCartaoField" style="display:none"><div class="form-group"><label class="form-label">Cartão</label><select class="form-input" id="agCartao"></select></div></div>
-
-<div class="form-group"><label class="form-label">Categoria</label><select class="form-input" id="agCat"></select></div>
-</div>
-
-<!-- Recurrence -->
-<div class="form-group"><label class="form-label">Repetir</label>
-<select class="form-input" id="agRepeat">
-<option value="none">Não repetir</option>
-<option value="weekly">Semanal</option>
-<option value="biweekly">Quinzenal</option>
-<option value="monthly">Mensal</option>
-<option value="yearly">Anual</option>
-</select></div>
-
-<div class="form-group"><label class="form-label">Notas (opcional)</label>
-<textarea class="form-input" id="agNotes" rows="2" placeholder="Observações..." style="resize:vertical;font-family:var(--font)"></textarea></div>
-
-<div class="form-group">
-<label class="form-label">Cor</label>
-<div style="display:flex;gap:8px" id="agColorPicker">
-<div onclick="setAgColor('#cc2222',this)" class="ag-color-dot active" style="width:28px;height:28px;border-radius:50%;background:#cc2222;cursor:pointer;border:2px solid transparent"></div>
-<div onclick="setAgColor('#f59e0b',this)" class="ag-color-dot" style="width:28px;height:28px;border-radius:50%;background:#f59e0b;cursor:pointer;border:2px solid transparent"></div>
-<div onclick="setAgColor('#10b981',this)" class="ag-color-dot" style="width:28px;height:28px;border-radius:50%;background:#10b981;cursor:pointer;border:2px solid transparent"></div>
-<div onclick="setAgColor('#3b82f6',this)" class="ag-color-dot" style="width:28px;height:28px;border-radius:50%;background:#3b82f6;cursor:pointer;border:2px solid transparent"></div>
-<div onclick="setAgColor('#8b5cf6',this)" class="ag-color-dot" style="width:28px;height:28px;border-radius:50%;background:#8b5cf6;cursor:pointer;border:2px solid transparent"></div>
-</div></div>
-
-<div style="display:flex;gap:8px;margin-top:12px">
-<button class="btn btn-green" onclick="saveAgenda()" style="flex:1">✓ Salvar</button>
-<button class="btn btn-outline" onclick="closeAgendaModal()">Cancelar</button>
-</div>
-</div>
-</div>
 
 <!-- CARTÕES (visualização) -->
 <div class="page" id="page-card">
@@ -2660,5 +2595,71 @@ function selectAgDay(dateStr){
 </div>
 </div>
 
+<!-- AGENDA ADD MODAL -->
+<div class="modal-overlay" id="agendaModal" onclick="if(event.target===this)closeAgendaModal()">
+<div class="modal" style="max-height:90vh;overflow-y:auto">
+<div class="modal-handle"></div>
+<div class="modal-title">📅 Novo Compromisso</div>
+
+<div class="form-group"><label class="form-label">Título</label><input type="text" class="form-input" id="agTitle" placeholder="Ex: Pagar conta de luz, Reunião..."></div>
+
+<div class="form-row">
+<div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input" id="agDate"></div>
+<div class="form-group"><label class="form-label">Hora (opcional)</label><input type="time" class="form-input" id="agTime"></div>
+</div>
+
+<div class="form-group"><label class="form-label">Tipo</label>
+<div class="toggle-tabs" id="agTypeTabs">
+<button class="toggle-tab t-red active" onclick="setAgType('pagamento',this)">💰 Pagamento</button>
+<button class="toggle-tab t-blue" onclick="setAgType('lembrete',this)">🔔 Lembrete</button>
+<button class="toggle-tab t-green" onclick="setAgType('recebimento',this)">💵 Recebimento</button>
+</div></div>
+
+<!-- Payment fields -->
+<div id="agPayFields">
+<div class="form-group"><label class="form-label">Valor</label><div class="valor-input-wrap"><span class="valor-prefix">R$</span><input type="number" step="0.01" min="0" class="form-input" id="agValor" placeholder="0,00" inputmode="decimal"></div></div>
+
+<div class="form-group"><label class="form-label">Onde lançar?</label>
+<div class="toggle-tabs" id="agDestinoTabs">
+<button class="toggle-tab t-blue active" onclick="setAgDestino('conta',this)">🏦 Conta</button>
+<button class="toggle-tab t-blue" onclick="setAgDestino('cartao',this)">💳 Cartão</button>
+<button class="toggle-tab t-blue" onclick="setAgDestino('nenhum',this)">📝 Só lembrete</button>
+</div></div>
+
+<div id="agContaField"><div class="form-group"><label class="form-label">Banco/Conta</label><select class="form-input" id="agBanco"></select></div></div>
+<div id="agCartaoField" style="display:none"><div class="form-group"><label class="form-label">Cartão</label><select class="form-input" id="agCartao"></select></div></div>
+
+<div class="form-group"><label class="form-label">Categoria</label><select class="form-input" id="agCat"></select></div>
+</div>
+
+<!-- Recurrence -->
+<div class="form-group"><label class="form-label">Repetir</label>
+<select class="form-input" id="agRepeat">
+<option value="none">Não repetir</option>
+<option value="weekly">Semanal</option>
+<option value="biweekly">Quinzenal</option>
+<option value="monthly">Mensal</option>
+<option value="yearly">Anual</option>
+</select></div>
+
+<div class="form-group"><label class="form-label">Notas (opcional)</label>
+<textarea class="form-input" id="agNotes" rows="2" placeholder="Observações..." style="resize:vertical;font-family:var(--font)"></textarea></div>
+
+<div class="form-group">
+<label class="form-label">Cor</label>
+<div style="display:flex;gap:8px" id="agColorPicker">
+<div onclick="setAgColor('#cc2222',this)" class="ag-color-dot active" style="width:28px;height:28px;border-radius:50%;background:#cc2222;cursor:pointer;border:2px solid transparent"></div>
+<div onclick="setAgColor('#f59e0b',this)" class="ag-color-dot" style="width:28px;height:28px;border-radius:50%;background:#f59e0b;cursor:pointer;border:2px solid transparent"></div>
+<div onclick="setAgColor('#10b981',this)" class="ag-color-dot" style="width:28px;height:28px;border-radius:50%;background:#10b981;cursor:pointer;border:2px solid transparent"></div>
+<div onclick="setAgColor('#3b82f6',this)" class="ag-color-dot" style="width:28px;height:28px;border-radius:50%;background:#3b82f6;cursor:pointer;border:2px solid transparent"></div>
+<div onclick="setAgColor('#8b5cf6',this)" class="ag-color-dot" style="width:28px;height:28px;border-radius:50%;background:#8b5cf6;cursor:pointer;border:2px solid transparent"></div>
+</div></div>
+
+<div style="display:flex;gap:8px;margin-top:12px">
+<button class="btn btn-green" onclick="saveAgenda()" style="flex:1">✓ Salvar</button>
+<button class="btn btn-outline" onclick="closeAgendaModal()">Cancelar</button>
+</div>
+</div>
+</div>
 </body>
 </html>
