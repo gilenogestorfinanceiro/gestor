@@ -2310,6 +2310,16 @@ function setAgType(t,el){
     document.querySelectorAll('#agTypeTabs .toggle-tab').forEach(b=>b.classList.remove('active'));
     if(el)el.classList.add('active');
     $('agPayFields').style.display=(t==='lembrete')?'none':'block';
+    // Update categories based on type
+    const cats=$('agCat');
+    if(cats){
+        const prev=cats.value;
+        cats.innerHTML='<option value="">Sem categoria</option>';
+        const list=t==='recebimento'?(D.catsR||[]):(D.catsD||[]);
+        list.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;cats.appendChild(o)});
+        if(prev)cats.value=prev;
+        onAgCatChange();
+    }
 }
 function setAgDestino(d,el){
     agDestino=d;
@@ -2324,6 +2334,21 @@ function setAgColor(color,el){
     el.style.border='2px solid #fff';el.classList.add('active');
 }
 
+function onAgCatChange(){
+    const cat=$('agCat').value;
+    const subs=(D.subCats&&D.subCats[cat])||[];
+    const row=$('agSubCatRow');
+    const sel=$('agSubCat');
+    if(subs.length){
+        row.style.display='block';
+        sel.innerHTML='<option value="">Sem subcategoria</option>';
+        subs.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o)});
+    } else {
+        row.style.display='none';
+        sel.innerHTML='';
+    }
+}
+
 function openAgendaAdd(dateStr){
     try{
     agEditId=null;
@@ -2336,7 +2361,9 @@ function openAgendaAdd(dateStr){
     // Populate selects
     const bs=$('agBanco');if(bs){bs.innerHTML='';getBancos().forEach(b=>{const o=document.createElement('option');o.value=b;o.textContent=b;bs.appendChild(o)})}
     const cs=$('agCartao');if(cs){cs.innerHTML='';getCartoes().forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;cs.appendChild(o)})}
-    const cats=$('agCat');if(cats){cats.innerHTML='<option value="">Sem categoria</option>';(D.catsD||[]).forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;cats.appendChild(o)})}
+    const cats=$('agCat');if(cats){cats.innerHTML='<option value="">Sem categoria</option>';(D.catsD||[]).concat(D.catsR||[]).forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;cats.appendChild(o)})}
+    $('agSubCatRow').style.display='none';
+    $('agSubCat').innerHTML='';
     const typeBtn=document.querySelector('#agTypeTabs .toggle-tab:first-child');
     if(typeBtn)setAgType('pagamento',typeBtn);
     const destBtn=document.querySelector('#agDestinoTabs .toggle-tab:first-child');
@@ -2368,7 +2395,7 @@ function openAgendaEdit(id){
     }
     if(ev.banco)$('agBanco').value=ev.banco;
     if(ev.cartao)$('agCartao').value=ev.cartao;
-    if(ev.cat)$('agCat').value=ev.cat;
+    if(ev.cat){$('agCat').value=ev.cat;onAgCatChange();if(ev.sub)$('agSubCat').value=ev.sub}
     if(ev.color){
         const dots=document.querySelectorAll('.ag-color-dot');
         dots.forEach(d=>{if(d.style.background===ev.color||d.style.backgroundColor===ev.color)setAgColor(ev.color,d)});
@@ -2394,6 +2421,7 @@ function saveAgenda(){
         banco:agDestino==='conta'?$('agBanco').value:'',
         cartao:agDestino==='cartao'?$('agCartao').value:'',
         cat:$('agCat').value||'',
+        sub:$('agSubCat').value||'',
         repeat:$('agRepeat').value||'none',
         notes:$('agNotes').value.trim(),
         color:agColor,
@@ -2425,16 +2453,16 @@ function toggleAgDone(id){
 function launchAgendaTx(ev){
     const tp=ev.type==='recebimento'?'Receita':'Despesa';
     if(ev.destino==='conta'){
-        const tx={id:'tx_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),dt:ev.date,desc:ev.title,v:ev.valor,tp,banco:ev.banco,cat:ev.cat,sub:'',st:'efetivado',m:parseInt(ev.date.split('-')[1])-1,y:parseInt(ev.date.split('-')[0])};
+        const tx={id:'tx_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),dt:ev.date,desc:ev.title,v:ev.valor,tp,banco:ev.banco,cat:ev.cat,sub:ev.sub||'',st:'agendado',m:parseInt(ev.date.split('-')[1])-1,y:parseInt(ev.date.split('-')[0])};
         D.tx.push(tx);
     } else if(ev.destino==='cartao'){
         const m=parseInt(ev.date.split('-')[1])-1;
         const y=parseInt(ev.date.split('-')[0]);
-        const cp={id:'cp_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),dt:ev.date,desc:ev.title,v:ev.valor,card:ev.cartao,cat:ev.cat,sub:'',tipo:'À Vista',m,y,st:'aberta'};
+        const cp={id:'cp_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),dt:ev.date,desc:ev.title,v:ev.valor,card:ev.cartao,cat:ev.cat,sub:ev.sub||'',tipo:'À Vista',m,y,st:'aberta'};
         D.cp.push(cp);
     }
     save();
-    toast('✅ Lançamento criado no extrato!');
+    toast('✅ Lançamento criado como pendente!');
 }
 
 function delAgenda(id){
@@ -2527,7 +2555,7 @@ function renderAgEvent(e,isOverdue){
         <div onclick="toggleAgDone('${e.id}')" style="width:22px;height:22px;border-radius:50%;border:2px solid ${e.done?'var(--green)':e.color};display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;background:${e.done?'var(--green)':'transparent'};font-size:12px;color:#fff">${e.done?'✓':''}</div>
         <div style="flex:1;cursor:pointer" onclick="openAgendaEdit('${e.id}')">
             <div style="font-size:13px;font-weight:600;text-decoration:${textDeco}">${typeIcon} ${e.title}</div>
-            <div style="font-size:11px;color:var(--text3)">${dayStr}${timeStr}${valorStr}${destStr}${e.cat?' · '+e.cat:''}</div>
+            <div style="font-size:11px;color:var(--text3)">${dayStr}${timeStr}${valorStr}${destStr}${e.cat?' · '+e.cat+(e.sub?' › '+e.sub:''):''}</div>
             ${e.notes?'<div style="font-size:11px;color:var(--text3);margin-top:2px;font-style:italic">'+e.notes+'</div>':''}
             ${isOverdue?'<div style="font-size:10px;color:var(--red);margin-top:2px">⚠️ Vencido</div>':''}
         </div>
@@ -2629,7 +2657,8 @@ function selectAgDay(dateStr){
 <div id="agContaField"><div class="form-group"><label class="form-label">Banco/Conta</label><select class="form-input" id="agBanco"></select></div></div>
 <div id="agCartaoField" style="display:none"><div class="form-group"><label class="form-label">Cartão</label><select class="form-input" id="agCartao"></select></div></div>
 
-<div class="form-group"><label class="form-label">Categoria</label><select class="form-input" id="agCat"></select></div>
+<div class="form-group"><label class="form-label">Categoria</label><select class="form-input" id="agCat" onchange="onAgCatChange()"></select></div>
+<div class="form-group" id="agSubCatRow" style="display:none"><label class="form-label">Subcategoria</label><select class="form-input" id="agSubCat"></select></div>
 </div>
 
 <!-- Recurrence -->
