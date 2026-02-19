@@ -263,8 +263,19 @@ Entrar com Google
 </div>
 <div class="card">
 <div class="card-title"><div class="dot" style="background:var(--red)"></div>Despesas por Categoria</div>
-<div class="pie-legend" id="catBreak"></div>
+<div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
+<canvas id="pieDesp" style="flex-shrink:0"></canvas>
+<div style="flex:1;min-width:200px" id="catBreakDesp"></div>
+</div>
 <div class="empty" id="catEmpty" style="display:none"><p>Nenhuma despesa registrada</p></div>
+</div>
+<div class="card">
+<div class="card-title"><div class="dot" style="background:var(--green)"></div>Receitas por Categoria</div>
+<div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
+<canvas id="pieRec" style="flex-shrink:0"></canvas>
+<div style="flex:1;min-width:200px" id="catBreakRec"></div>
+</div>
+<div class="empty" id="catEmptyRec" style="display:none"><p>Nenhuma receita registrada</p></div>
 </div>
 <div class="card">
 <div class="card-title"><div class="dot" style="background:var(--green)"></div>Saldo das Contas</div>
@@ -775,11 +786,92 @@ function bankBal(banco,toM,toY){
 
 function catBreak(m,y){
     const c={};
-    // Despesas em conta (excluindo pagamentos de fatura e transferências)
     mTx(m,y).filter(t=>t.tp==='Despesa'&&!t.pgtoFatura&&!t.transf).forEach(t=>{const k=t.cat||'Outros';c[k]=(c[k]||0)+t.v});
-    // Compras no cartão
     mCp(m,y).forEach(cp=>{const k=cp.cat||'Cartão Crédito';c[k]=(c[k]||0)+cp.v});
     return Object.entries(c).sort((a,b)=>b[1]-a[1]);
+}
+function catBreakDetail(m,y,tipo){
+    const c={};
+    if(tipo==='Despesa'){
+        mTx(m,y).filter(t=>t.tp==='Despesa'&&!t.pgtoFatura&&!t.transf).forEach(t=>{
+            const k=t.cat||'Outros';const s=t.sub||'Sem subcategoria';
+            if(!c[k])c[k]={total:0,subs:{}};
+            c[k].total+=t.v;c[k].subs[s]=(c[k].subs[s]||0)+t.v;
+        });
+        mCp(m,y).forEach(cp=>{
+            const k=cp.cat||'Cartão Crédito';const s=cp.sub||cp.card||'Sem subcategoria';
+            if(!c[k])c[k]={total:0,subs:{}};
+            c[k].total+=cp.v;c[k].subs[s]=(c[k].subs[s]||0)+cp.v;
+        });
+    } else {
+        mTx(m,y).filter(t=>t.tp==='Receita'&&!t.transf).forEach(t=>{
+            const k=t.cat||'Outros';const s=t.sub||'Sem subcategoria';
+            if(!c[k])c[k]={total:0,subs:{}};
+            c[k].total+=t.v;c[k].subs[s]=(c[k].subs[s]||0)+t.v;
+        });
+    }
+    return Object.entries(c).map(([k,v])=>({cat:k,total:v.total,subs:Object.entries(v.subs).sort((a,b)=>b[1]-a[1])})).sort((a,b)=>b.total-a.total);
+}
+function drawPie(canvasId,data,colors){
+    const cv=document.getElementById(canvasId);if(!cv)return;
+    const ctx=cv.getContext('2d');
+    const dpr=window.devicePixelRatio||1;
+    cv.width=220*dpr;cv.height=220*dpr;
+    cv.style.width='220px';cv.style.height='220px';
+    ctx.scale(dpr,dpr);
+    const cx=110,cy=110,r=90;
+    const total=data.reduce((s,d)=>s+d[1],0);
+    if(!total){ctx.clearRect(0,0,220,220);return}
+    let startAngle=-Math.PI/2;
+    data.forEach((d,i)=>{
+        const slice=(d[1]/total)*Math.PI*2;
+        ctx.beginPath();ctx.moveTo(cx,cy);
+        ctx.arc(cx,cy,r,startAngle,startAngle+slice);
+        ctx.fillStyle=colors[i%colors.length];ctx.fill();
+        startAngle+=slice;
+    });
+    // Inner circle for donut
+    ctx.beginPath();ctx.arc(cx,cy,55,0,Math.PI*2);
+    ctx.fillStyle='var(--surface)';
+    ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--surface').trim()||'#1a1a1a';
+    ctx.fill();
+    // Center text
+    ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--text').trim()||'#e8e8e8';
+    ctx.font='bold 14px DM Sans,sans-serif';ctx.textAlign='center';
+    ctx.fillText('R$ '+fmtShort(total),cx,cy+5);
+}
+function fmtShort(v){if(v>=1000000)return(v/1000000).toFixed(1)+'M';if(v>=1000)return(v/1000).toFixed(1)+'K';return v.toFixed(0)}
+function toggleCatSubs(el){
+    const subs=el.nextElementSibling;
+    if(subs.style.display==='none'||!subs.style.display){subs.style.display='block';el.querySelector('.cat-arrow').textContent='▼'}
+    else{subs.style.display='none';el.querySelector('.cat-arrow').textContent='▶'}
+}
+function renderCatSection(containerId,data,colors,total){
+    const el=document.getElementById(containerId);if(!el)return;
+    if(!data.length){el.innerHTML='<div class="empty"><p>Nenhum lançamento</p></div>';return}
+    el.innerHTML=data.map((d,i)=>{
+        const pct=total?(d.total/total*100):0;
+        const color=colors[i%colors.length];
+        const subsHtml=d.subs.map(s=>{
+            const spct=d.total?(s[1]/d.total*100):0;
+            return`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:${color};opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">${s[0]}</span>
+                <span style="font-family:var(--mono);font-size:12px;font-weight:600">${fmt(s[1])}</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">${spct.toFixed(0)}%</span>
+            </div>`;
+        }).join('');
+        return`<div style="margin-bottom:2px">
+            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+                <div style="width:12px;height:12px;border-radius:3px;background:${color};flex-shrink:0"></div>
+                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
+                <span style="flex:1;font-size:13px;font-weight:600">${d.cat}</span>
+                <span style="font-family:var(--mono);font-size:13px;font-weight:700">${fmt(d.total)}</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">${pct.toFixed(0)}%</span>
+            </div>
+            <div style="display:none;padding:0 8px 8px 34px">${subsHtml}</div>
+        </div>`;
+    }).join('');
 }
 
 // Helper: step back N months from (m,y)
@@ -822,16 +914,25 @@ function rDash(){
         ch+=`<div class="chart-col"><div class="chart-bars-pair"><div class="chart-bar green" style="height:${rh}px" title="Rec ${fmt(rv)}"></div><div class="chart-bar red" style="height:${dh}px" title="Desp ${fmt(dv)}"></div></div><div class="chart-lbl">${lbl}</div></div>`;
     });
     $('chartBars').innerHTML=ch;
-    // Categories
-    const cats=catBreak(cMonth,cYear);
-    if(!cats.length){$('catBreak').innerHTML='';$('catEmpty').style.display='block'}
+    // Categories - Despesas
+    const PIECOLORS=['#cc2222','#ef4444','#f59e0b','#f97316','#8b5cf6','#6366f1','#ec4899','#14b8a6','#06b6d4','#84cc16','#a855f7','#e11d48'];
+    const PIECOLORS_REC=['#10b981','#059669','#34d399','#06b6d4','#0ea5e9','#22d3ee','#2dd4bf','#a3e635','#4ade80','#86efac','#67e8f9','#6ee7b7'];
+    const catsDesp=catBreakDetail(cMonth,cYear,'Despesa');
+    const totalDesp=catsDesp.reduce((s,c)=>s+c.total,0);
+    if(!catsDesp.length){$('catBreakDesp').innerHTML='';$('catEmpty').style.display='block';document.getElementById('pieDesp').style.display='none'}
     else{
-        $('catEmpty').style.display='none';
-        const total=cats.reduce((s,c)=>s+c[1],0);
-        $('catBreak').innerHTML=cats.map((c,i)=>{
-            const pct=total?(c[1]/total*100):0;
-            return`<div class="pie-item"><div class="pie-dot" style="background:${CC[i%CC.length]}"></div><span style="min-width:90px">${c[0]}</span><div class="pie-bar"><div class="pie-fill" style="width:${pct}%;background:${CC[i%CC.length]}"></div></div><span class="pie-val">${fmt(c[1])}</span><span class="pie-pct">${pct.toFixed(0)}%</span></div>`;
-        }).join('');
+        $('catEmpty').style.display='none';document.getElementById('pieDesp').style.display='block';
+        drawPie('pieDesp',catsDesp.map(c=>[c.cat,c.total]),PIECOLORS);
+        renderCatSection('catBreakDesp',catsDesp,PIECOLORS,totalDesp);
+    }
+    // Categories - Receitas
+    const catsRec=catBreakDetail(cMonth,cYear,'Receita');
+    const totalRec2=catsRec.reduce((s,c)=>s+c.total,0);
+    if(!catsRec.length){$('catBreakRec').innerHTML='';$('catEmptyRec').style.display='block';document.getElementById('pieRec').style.display='none'}
+    else{
+        $('catEmptyRec').style.display='none';document.getElementById('pieRec').style.display='block';
+        drawPie('pieRec',catsRec.map(c=>[c.cat,c.total]),PIECOLORS_REC);
+        renderCatSection('catBreakRec',catsRec,PIECOLORS_REC,totalRec2);
     }
     // Banks
     $('bankList').innerHTML=getBancos().map(b=>{
