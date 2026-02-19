@@ -612,19 +612,35 @@ Entrar com Google
 </div>
 </div>
 
-<!-- TABS: Carteira / Dividendos -->
+<!-- TABS: Carteira / Operações / Dividendos -->
 <div style="display:flex;gap:4px;margin-bottom:12px;background:var(--surface);border-radius:var(--radius-sm);padding:3px;border:1px solid var(--border)">
-<button onclick="setInvTab('carteira')" id="invTabCarteira" class="inv-tab active" style="flex:1;padding:8px;border:none;border-radius:var(--radius-xs);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .2s">💼 Minha Carteira</button>
-<button onclick="setInvTab('dividendos')" id="invTabDividendos" class="inv-tab" style="flex:1;padding:8px;border:none;border-radius:var(--radius-xs);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .2s">💰 Dividendos</button>
+<button onclick="setInvTab('carteira')" id="invTabCarteira" class="inv-tab active" style="flex:1;padding:8px;border:none;border-radius:var(--radius-xs);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .2s">💼 Carteiras</button>
+<button onclick="setInvTab('operacoes')" id="invTabOperacoes" class="inv-tab" style="flex:1;padding:8px;border:none;border-radius:var(--radius-xs);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .2s">📋 Operações</button>
+<button onclick="setInvTab('dividendos')" id="invTabDividendos" class="inv-tab" style="flex:1;padding:8px;border:none;border-radius:var(--radius-xs);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);transition:all .2s">💰 Dividendos</button>
 </div>
 
-<!-- CARTEIRA -->
+<!-- CARTEIRAS -->
 <div id="invCarteira">
+<div id="invResumoGeral" style="margin-bottom:12px"></div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+<select id="invCarteiraSelect" onchange="rInvestCarteira()" class="form-input" style="flex:1;max-width:200px;font-size:13px;font-weight:700"></select>
+<div style="display:flex;gap:4px">
+<button onclick="addCarteira()" style="background:var(--primary);color:#fff;border:none;border-radius:var(--radius-xs);padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">+ Nova</button>
+<button onclick="renameCarteira()" style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-xs);padding:6px 8px;font-size:11px;cursor:pointer;font-family:var(--font);color:var(--text2)">✏️</button>
+<button onclick="delCarteira()" style="background:var(--red-bg);border:1px solid rgba(239,68,68,0.3);border-radius:var(--radius-xs);padding:6px 8px;font-size:11px;cursor:pointer;font-family:var(--font);color:var(--red)">🗑️</button>
+</div>
+</div>
 <div id="invResumo" style="margin-bottom:12px"></div>
 <div id="invCarteiraList"></div>
 <div style="text-align:center;margin-top:12px">
-<button onclick="openInvAdd()" style="background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px 24px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">+ Adicionar Ativo</button>
+<button onclick="openInvOp('compra')" style="background:var(--green);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);margin-right:8px">+ Compra</button>
+<button onclick="openInvOp('venda')" style="background:var(--red);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">− Venda</button>
 </div>
+</div>
+
+<!-- OPERAÇÕES (histórico) -->
+<div id="invOperacoes" style="display:none">
+<div id="invOpList"></div>
 </div>
 
 <!-- DIVIDENDOS -->
@@ -637,23 +653,27 @@ Entrar com Google
 </div>
 </div>
 
-<!-- Modal Adicionar Ativo -->
-<div id="invAddModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px">
+<!-- Modal Operação (Compra/Venda) -->
+<div id="invOpModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center;padding:20px">
 <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:400px">
-<h3 style="font-size:16px;font-weight:700;margin-bottom:16px" id="invAddTitle">Adicionar Ativo</h3>
-<div class="form-group"><label class="form-label">Ticker (código)</label><input class="form-input" id="invTicker" placeholder="Ex: PETR4, VALE3, ITUB4" style="text-transform:uppercase"></div>
-<div class="form-group"><label class="form-label">Quantidade</label><input class="form-input" id="invQtd" type="number" placeholder="Ex: 100" min="0" step="1"></div>
-<div class="form-group"><label class="form-label">Preço médio (R$)</label><input class="form-input" id="invPreco" type="number" placeholder="Ex: 28.50" min="0" step="0.01"></div>
-<div class="form-group"><label class="form-label">Tipo</label><select class="form-input" id="invTipo"><option value="acao">Ação</option><option value="fii">FII</option><option value="bdr">BDR</option><option value="etf">ETF</option><option value="crypto">Cripto</option></select></div>
+<h3 style="font-size:16px;font-weight:700;margin-bottom:16px" id="invOpTitle">Compra de Ativo</h3>
+<div class="form-group"><label class="form-label">Carteira</label><select class="form-input" id="invOpCarteira"></select></div>
+<div class="form-group"><label class="form-label">Ticker (código)</label><input class="form-input" id="invOpTicker" placeholder="Ex: PETR4, VALE3" style="text-transform:uppercase"></div>
+<div class="form-group"><label class="form-label">Tipo de ativo</label><select class="form-input" id="invOpTipo"><option value="acao">Ação</option><option value="fii">FII</option><option value="bdr">BDR</option><option value="etf">ETF</option><option value="crypto">Cripto</option></select></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+<div class="form-group"><label class="form-label">Quantidade</label><input class="form-input" id="invOpQtd" type="number" placeholder="100" min="1" step="1"></div>
+<div class="form-group"><label class="form-label">Preço unitário (R$)</label><input class="form-input" id="invOpPreco" type="number" placeholder="28.50" min="0" step="0.01"></div>
+</div>
+<div class="form-group"><label class="form-label">Data da operação</label><input class="form-input" id="invOpData" type="date"></div>
 <div style="display:flex;gap:8px;margin-top:16px">
-<button onclick="closeInvAdd()" style="flex:1;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;cursor:pointer;font-family:var(--font)">Cancelar</button>
-<button onclick="saveInvAtivo()" style="flex:1;padding:10px;background:var(--primary);border:none;border-radius:var(--radius-sm);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Salvar</button>
+<button onclick="closeInvOp()" style="flex:1;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;cursor:pointer;font-family:var(--font)">Cancelar</button>
+<button id="invOpSaveBtn" onclick="saveInvOp()" style="flex:1;padding:10px;border:none;border-radius:var(--radius-sm);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Salvar</button>
 </div>
 </div>
 </div>
 
 <!-- Modal Registrar Dividendo -->
-<div id="divAddModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px">
+<div id="divAddModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center;padding:20px">
 <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:400px">
 <h3 style="font-size:16px;font-weight:700;margin-bottom:16px">Registrar Dividendo</h3>
 <div class="form-group"><label class="form-label">Ticker</label><select class="form-input" id="divTicker"></select></div>
@@ -748,7 +768,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.5
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.6
 </div>
 
 <!-- BOTTOM NAV -->
@@ -2570,15 +2590,229 @@ function saveBrapiToken(){
 
 // ==================== INVESTIMENTOS ====================
 let invTab='carteira';
-let invEditId=null;
 let cotacoesCache={};
+let invOpType='compra';
+
+function getCarteiras(){if(!D.investCarteiras||!D.investCarteiras.length){D.investCarteiras=[{id:'c1',nome:'Minha Carteira'}];save()}return D.investCarteiras}
+function getOps(){if(!D.investOps)D.investOps=[];return D.investOps}
+function getCurCarteiraId(){return $('invCarteiraSelect')?$('invCarteiraSelect').value:getCarteiras()[0].id}
 
 function setInvTab(tab){
     invTab=tab;
-    $('invTabCarteira').className='inv-tab'+(tab==='carteira'?' active':'');
-    $('invTabDividendos').className='inv-tab'+(tab==='dividendos'?' active':'');
+    document.querySelectorAll('.inv-tab').forEach(t=>t.classList.remove('active'));
+    $('invTab'+(tab.charAt(0).toUpperCase()+tab.slice(1))).classList.add('active');
     $('invCarteira').style.display=tab==='carteira'?'block':'none';
+    $('invOperacoes').style.display=tab==='operacoes'?'block':'none';
     $('invDividendos').style.display=tab==='dividendos'?'block':'none';
+    if(tab==='operacoes')rInvestOps();
+    if(tab==='dividendos')rInvestDividendos();
+}
+
+// -- Carteiras CRUD --
+function addCarteira(){
+    const nome=prompt('Nome da nova carteira:');
+    if(!nome||!nome.trim())return;
+    const id='c'+Date.now();
+    getCarteiras().push({id,nome:nome.trim()});save();
+    rInvestCarteira();$('invCarteiraSelect').value=id;rInvestCarteira();
+    toast('✅ Carteira "'+nome.trim()+'" criada!');
+}
+function renameCarteira(){
+    const cid=getCurCarteiraId();const c=getCarteiras().find(x=>x.id===cid);if(!c)return;
+    const nome=prompt('Renomear carteira:',c.nome);if(!nome||!nome.trim())return;
+    c.nome=nome.trim();save();rInvestCarteira();toast('✅ Renomeada!');
+}
+function delCarteira(){
+    const carts=getCarteiras();if(carts.length<=1){toast('Precisa ter pelo menos 1 carteira',true);return}
+    const cid=getCurCarteiraId();const c=carts.find(x=>x.id===cid);if(!c)return;
+    if(!confirm('Excluir carteira "'+c.nome+'" e todas as operações?'))return;
+    D.investCarteiras=carts.filter(x=>x.id!==cid);
+    D.investOps=(D.investOps||[]).filter(o=>o.carteira!==cid);
+    save();rInvestCarteira();toast('Carteira excluída');
+}
+
+// -- Operações (Compra/Venda) --
+function openInvOp(tipo){
+    invOpType=tipo;
+    $('invOpTitle').textContent=tipo==='compra'?'📈 Compra de Ativo':'📉 Venda de Ativo';
+    $('invOpSaveBtn').style.background=tipo==='compra'?'var(--green)':'var(--red)';
+    $('invOpSaveBtn').textContent=tipo==='compra'?'Registrar Compra':'Registrar Venda';
+    const sel=$('invOpCarteira');
+    sel.innerHTML=getCarteiras().map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+    sel.value=getCurCarteiraId();
+    $('invOpTicker').value='';$('invOpQtd').value='';$('invOpPreco').value='';
+    $('invOpData').value=new Date().toISOString().split('T')[0];
+    $('invOpTipo').value='acao';
+    $('invOpModal').style.display='flex';
+}
+function closeInvOp(){$('invOpModal').style.display='none'}
+
+function saveInvOp(){
+    const carteira=$('invOpCarteira').value;
+    const ticker=$('invOpTicker').value.trim().toUpperCase();
+    const qtd=parseInt($('invOpQtd').value);
+    const preco=parseFloat($('invOpPreco').value);
+    const data=$('invOpData').value;
+    const tipo=$('invOpTipo').value;
+    if(!ticker){toast('Informe o ticker',true);return}
+    if(!qtd||qtd<=0){toast('Informe a quantidade',true);return}
+    if(!preco||preco<=0){toast('Informe o preço',true);return}
+    if(!data){toast('Informe a data',true);return}
+    // Validate sell: check if has enough shares
+    if(invOpType==='venda'){
+        const pos=calcPosition(carteira,ticker);
+        if(qtd>pos.qtd){toast('Quantidade maior que posição ('+pos.qtd+' un)',true);return}
+    }
+    getOps().push({id:'op'+Date.now(),carteira,tipo:invOpType,tipoAtivo:tipo,ticker,qtd,preco,data});
+    save();closeInvOp();rInvestCarteira();
+    toast('✅ '+(invOpType==='compra'?'Compra':'Venda')+' de '+qtd+' '+ticker+' registrada!');
+}
+
+// -- Calc position for a ticker in a carteira --
+function calcPosition(carteiraId,ticker){
+    const ops=getOps().filter(o=>o.carteira===carteiraId&&o.ticker===ticker);
+    let qtd=0,totalCost=0;
+    ops.sort((a,b)=>a.data.localeCompare(b.data));
+    let lucroRealizado=0;
+    ops.forEach(o=>{
+        if(o.tipo==='compra'){
+            totalCost+=o.qtd*o.preco;
+            qtd+=o.qtd;
+        } else {
+            // Venda: realiza lucro com preço médio
+            const pm=qtd>0?totalCost/qtd:0;
+            lucroRealizado+=(o.preco-pm)*o.qtd;
+            totalCost-=pm*o.qtd;
+            qtd-=o.qtd;
+        }
+    });
+    const precoMedio=qtd>0?totalCost/qtd:0;
+    const tipoAtivo=ops.length?ops[ops.length-1].tipoAtivo:'acao';
+    return{qtd,precoMedio,totalCost,lucroRealizado,tipoAtivo};
+}
+
+// -- Render carteira --
+function rInvestCarteira(){
+    const carts=getCarteiras();
+    const sel=$('invCarteiraSelect');
+    const curId=sel.value||carts[0].id;
+    sel.innerHTML=carts.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+    sel.value=curId;
+    
+    // Find all unique tickers in current carteira
+    const ops=getOps().filter(o=>o.carteira===curId);
+    const tickers=[...new Set(ops.map(o=>o.ticker))];
+    
+    // Build positions
+    const positions=[];
+    tickers.forEach(tk=>{
+        const pos=calcPosition(curId,tk);
+        if(pos.qtd>0) positions.push({ticker:tk,...pos});
+    });
+    
+    if(!positions.length){
+        $('invResumo').innerHTML='';
+        $('invCarteiraList').innerHTML='<div style="text-align:center;padding:30px;color:var(--text3)"><div style="font-size:36px;margin-bottom:8px">💼</div><div style="font-size:13px">Nenhum ativo nesta carteira</div><div style="font-size:12px;margin-top:4px">Clique em "+ Compra" para começar</div></div>';
+        rInvestResumoGeral();return;
+    }
+    
+    let totalInv=0,totalAtual=0,totalLucroReal=0;
+    const tipoColors={acao:'var(--primary)',fii:'var(--purple)',bdr:'var(--orange)',etf:'var(--green)',crypto:'#f59e0b'};
+    const tipoLabels={acao:'Ação',fii:'FII',bdr:'BDR',etf:'ETF',crypto:'Cripto'};
+    
+    let html='';
+    positions.forEach(p=>{
+        const cot=cotacoesCache[p.ticker];
+        const precoAtual=cot?cot.price:p.precoMedio;
+        const nome=cot?cot.name:'';
+        const varPct=cot?cot.var:0;
+        const investido=p.totalCost;
+        const atual=p.qtd*precoAtual;
+        const ganho=atual-investido;
+        const ganhoPct=investido>0?((ganho/investido)*100):0;
+        totalInv+=investido;totalAtual+=atual;totalLucroReal+=p.lucroRealizado;
+        const tc=tipoColors[p.tipoAtivo]||'var(--text3)';
+        
+        html+=`<div class="inv-ativo">
+<div style="flex:1;min-width:0">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+<span class="inv-ativo-ticker">${p.ticker}</span>
+<span class="inv-ativo-tipo" style="background:${tc}20;color:${tc}">${tipoLabels[p.tipoAtivo]||p.tipoAtivo}</span>
+${cot?`<span style="font-size:10px;color:${varPct>=0?'var(--green)':'var(--red)'};font-weight:600">${varPct>=0?'▲':'▼'} ${Math.abs(varPct).toFixed(2)}%</span>`:''}
+</div>
+<div class="inv-ativo-info">${nome?nome+' · ':''}${p.qtd} un × PM R$ ${p.precoMedio.toFixed(2)}</div>
+${p.lucroRealizado!==0?`<div style="font-size:10px;color:${p.lucroRealizado>=0?'var(--green)':'var(--red)'}">Lucro realizado: ${p.lucroRealizado>=0?'+':''}${fmt(p.lucroRealizado)}</div>`:''}
+</div>
+<div class="inv-ativo-val">
+<div class="inv-ativo-current">${fmt(atual)}</div>
+<div class="inv-ativo-gain" style="color:${ganho>=0?'var(--green)':'var(--red)'}">${ganho>=0?'+':''}${fmt(ganho)} (${ganhoPct>=0?'+':''}${ganhoPct.toFixed(1)}%)</div>
+</div>
+</div>`;
+    });
+    
+    const ganhoTotal=totalAtual-totalInv;
+    const ganhoPctTotal=totalInv>0?((ganhoTotal/totalInv)*100):0;
+    
+    $('invResumo').innerHTML=`
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px">
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center">
+<div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">Investido</div><div style="font-family:var(--mono);font-size:14px;font-weight:700">${fmt(totalInv)}</div></div>
+<div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">Valor Atual</div><div style="font-family:var(--mono);font-size:14px;font-weight:700">${fmt(totalAtual)}</div></div>
+<div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">Resultado</div><div style="font-family:var(--mono);font-size:14px;font-weight:700;color:${ganhoTotal>=0?'var(--green)':'var(--red)'}">${ganhoTotal>=0?'+':''}${fmt(ganhoTotal)}<br><span style="font-size:11px">(${ganhoPctTotal>=0?'+':''}${ganhoPctTotal.toFixed(1)}%)</span></div></div>
+</div>
+${totalLucroReal?`<div style="text-align:center;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:${totalLucroReal>=0?'var(--green)':'var(--red)'}">Lucro realizado total: ${totalLucroReal>=0?'+':''}${fmt(totalLucroReal)}</div>`:''}
+</div>`;
+    
+    $('invCarteiraList').innerHTML=html;
+    rInvestResumoGeral();
+}
+
+function rInvestResumoGeral(){
+    // Sum across all carteiras
+    const carts=getCarteiras();
+    let gTotalInv=0,gTotalAtual=0;
+    carts.forEach(c=>{
+        const ops=getOps().filter(o=>o.carteira===c.id);
+        const tickers=[...new Set(ops.map(o=>o.ticker))];
+        tickers.forEach(tk=>{
+            const pos=calcPosition(c.id,tk);
+            if(pos.qtd>0){
+                const cot=cotacoesCache[tk];
+                gTotalInv+=pos.totalCost;
+                gTotalAtual+=pos.qtd*(cot?cot.price:pos.precoMedio);
+            }
+        });
+    });
+    if(gTotalInv===0){$('invResumoGeral').innerHTML='';return}
+    const g=gTotalAtual-gTotalInv;
+    const gp=gTotalInv>0?((g/gTotalInv)*100):0;
+    $('invResumoGeral').innerHTML=carts.length>1?`<div style="background:linear-gradient(135deg,var(--primary)15,var(--surface));border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;font-weight:700">📊 Patrimônio Total</span><span style="font-family:var(--mono);font-size:14px;font-weight:700">${fmt(gTotalAtual)} <span style="font-size:11px;color:${g>=0?'var(--green)':'var(--red)'}">(${g>=0?'+':''}${gp.toFixed(1)}%)</span></span></div>`:'';
+}
+
+// -- Render operações (histórico) --
+function rInvestOps(){
+    const ops=[...getOps()].sort((a,b)=>b.data.localeCompare(a.data));
+    if(!ops.length){$('invOpList').innerHTML='<div style="text-align:center;padding:30px;color:var(--text3)"><div style="font-size:36px;margin-bottom:8px">📋</div><div style="font-size:13px">Nenhuma operação registrada</div></div>';return}
+    const cartMap={};getCarteiras().forEach(c=>cartMap[c.id]=c.nome);
+    $('invOpList').innerHTML=ops.map((o,i)=>{
+        const isCompra=o.tipo==='compra';
+        const total=o.qtd*o.preco;
+        const dt=new Date(o.data+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'});
+        return `<div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid ${isCompra?'var(--green)':'var(--red)'};border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between">
+<div><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><span style="font-size:11px;padding:1px 6px;border-radius:3px;font-weight:700;background:${isCompra?'var(--green-bg)':'var(--red-bg)'};color:${isCompra?'var(--green)':'var(--red)'}">${isCompra?'COMPRA':'VENDA'}</span><span style="font-family:var(--mono);font-size:13px;font-weight:800">${o.ticker}</span></div>
+<div style="font-size:11px;color:var(--text3)">${dt} · ${o.qtd} un × R$ ${o.preco.toFixed(2)} · ${cartMap[o.carteira]||'?'}</div></div>
+<div style="display:flex;align-items:center;gap:8px"><span style="font-family:var(--mono);font-size:13px;font-weight:700;color:${isCompra?'var(--green)':'var(--red)'}">R$ ${total.toFixed(2)}</span>
+<button onclick="delOp(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px">✕</button></div></div>`;
+    }).join('');
+}
+
+function delOp(sortedIdx){
+    const ops=[...getOps()].sort((a,b)=>b.data.localeCompare(a.data));
+    const op=ops[sortedIdx];if(!op)return;
+    if(!confirm('Excluir operação de '+op.tipo+' de '+op.ticker+'?'))return;
+    const realIdx=D.investOps.findIndex(o=>o.id===op.id);
+    if(realIdx>=0)D.investOps.splice(realIdx,1);
+    save();rInvestOps();rInvestCarteira();toast('Operação excluída');
 }
 
 async function fetchCotacoes(){
@@ -2599,7 +2833,7 @@ async function fetchCotacoes(){
     const brapiToken=D.brapiToken||'';
     if(brapiToken){
         // Top ações + carteira
-        const carteiraT=(D.investAtivos||[]).map(a=>a.ticker);
+        const carteiraT=[...new Set((D.investOps||[]).map(o=>o.ticker))];
         const allTickers=[...new Set([...TOP_TICKERS,...carteiraT])];
         try{
             const resp2=await fetch('https://brapi.dev/api/quote/'+allTickers.join(',')+`?token=${brapiToken}`);
@@ -2703,66 +2937,6 @@ function rInvest(){
     });
 }
 
-function rInvestCarteira(){
-    const ativos=D.investAtivos||[];
-    if(!ativos.length){
-        $('invResumo').innerHTML='';
-        $('invCarteiraList').innerHTML='<div style="text-align:center;padding:30px;color:var(--text3)"><div style="font-size:36px;margin-bottom:8px">💼</div><div style="font-size:13px">Nenhum ativo na carteira</div><div style="font-size:12px;margin-top:4px">Clique em "+ Adicionar Ativo" para começar</div></div>';
-        return;
-    }
-    
-    let totalInvestido=0,totalAtual=0;
-    let html='';
-    
-    ativos.forEach((a,idx)=>{
-        const cot=cotacoesCache[a.ticker];
-        const precoAtual=cot?cot.price:a.precoMedio;
-        const nome=cot?cot.name:'';
-        const varPct=cot?cot.var:0;
-        const investido=a.qtd*a.precoMedio;
-        const atual=a.qtd*precoAtual;
-        const ganho=atual-investido;
-        const ganhoPct=investido>0?((ganho/investido)*100):0;
-        
-        totalInvestido+=investido;
-        totalAtual+=atual;
-        
-        const tipoColors={acao:'var(--primary)',fii:'var(--purple)',bdr:'var(--orange)',etf:'var(--green)',crypto:'#f59e0b'};
-        const tipoLabels={acao:'Ação',fii:'FII',bdr:'BDR',etf:'ETF',crypto:'Cripto'};
-        const tc=tipoColors[a.tipo]||'var(--text3)';
-        
-        html+=`<div class="inv-ativo">
-<div style="flex:1;min-width:0">
-<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-<span class="inv-ativo-ticker">${a.ticker}</span>
-<span class="inv-ativo-tipo" style="background:${tc}20;color:${tc}">${tipoLabels[a.tipo]||a.tipo}</span>
-${cot?`<span style="font-size:10px;color:${varPct>=0?'var(--green)':'var(--red)'};font-weight:600">${varPct>=0?'▲':'▼'} ${Math.abs(varPct).toFixed(2)}%</span>`:''}
-</div>
-<div class="inv-ativo-info">${nome?nome+' · ':''}${a.qtd} un × R$ ${a.precoMedio.toFixed(2)}</div>
-</div>
-<div class="inv-ativo-val">
-<div class="inv-ativo-current">${fmt(atual)}</div>
-<div class="inv-ativo-gain" style="color:${ganho>=0?'var(--green)':'var(--red)'}">${ganho>=0?'+':''}${fmt(ganho)} (${ganhoPct>=0?'+':''}${ganhoPct.toFixed(1)}%)</div>
-</div>
-<button onclick="delInvAtivo(${idx})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;padding:4px;margin-left:4px" title="Remover">✕</button>
-</div>`;
-    });
-    
-    const ganhoTotal=totalAtual-totalInvestido;
-    const ganhoPctTotal=totalInvestido>0?((ganhoTotal/totalInvestido)*100):0;
-    
-    $('invResumo').innerHTML=`
-<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px">
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center">
-<div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">Investido</div><div style="font-family:var(--mono);font-size:14px;font-weight:700">${fmt(totalInvestido)}</div></div>
-<div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">Valor Atual</div><div style="font-family:var(--mono);font-size:14px;font-weight:700">${fmt(totalAtual)}</div></div>
-<div><div style="font-size:11px;color:var(--text3);margin-bottom:2px">Resultado</div><div style="font-family:var(--mono);font-size:14px;font-weight:700;color:${ganhoTotal>=0?'var(--green)':'var(--red)'}">${ganhoTotal>=0?'+':''}${fmt(ganhoTotal)}<br><span style="font-size:11px">(${ganhoPctTotal>=0?'+':''}${ganhoPctTotal.toFixed(1)}%)</span></div></div>
-</div>
-</div>`;
-    
-    $('invCarteiraList').innerHTML=html;
-}
-
 function rInvestDividendos(){
     const divs=D.investDivs||[];
     if(!divs.length){
@@ -2770,83 +2944,24 @@ function rInvestDividendos(){
         $('invDivList').innerHTML='<div style="text-align:center;padding:30px;color:var(--text3)"><div style="font-size:36px;margin-bottom:8px">💰</div><div style="font-size:13px">Nenhum dividendo registrado</div></div>';
         return;
     }
-    
-    // Filter by current month/year
-    const divsMonth=divs.filter(d=>{
-        const dt=new Date(d.data+'T12:00:00');
-        return dt.getMonth()===cMonth&&dt.getFullYear()===cYear;
-    });
+    const divsMonth=divs.filter(d=>{const dt=new Date(d.data+'T12:00:00');return dt.getMonth()===cMonth&&dt.getFullYear()===cYear});
     const totalMonth=divsMonth.reduce((s,d)=>s+d.valor,0);
     const totalAll=divs.reduce((s,d)=>s+d.valor,0);
-    
-    $('invDivResumo').innerHTML=`
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-<div style="background:var(--green-bg);border:1px solid rgba(16,185,129,0.2);border-radius:var(--radius-sm);padding:12px;text-align:center">
-<div style="font-size:11px;color:var(--green)">Este mês</div>
-<div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--green)">${fmt(totalMonth)}</div>
-</div>
-<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;text-align:center">
-<div style="font-size:11px;color:var(--text3)">Total acumulado</div>
-<div style="font-family:var(--mono);font-size:16px;font-weight:700">${fmt(totalAll)}</div>
-</div>
-</div>`;
-    
+    $('invDivResumo').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div style="background:var(--green-bg);border:1px solid rgba(16,185,129,0.2);border-radius:var(--radius-sm);padding:12px;text-align:center"><div style="font-size:11px;color:var(--green)">Este mês</div><div style="font-family:var(--mono);font-size:16px;font-weight:700;color:var(--green)">${fmt(totalMonth)}</div></div><div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;text-align:center"><div style="font-size:11px;color:var(--text3)">Total acumulado</div><div style="font-family:var(--mono);font-size:16px;font-weight:700">${fmt(totalAll)}</div></div></div>`;
     const sorted=[...divs].sort((a,b)=>b.data.localeCompare(a.data));
     const tipoLabels={dividendo:'Dividendo',jcp:'JCP',rendimento:'Rend. FII',bonificacao:'Bonificação'};
-    
     $('invDivList').innerHTML=sorted.map((d,i)=>{
         const dt=new Date(d.data+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'});
-        return `<div class="inv-div-item">
-<div><div style="font-size:13px;font-weight:700;font-family:var(--mono)">${d.ticker}</div><div style="font-size:11px;color:var(--text3)">${dt} · ${tipoLabels[d.tipo]||d.tipo}</div></div>
-<div style="display:flex;align-items:center;gap:8px">
-<span style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--green)">+${fmt(d.valor)}</span>
-<button onclick="delDividendo(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px">✕</button>
-</div>
-</div>`;
+        return `<div class="inv-div-item"><div><div style="font-size:13px;font-weight:700;font-family:var(--mono)">${d.ticker}</div><div style="font-size:11px;color:var(--text3)">${dt} · ${tipoLabels[d.tipo]||d.tipo}</div></div><div style="display:flex;align-items:center;gap:8px"><span style="font-family:var(--mono);font-size:14px;font-weight:700;color:var(--green)">+${fmt(d.valor)}</span><button onclick="delDividendo(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px">✕</button></div></div>`;
     }).join('');
 }
 
-function openInvAdd(){
-    invEditId=null;
-    $('invAddTitle').textContent='Adicionar Ativo';
-    $('invTicker').value='';$('invQtd').value='';$('invPreco').value='';$('invTipo').value='acao';
-    $('invAddModal').style.display='flex';
-}
-function closeInvAdd(){$('invAddModal').style.display='none'}
-
-function saveInvAtivo(){
-    const ticker=$('invTicker').value.trim().toUpperCase();
-    const qtd=parseFloat($('invQtd').value);
-    const preco=parseFloat($('invPreco').value);
-    const tipo=$('invTipo').value;
-    if(!ticker){toast('Informe o ticker',true);return}
-    if(!qtd||qtd<=0){toast('Informe a quantidade',true);return}
-    if(!preco||preco<=0){toast('Informe o preço médio',true);return}
-    if(!D.investAtivos)D.investAtivos=[];
-    // Check duplicate
-    const existing=D.investAtivos.findIndex(a=>a.ticker===ticker);
-    if(existing>=0){
-        D.investAtivos[existing].qtd=qtd;
-        D.investAtivos[existing].precoMedio=preco;
-        D.investAtivos[existing].tipo=tipo;
-        toast('✅ '+ticker+' atualizado!');
-    } else {
-        D.investAtivos.push({ticker,qtd,precoMedio:preco,tipo});
-        toast('✅ '+ticker+' adicionado!');
-    }
-    save();closeInvAdd();rInvest();
-}
-
-function delInvAtivo(idx){
-    if(!confirm('Remover '+D.investAtivos[idx].ticker+' da carteira?'))return;
-    D.investAtivos.splice(idx,1);save();rInvestCarteira();
-    toast('Ativo removido');
-}
-
 function openDivAdd(){
-    const ativos=D.investAtivos||[];
+    // Get all unique tickers across all carteiras
+    const ops=getOps();
+    const allTickers=[...new Set(ops.map(o=>o.ticker))];
     const sel=$('divTicker');
-    sel.innerHTML=ativos.length?ativos.map(a=>`<option value="${a.ticker}">${a.ticker}</option>`).join(''):'<option value="">Nenhum ativo</option>';
+    sel.innerHTML=allTickers.length?allTickers.map(t=>`<option value="${t}">${t}</option>`).join(''):'<option value="">Nenhum ativo</option>';
     $('divValor').value='';
     $('divData').value=new Date().toISOString().split('T')[0];
     $('divTipoRend').value='dividendo';
@@ -2869,9 +2984,12 @@ function saveDividendo(){
 }
 
 function delDividendo(idx){
+    const sorted=[...D.investDivs].sort((a,b)=>b.data.localeCompare(a.data));
+    const d=sorted[idx];if(!d)return;
     if(!confirm('Remover este dividendo?'))return;
-    D.investDivs.splice(idx,1);save();rInvestDividendos();
-    toast('Dividendo removido');
+    const realIdx=D.investDivs.findIndex(x=>x.id===d.id);
+    if(realIdx>=0)D.investDivs.splice(realIdx,1);
+    save();rInvestDividendos();toast('Dividendo removido');
 }
 
 function saveSug(){
