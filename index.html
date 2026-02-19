@@ -564,6 +564,15 @@ Entrar com Google
 <p style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center">Dados salvos automaticamente no navegador (localStorage)</p>
 </div>
 <div class="card">
+<div class="card-title"><div class="dot" style="background:var(--green)"></div>API de Cotações (Investimentos)</div>
+<p style="font-size:12px;color:var(--text3);margin-bottom:8px">Para ver cotações de ações e Ibovespa, cadastre-se grátis em <a href="https://brapi.dev" target="_blank" style="color:var(--blue)">brapi.dev</a> e cole seu token aqui:</p>
+<div style="display:flex;gap:8px">
+<input class="form-input" id="cfgBrapiToken" placeholder="Cole seu token da brapi.dev aqui" style="flex:1;font-size:12px">
+<button onclick="saveBrapiToken()" class="btn btn-green btn-sm">Salvar</button>
+</div>
+<p id="cfgBrapiStatus" style="font-size:11px;color:var(--text3);margin-top:6px"></p>
+</div>
+<div class="card">
 <div class="card-title"><div class="dot" style="background:var(--red)"></div>Zona de Perigo</div>
 <button class="btn btn-red btn-sm" onclick="if(confirm('⚠️ Apagar TODOS os dados? Não pode ser desfeito!')) clearAll()">🗑️ Limpar Todos os Dados</button>
 </div>
@@ -2176,6 +2185,13 @@ function saveEdit(){
 function closeEditModal(){$('editModal').classList.remove('show')}
 
 function rCfg(){
+    // Brapi token
+    if($('cfgBrapiToken')){
+        $('cfgBrapiToken').value=D.brapiToken||'';
+        const st=$('cfgBrapiStatus');
+        if(D.brapiToken){st.textContent='✅ Token configurado';st.style.color='var(--green)';}
+        else{st.textContent='Sem token — apenas Dólar, Euro e Bitcoin serão exibidos.';st.style.color='var(--text3)';}
+    }
     // User name
     $('cfgUserName').value=D.userName||'';
     // Banks with saldo + rename/delete
@@ -2538,6 +2554,20 @@ function rSug(){
     }).join('');
 }
 
+function saveBrapiToken(){
+    const token=$('cfgBrapiToken').value.trim();
+    D.brapiToken=token;save();
+    if(token){
+        toast('✅ Token salvo! Cotações de ações ativadas.');
+        $('cfgBrapiStatus').textContent='✅ Token configurado. As cotações serão carregadas na aba Investimentos.';
+        $('cfgBrapiStatus').style.color='var(--green)';
+    } else {
+        toast('Token removido');
+        $('cfgBrapiStatus').textContent='Sem token — apenas Dólar, Euro e Bitcoin serão exibidos.';
+        $('cfgBrapiStatus').style.color='var(--text3)';
+    }
+}
+
 // ==================== INVESTIMENTOS ====================
 let invTab='carteira';
 let invEditId=null;
@@ -2554,7 +2584,7 @@ function setInvTab(tab){
 async function fetchCotacoes(){
     const TOP_TICKERS=['PETR4','VALE3','ITUB4','BBDC4','WEGE3','ABEV3','RENT3','BBAS3','SUZB3','MGLU3','ELET3','B3SA3'];
     
-    // AwesomeAPI - moedas (100% gratuita, sem chave)
+    // AwesomeAPI - moedas + BTC (100% gratuita, sem chave, CORS ok)
     try{
         const resp=await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL,BTC-BRL');
         if(resp.ok){
@@ -2565,56 +2595,35 @@ async function fetchCotacoes(){
         }
     }catch(e){console.log('AwesomeAPI:',e)}
     
-    // HG Brasil - Ibovespa (gratuito, CORS liberado)
-    try{
-        const respHg=await fetch('https://api.hgbrasil.com/finance');
-        if(respHg.ok){
-            const dataHg=await respHg.json();
-            if(dataHg.results){
-                const st=dataHg.results.stocks;
-                if(st&&st.IBOVESPA) cotacoesCache.IBOV={price:st.IBOVESPA.points,var:st.IBOVESPA.variation};
-                // Backup moedas caso AwesomeAPI falhe
-                const cur=dataHg.results.currencies;
-                if(!cotacoesCache.USD&&cur&&cur.USD) cotacoesCache.USD={price:cur.USD.buy,var:cur.USD.variation};
-                if(!cotacoesCache.EUR&&cur&&cur.EUR) cotacoesCache.EUR={price:cur.EUR.buy,var:cur.EUR.variation};
-                if(!cotacoesCache.BTC&&cur&&cur.BTC) cotacoesCache.BTC={price:cur.BTC.buy,var:cur.BTC.variation};
-            }
-        }
-    }catch(e){console.log('HG Brasil:',e)}
-    
-    // brapi - ações (com token gratuito)
-    const carteiraT=(D.investAtivos||[]).map(a=>a.ticker);
-    const allTickers=[...new Set([...TOP_TICKERS,...carteiraT])];
-    try{
-        const respBr=await fetch('https://brapi.dev/api/quote/'+allTickers.join(',')+'?token=demoBrapiToken');
-        if(respBr.ok){
-            const dataBr=await respBr.json();
-            if(dataBr.results){
-                dataBr.results.forEach(r=>{
-                    cotacoesCache[r.symbol]={price:r.regularMarketPrice,var:r.regularMarketChangePercent,name:r.shortName||r.longName||''};
-                });
-            }
-        }
-    }catch(e){console.log('brapi ações:',e)}
-    
-    // Se brapi falhou, tentar Yahoo Finance via proxy CORS
-    if(!cotacoesCache.PETR4){
-        for(const tk of allTickers){
-            try{
-                const r=await fetch('https://query1.finance.yahoo.com/v8/finance/chart/'+tk+'.SA?interval=1d&range=1d');
-                if(r.ok){
-                    const d=await r.json();
-                    const meta=d.chart&&d.chart.result&&d.chart.result[0]&&d.chart.result[0].meta;
-                    if(meta){
-                        cotacoesCache[tk]={
-                            price:meta.regularMarketPrice,
-                            var:((meta.regularMarketPrice-meta.chartPreviousClose)/meta.chartPreviousClose*100),
-                            name:meta.shortName||tk
-                        };
-                    }
+    // brapi.dev - ações + Ibovespa (precisa de token gratuito)
+    const brapiToken=D.brapiToken||'';
+    if(brapiToken){
+        // Top ações + carteira
+        const carteiraT=(D.investAtivos||[]).map(a=>a.ticker);
+        const allTickers=[...new Set([...TOP_TICKERS,...carteiraT])];
+        try{
+            const resp2=await fetch('https://brapi.dev/api/quote/'+allTickers.join(',')+`?token=${brapiToken}`);
+            if(resp2.ok){
+                const data2=await resp2.json();
+                if(data2.results){
+                    data2.results.forEach(r=>{
+                        cotacoesCache[r.symbol]={price:r.regularMarketPrice,var:r.regularMarketChangePercent,name:r.shortName||r.longName||''};
+                    });
                 }
-            }catch(e2){}
-        }
+            }
+        }catch(e){console.log('brapi ações:',e)}
+        
+        // Ibovespa
+        try{
+            const respIb=await fetch('https://brapi.dev/api/quote/%5EBVSP?token='+brapiToken);
+            if(respIb.ok){
+                const dataIb=await respIb.json();
+                if(dataIb.results&&dataIb.results[0]){
+                    const ib=dataIb.results[0];
+                    cotacoesCache.IBOV={price:ib.regularMarketPrice,var:ib.regularMarketChangePercent};
+                }
+            }
+        }catch(e){console.log('brapi ibov:',e)}
     }
 }
 
@@ -2653,9 +2662,11 @@ function updateCotacoesUI(){
     // Top Ações
     const topTickers='PETR4,VALE3,ITUB4,BBDC4,WEGE3,ABEV3,RENT3,BBAS3,SUZB3,MGLU3,ELET3,B3SA3'.split(',');
     let topHtml='';
+    let hasStocks=false;
     topTickers.forEach(tk=>{
         const c=cotacoesCache[tk];
         if(!c)return;
+        hasStocks=true;
         const v=Number(c.var||0);
         const varColor=v>=0?'var(--green)':'var(--red)';
         const arrow=v>=0?'▲':'▼';
@@ -2665,9 +2676,14 @@ function updateCotacoesUI(){
 <div style="font-size:10px;font-weight:600;color:${varColor}">${arrow} ${Math.abs(v).toFixed(2)}%</div>
 </div>`;
     });
-    if(topHtml){
+    if(hasStocks){
         $('topAcoesList').innerHTML=topHtml;
         $('cotLastUpdate').textContent='Atualizado: '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    } else {
+        const brapiToken=D.brapiToken||'';
+        $('topAcoesList').innerHTML=brapiToken?
+            '<div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text3);font-size:12px">⏳ Carregando ações...</div>':
+            '<div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text3);font-size:12px">🔑 Configure seu token da <b>brapi.dev</b> em Config → API de Cotações para ver ações e Ibovespa ao vivo</div>';
     }
 }
 
