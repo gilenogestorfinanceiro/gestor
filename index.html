@@ -1612,38 +1612,29 @@ function rExtBank(){
     let html='';
     bancos.forEach(banco=>{
         // Get transactions for this bank in this month
-        const txs=mTx(cMonth,cYear).filter(t=>t.banco===banco).sort((a,b)=>{
+        const txsAll=mTx(cMonth,cYear).filter(t=>t.banco===banco).sort((a,b)=>{
             const da=a.dt||'2000-01-01',db=b.dt||'2000-01-01';
             return da.localeCompare(db);
         });
         
-        // Calculate opening balance (up to previous month)
-        let saldoAnterior=D.bs[banco]||0;
-        for(let y=BASE_YEAR;y<=cYear;y++){
-            const endM=(y===cYear)?cMonth-1:11;
-            for(let m=0;m<=endM;m++){
-                if(y===BASE_YEAR&&m===0&&cMonth===0&&cYear===BASE_YEAR){break}
-                mTx(m,y).forEach(t=>{
-                    if(t.banco===banco){
-                        if(t.tp==='Receita') saldoAnterior+=t.v;
-                        else saldoAnterior-=t.v;
-                    }
-                });
-            }
-        }
+        // Separate efetivados and agendados
+        const txsEf=txsAll.filter(t=>t.st==='efetivado'||!t.st);
+        const txsAg=txsAll.filter(t=>t.st==='agendado');
         
-        // Build rows
+        // Calculate opening balance (only efetivados)
+        const prev=stepMonth(cMonth,cYear,-1);
+        const saldoAnterior=bankBal(banco,prev.m,prev.y);
+        
+        // Build rows - EFETIVADOS only
         let saldo=saldoAnterior;
         let totalCredito=0, totalDebito=0;
         
         let rows='';
-        // Saldo anterior row
         rows+=`<tr class="bk-saldo-row"><td colspan="2" style="font-size:12px;color:var(--text2)">📋 Saldo Anterior</td><td></td><td></td><td class="${saldo>=0?'bk-saldo-pos':'bk-saldo-neg'}">${fmtN(saldo)}</td></tr>`;
         
-        txs.forEach(t=>{
+        txsEf.forEach(t=>{
             const dt=t.dt?new Date(t.dt+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}):'—';
             const isR=t.tp==='Receita';
-            const isEf=(t.st==='efetivado'||!t.st);
             const credito=isR?t.v:0;
             const debito=isR?0:t.v;
             saldo+=isR?t.v:-t.v;
@@ -1651,20 +1642,38 @@ function rExtBank(){
             totalDebito+=debito;
             const subLabel=t.sub?' › '+t.sub:'';
             const isTransf=t.transf;
-            const stDot=isTransf?'<span class="bk-st" style="background:var(--primary)"></span>':(isEf?'<span class="bk-st bk-st-ef"></span>':'<span class="bk-st bk-st-ag"></span>');
+            const stDot=isTransf?'<span class="bk-st" style="background:var(--primary)"></span>':'<span class="bk-st bk-st-ef"></span>';
             const recBadge=t.rec?` <span style="font-size:9px;color:var(--purple)">♻️${t.recIdx}/${t.recDur}</span>`:'';
             const transfBadge=isTransf?' <span style="font-size:9px;color:var(--primary)">🔄</span>':'';
             const descExtra=isTransf?`<div class="bk-cat" style="color:var(--primary)">${isR?'← de '+t.transfOrigem:'→ para '+t.transfDestino}</div>`:`<div class="bk-cat">${t.cat||''}${subLabel}</div>`;
             
-            rows+=`<tr class="${isEf?'':'bk-agendado'}" style="cursor:pointer" onclick="editItem('tx','${t.id}')"><td style="font-size:11px;color:var(--text3);white-space:nowrap">${stDot}${dt}</td><td><div class="bk-desc">${t.desc}${recBadge}${transfBadge}</div>${descExtra}</td><td class="bk-credit">${credito?fmtN(credito):''}</td><td class="bk-debit">${debito?fmtN(debito):''}</td><td class="${saldo>=0?'bk-saldo-pos':'bk-saldo-neg'}">${fmtN(saldo)}</td></tr>`;
+            rows+=`<tr style="cursor:pointer" onclick="editItem('tx','${t.id}')"><td style="font-size:11px;color:var(--text3);white-space:nowrap">${stDot}${dt}</td><td><div class="bk-desc">${t.desc}${recBadge}${transfBadge}</div>${descExtra}</td><td class="bk-credit">${credito?fmtN(credito):''}</td><td class="bk-debit">${debito?fmtN(debito):''}</td><td class="${saldo>=0?'bk-saldo-pos':'bk-saldo-neg'}">${fmtN(saldo)}</td></tr>`;
         });
         
-        // Saldo final row
+        // Saldo final row (efetivados only)
         rows+=`<tr class="bk-saldo-row"><td colspan="2" style="font-size:12px;color:var(--text2)">📊 Saldo Final</td><td class="bk-credit" style="font-weight:700">${fmtN(totalCredito)}</td><td class="bk-debit" style="font-weight:700">${fmtN(totalDebito)}</td><td class="${saldo>=0?'bk-saldo-pos':'bk-saldo-neg'}" style="font-size:14px;font-weight:700">${fmtN(saldo)}</td></tr>`;
+        
+        // AGENDADOS section
+        let agRows='';
+        let agCred=0,agDeb=0;
+        if(txsAg.length){
+            txsAg.forEach(t=>{
+                const dt=t.dt?new Date(t.dt+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}):'—';
+                const isR=t.tp==='Receita';
+                const credito=isR?t.v:0;
+                const debito=isR?0:t.v;
+                agCred+=credito;agDeb+=debito;
+                const subLabel=t.sub?' › '+t.sub:'';
+                const descExtra=`<div class="bk-cat">${t.cat||''}${subLabel}</div>`;
+                agRows+=`<tr class="bk-agendado" style="cursor:pointer" onclick="editItem('tx','${t.id}')"><td style="font-size:11px;color:var(--text3);white-space:nowrap"><span class="bk-st bk-st-ag"></span>${dt}</td><td><div class="bk-desc">🕐 ${t.desc}</div>${descExtra}</td><td class="bk-credit">${credito?fmtN(credito):''}</td><td class="bk-debit">${debito?fmtN(debito):''}</td><td></td></tr>`;
+            });
+            const saldoPrevisto=saldo+agCred-agDeb;
+            agRows+=`<tr style="background:rgba(245,158,11,0.1)"><td colspan="2" style="font-size:12px;color:#f59e0b;font-weight:700">🕐 Total Agendado</td><td class="bk-credit" style="font-weight:700;color:#f59e0b">${agCred?fmtN(agCred):''}</td><td class="bk-debit" style="font-weight:700;color:#f59e0b">${agDeb?fmtN(agDeb):''}</td><td style="font-weight:700;color:#f59e0b">${fmtN(saldoPrevisto)}</td></tr>`;
+        }
         
         html+=`<div class="bk-stmt">
 <div class="bk-header"><div class="bk-name">🏦 ${banco}</div><div class="bk-saldo-final ${saldo>=0?'bk-saldo-pos':'bk-saldo-neg'}">${fmt(saldo)}</div></div>
-<div style="overflow-x:auto"><table class="bk-table"><thead><tr><th style="width:60px">Data</th><th>Descrição</th><th style="width:80px">Crédito</th><th style="width:80px">Débito</th><th style="width:85px">Saldo</th></tr></thead><tbody>${rows}</tbody></table></div>
+<div style="overflow-x:auto"><table class="bk-table"><thead><tr><th style="width:60px">Data</th><th>Descrição</th><th style="width:80px">Crédito</th><th style="width:80px">Débito</th><th style="width:85px">Saldo</th></tr></thead><tbody>${rows}${agRows?'<tr><td colspan="5" style="padding:8px 0;border-bottom:2px dashed rgba(245,158,11,0.4)"><div style="font-size:11px;font-weight:700;color:#f59e0b;text-align:center">🕐 AGENDADOS / PENDENTES</div></td></tr>'+agRows:''}</tbody></table></div>
 <div class="bk-footer">
 <div class="bk-footer-item"><div class="bk-footer-label">Créditos</div><div class="bk-credit" style="font-family:var(--mono);font-weight:700">${fmtN(totalCredito)}</div></div>
 <div class="bk-footer-item"><div class="bk-footer-label">Débitos</div><div class="bk-debit" style="font-family:var(--mono);font-weight:700">${fmtN(totalDebito)}</div></div>
