@@ -608,6 +608,31 @@ Entrar com Google
 </div>
 </div>
 
+
+<!-- SUGESTÕES -->
+<div class="page" id="page-sug">
+<h2 style="font-size:20px;font-weight:700;margin-bottom:6px">💡 Sugestões e Feedback</h2>
+<p style="font-size:13px;color:var(--text3);margin-bottom:16px">Ajude a melhorar o app! Registre ideias, problemas ou sugestões.</p>
+
+<div class="form-group"><label class="form-label">Tipo</label>
+<select class="form-input" id="sugTipo">
+<option>💡 Ideia / Melhoria</option>
+<option>🐛 Bug / Problema</option>
+<option>⭐ Elogio</option>
+<option>❓ Dúvida</option>
+</select></div>
+<div class="form-group"><label class="form-label">Sua sugestão</label><textarea class="form-input" id="sugTexto" rows="4" placeholder="Descreva aqui..." style="resize:vertical;font-family:var(--font)"></textarea></div>
+<button class="btn btn-primary" onclick="saveSug()">📩 Enviar Sugestão</button>
+
+<div style="margin-top:20px">
+<div class="card-title"><div class="dot" style="background:var(--primary)"></div>Sugestões Enviadas</div>
+<div id="sugList"></div>
+<div class="empty" id="sugEmpty" style="display:none"><p>Nenhuma sugestão ainda.</p></div>
+</div>
+<button class="btn btn-outline" style="margin-top:12px" onclick="exportSug()">📋 Exportar Sugestões</button>
+</div>
+
+
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
@@ -648,29 +673,6 @@ Mais
 <button onclick="closeMaisMenu();goPage('sug')" style="width:100%;padding:14px 16px;background:none;border:none;color:var(--text);font-size:14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;font-family:var(--font)">💬 Sugestões</button>
 </div>
 </nav>
-</div>
-
-<!-- SUGESTÕES -->
-<div class="page" id="page-sug">
-<h2 style="font-size:20px;font-weight:700;margin-bottom:6px">💡 Sugestões e Feedback</h2>
-<p style="font-size:13px;color:var(--text3);margin-bottom:16px">Ajude a melhorar o app! Registre ideias, problemas ou sugestões.</p>
-
-<div class="form-group"><label class="form-label">Tipo</label>
-<select class="form-input" id="sugTipo">
-<option>💡 Ideia / Melhoria</option>
-<option>🐛 Bug / Problema</option>
-<option>⭐ Elogio</option>
-<option>❓ Dúvida</option>
-</select></div>
-<div class="form-group"><label class="form-label">Sua sugestão</label><textarea class="form-input" id="sugTexto" rows="4" placeholder="Descreva aqui..." style="resize:vertical;font-family:var(--font)"></textarea></div>
-<button class="btn btn-primary" onclick="saveSug()">📩 Enviar Sugestão</button>
-
-<div style="margin-top:20px">
-<div class="card-title"><div class="dot" style="background:var(--primary)"></div>Sugestões Enviadas</div>
-<div id="sugList"></div>
-<div class="empty" id="sugEmpty" style="display:none"><p>Nenhuma sugestão ainda.</p></div>
-</div>
-<button class="btn btn-outline" style="margin-top:12px" onclick="exportSug()">📋 Exportar Sugestões</button>
 </div>
 
 <!-- PAY FATURA MODAL -->
@@ -2388,6 +2390,7 @@ function setAgColor(color,el){
 }
 
 function openAgendaAdd(dateStr){
+    try{
     agEditId=null;
     $('agTitle').value='';
     $('agDate').value=dateStr||new Date().toISOString().split('T')[0];
@@ -2396,10 +2399,9 @@ function openAgendaAdd(dateStr){
     $('agNotes').value='';
     $('agRepeat').value='none';
     // Populate selects
-    const bs=$('agBanco');bs.innerHTML='';getBancos().forEach(b=>{const o=document.createElement('option');o.value=b;o.textContent=b;bs.appendChild(o)});
-    const cs=$('agCartao');cs.innerHTML='';getCartoes().forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;cs.appendChild(o)});
-    const cats=$('agCat');cats.innerHTML='<option value="">Sem categoria</option>';
-    (D.catsD||[]).forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;cats.appendChild(o)});
+    const bs=$('agBanco');if(bs){bs.innerHTML='';getBancos().forEach(b=>{const o=document.createElement('option');o.value=b;o.textContent=b;bs.appendChild(o)})}
+    const cs=$('agCartao');if(cs){cs.innerHTML='';getCartoes().forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;cs.appendChild(o)})}
+    const cats=$('agCat');if(cats){cats.innerHTML='<option value="">Sem categoria</option>';(D.catsD||[]).forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;cats.appendChild(o)})}
     const typeBtn=document.querySelector('#agTypeTabs .toggle-tab:first-child');
     if(typeBtn)setAgType('pagamento',typeBtn);
     const destBtn=document.querySelector('#agDestinoTabs .toggle-tab:first-child');
@@ -2407,6 +2409,7 @@ function openAgendaAdd(dateStr){
     const colorBtn=document.querySelector('.ag-color-dot');
     if(colorBtn)setAgColor('#cc2222',colorBtn);
     $('agendaModal').classList.add('show');
+    }catch(err){console.error('Agenda error:',err);alert('Erro: '+err.message)}
 }
 
 function openAgendaEdit(id){
