@@ -34,6 +34,17 @@
 --shadow:0 4px 24px rgba(0,0,0,0.4);
 --font:'DM Sans',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
 }
+[data-theme="light"]{
+--bg:#f2f2f2;--surface:#ffffff;--surface2:#f0f0f0;--surface3:#e6e6e6;
+--border:#d4d4d4;--border2:#c0c0c0;
+--text:#1a1a1a;--text2:#555555;--text3:#888888;
+--primary:#cc2222;--primary2:#aa1818;--primary-glow:rgba(204,34,34,0.08);
+--green:#059669;--green2:#047857;--green-bg:rgba(5,150,105,0.08);
+--red:#dc2626;--red2:#b91c1c;--red-bg:rgba(220,38,38,0.08);
+--orange:#d97706;--orange-bg:rgba(217,119,6,0.08);
+--purple:#7c3aed;--purple-bg:rgba(124,58,237,0.08);
+--shadow:0 4px 24px rgba(0,0,0,0.08);
+}
 html,body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 button{font-family:var(--font);cursor:pointer;border:none;outline:none}
 input,select{font-family:var(--font);outline:none}
@@ -250,6 +261,7 @@ Entrar com Google
 </div>
 <div class="header-actions">
 <span id="headerUser" style="font-size:11px;color:var(--text3);margin-right:4px"></span>
+<button class="btn-icon" onclick="toggleTheme()" id="themeToggleBtn" title="Alternar tema claro/escuro"><span id="themeIcon">☀️</span></button>
 <button class="btn-icon" onclick="exportCSV()" title="Exportar CSV"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
 <button class="btn-icon" onclick="doLogout()" title="Sair" style="color:var(--red)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg></button>
 </div>
@@ -842,6 +854,30 @@ async function doEmailRegister(){
 function openLgpd(){document.getElementById('lgpdModal').style.display='block'}
 function closeLgpd(){document.getElementById('lgpdModal').style.display='none'}
 
+function toggleTheme(){
+    const html=document.documentElement;
+    const isLight=html.getAttribute('data-theme')==='light';
+    if(isLight){
+        html.removeAttribute('data-theme');
+        $('themeIcon').textContent='☀️';
+        if(D)D.theme='dark';
+    } else {
+        html.setAttribute('data-theme','light');
+        $('themeIcon').textContent='🌙';
+        if(D)D.theme='light';
+    }
+    if(D)save();
+}
+function applyTheme(){
+    if(D&&D.theme==='light'){
+        document.documentElement.setAttribute('data-theme','light');
+        if($('themeIcon'))$('themeIcon').textContent='🌙';
+    } else {
+        document.documentElement.removeAttribute('data-theme');
+        if($('themeIcon'))$('themeIcon').textContent='☀️';
+    }
+}
+
 function doLogout(){
     if(!confirm('Sair da conta?'))return;
     auth.signOut();
@@ -856,6 +892,7 @@ auth.onAuthStateChanged(async function(user){
         document.getElementById('appContainer').style.display='flex';
         document.getElementById('headerUser').textContent='👤 '+currentUser;
         await loadFromCloud();
+        applyTheme();
         if(!D.userName){D.userName=currentUser;save()}
         refresh();
     } else {
