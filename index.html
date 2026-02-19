@@ -2513,9 +2513,14 @@ function launchAgendaTxPending(ev){
 
 function delAgenda(id){
     if(!confirm('Excluir este compromisso?'))return;
+    const ev=(D.ag||[]).find(e=>e.id===id);
+    if(ev&&ev.txId){
+        D.tx=D.tx.filter(t=>t.id!==ev.txId);
+        D.cp=D.cp.filter(c=>c.id!==ev.txId);
+    }
     D.ag=(D.ag||[]).filter(e=>e.id!==id);
     save();refresh();
-    toast('Compromisso excluído');
+    toast('Compromisso e lançamento removidos');
 }
 
 function rAgenda(){
