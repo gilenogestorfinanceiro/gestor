@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Admin · Gileno Gestão Financeira</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0d0d0d;--surface:#1a1a1a;--surface2:#222;--border:#2a2a2a;--primary:#e63333;--green:#10b981;--blue:#3b82f6;--amber:#f59e0b;--purple:#8b5cf6;--red:#ef4444;--text:#e8e8e8;--text2:#aaa;--text3:#666;--font:'Nunito',sans-serif;--mono:'JetBrains Mono',monospace;--radius:16px;--radius-sm:10px}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header h1{font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px}
+.header h1 span{color:var(--primary)}
+.header .logout{background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:8px 16px;border-radius:var(--radius-sm);cursor:pointer;font-family:var(--font);font-size:13px}
+.container{max-width:1100px;margin:0 auto;padding:20px}
+.login-box{max-width:380px;margin:100px auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:32px;text-align:center}
+.login-box h2{font-size:20px;margin-bottom:8px}
+.login-box p{color:var(--text3);font-size:13px;margin-bottom:20px}
+.login-box input{width:100%;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:14px;margin-bottom:10px}
+.login-box button{width:100%;padding:12px;background:var(--primary);border:none;border-radius:var(--radius-sm);color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer}
+#loginError{color:var(--red);font-size:12px;margin-top:8px;display:none}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:24px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:20px;text-align:center}
+.kpi-label{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.kpi-value{font-family:var(--mono);font-size:28px;font-weight:800}
+.kpi-sub{font-size:11px;color:var(--text3);margin-top:4px}
+.section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.section-title{font-size:16px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--surface2);border-radius:var(--radius-sm);padding:3px}
+.tab{flex:1;padding:8px;border:none;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;background:transparent;color:var(--text3)}
+.tab.active{background:var(--primary);color:#fff}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 12px;border-bottom:1px solid var(--border)}
+td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px}
+tr:hover{background:var(--surface2)}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase}
+.badge-green{background:rgba(16,185,129,0.15);color:var(--green)}
+.badge-amber{background:rgba(245,158,11,0.15);color:var(--amber)}
+.badge-red{background:rgba(239,68,68,0.15);color:var(--red)}
+.badge-blue{background:rgba(59,130,246,0.15);color:var(--blue)}
+.badge-purple{background:rgba(139,92,246,0.15);color:var(--purple)}
+.sug-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:8px}
+.sug-card.unread{border-left:3px solid var(--primary)}
+.sug-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.sug-meta{font-size:11px;color:var(--text3)}
+.sug-text{font-size:13px;line-height:1.6}
+.sug-actions{display:flex;gap:6px;margin-top:8px}
+.sug-actions button{padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:11px;cursor:pointer;font-family:var(--font)}
+.sug-actions button:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+.online-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+.online-dot.active{background:var(--green)}
+.online-dot.recent{background:var(--amber)}
+.online-dot.inactive{background:var(--text3)}
+.refresh-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:8px 14px;border-radius:var(--radius-sm);cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600}
+.refresh-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+@media(max-width:600px){
+    .kpis{grid-template-columns:1fr 1fr}
+    .kpi-value{font-size:22px}
+    .container{padding:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+<div class="login-box">
+<h2>🔒 Painel Admin</h2>
+<p>Acesso restrito ao gestor</p>
+<input type="email" id="adminEmail" placeholder="Email">
+<input type="password" id="adminPass" placeholder="Senha">
+<button onclick="doAdminLogin()">Entrar</button>
+<div id="loginError"></div>
+</div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminPanel" style="display:none">
+<div class="header">
+<h1>⚙️ <span>Painel do Gestor</span></h1>
+<div style="display:flex;gap:8px;align-items:center">
+<button class="refresh-btn" onclick="loadAll()">🔄 Atualizar</button>
+<button class="logout" onclick="doLogout()">Sair</button>
+</div>
+</div>
+
+<div class="container">
+<!-- KPIs -->
+<div class="kpis" id="kpis"></div>
+
+<!-- TABS -->
+<div class="tabs">
+<button class="tab active" onclick="setTab('users',this)">👥 Usuários</button>
+<button class="tab" onclick="setTab('sugestoes',this)">💬 Sugestões</button>
+<button class="tab" onclick="setTab('metricas',this)">📊 Métricas</button>
+</div>
+
+<!-- USERS -->
+<div id="tabUsers" class="section">
+<div class="section-title">👥 Usuários Cadastrados</div>
+<div style="overflow-x:auto">
+<table>
+<thead><tr><th>Status</th><th>Nome</th><th>Email</th><th>Último Acesso</th><th>Dispositivo</th></tr></thead>
+<tbody id="usersTable"></tbody>
+</table>
+</div>
+</div>
+
+<!-- SUGESTÕES -->
+<div id="tabSugestoes" class="section" style="display:none">
+<div class="section-title" style="justify-content:space-between">
+<span>💬 Sugestões e Feedback</span>
+<span id="sugCount" style="font-size:12px;color:var(--text3)"></span>
+</div>
+<div id="sugFilter" style="margin-bottom:12px">
+<div class="tabs" style="max-width:400px">
+<button class="tab active" onclick="filterSug('todas',this)">Todas</button>
+<button class="tab" onclick="filterSug('nao_lidas',this)">Não lidas</button>
+<button class="tab" onclick="filterSug('respondidas',this)">Respondidas</button>
+</div>
+</div>
+<div id="sugList"></div>
+</div>
+
+<!-- MÉTRICAS -->
+<div id="tabMetricas" class="section" style="display:none">
+<div class="section-title">📊 Métricas da Plataforma</div>
+<div id="metricsList"></div>
+</div>
+
+</div>
+</div>
+
+<script>
+// ADMIN EMAIL - only this email can access
+const ADMIN_EMAIL = 'gilenopaivalima@gmail.com';
+
+const firebaseConfig={
+    apiKey:"AIzaSyDNq64Kqr2kt1baYlgPduSo5LbTsfdxdWQ",
+    authDomain:"gestor-financeiro-pessoa-90a13.firebaseapp.com",
+    projectId:"gestor-financeiro-pessoa-90a13",
+    storageBucket:"gestor-financeiro-pessoa-90a13.firebasestorage.app",
+    messagingSenderId:"465890133373",
+    appId:"1:465890133373:web:ac58f801c60992b2b83814"
+};
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
+const db=firebase.firestore();
+
+let allUsers=[], allSugs=[], allUserData=[];
+let sugFilterMode='todas';
+
+function doAdminLogin(){
+    const email=document.getElementById('adminEmail').value;
+    const pass=document.getElementById('adminPass').value;
+    const err=document.getElementById('loginError');
+    if(email.toLowerCase()!==ADMIN_EMAIL){
+        err.style.display='block';err.textContent='⛔ Acesso não autorizado';return;
+    }
+    auth.signInWithEmailAndPassword(email,pass).then(()=>{
+        err.style.display='none';
+    }).catch(e=>{
+        err.style.display='block';
+        err.textContent=e.code==='auth/wrong-password'?'Senha incorreta':e.message;
+    });
+}
+
+auth.onAuthStateChanged(user=>{
+    if(user && user.email.toLowerCase()===ADMIN_EMAIL){
+        document.getElementById('loginScreen').style.display='none';
+        document.getElementById('adminPanel').style.display='block';
+        loadAll();
+    } else {
+        document.getElementById('loginScreen').style.display='block';
+        document.getElementById('adminPanel').style.display='none';
+    }
+});
+
+function doLogout(){auth.signOut()}
+
+async function loadAll(){
+    await Promise.all([loadUsers(),loadSugestoes(),loadUserData()]);
+    renderKPIs();
+    renderUsers();
+    renderSugestoes();
+    renderMetricas();
+}
+
+async function loadUsers(){
+    try{
+        const snap=await db.collection('userActivity').get();
+        allUsers=[];
+        snap.forEach(doc=>{
+            allUsers.push({id:doc.id,...doc.data()});
+        });
+    }catch(e){console.error('Load users:',e)}
+}
+
+async function loadSugestoes(){
+    try{
+        const snap=await db.collection('sugestoes').orderBy('createdAt','desc').get();
+        allSugs=[];
+        snap.forEach(doc=>{
+            allSugs.push({id:doc.id,...doc.data()});
+        });
+    }catch(e){console.error('Load sugs:',e)}
+}
+
+async function loadUserData(){
+    try{
+        const snap=await db.collection('users').get();
+        allUserData=[];
+        snap.forEach(doc=>{
+            const d=doc.data();
+            allUserData.push({id:doc.id,data:d.data||{},updated:d.updated});
+        });
+    }catch(e){console.error('Load user data:',e)}
+}
+
+function renderKPIs(){
+    const now=new Date();
+    const today=now.toDateString();
+    const weekAgo=new Date(now-7*86400000);
+    const monthAgo=new Date(now-30*86400000);
+
+    const totalUsers=allUsers.length;
+    const activeToday=allUsers.filter(u=>{
+        if(!u.lastAccess)return false;
+        const d=u.lastAccess.toDate?u.lastAccess.toDate():new Date(u.lastAccess);
+        return d.toDateString()===today;
+    }).length;
+    const activeWeek=allUsers.filter(u=>{
+        if(!u.lastAccess)return false;
+        const d=u.lastAccess.toDate?u.lastAccess.toDate():new Date(u.lastAccess);
+        return d>=weekAgo;
+    }).length;
+    const activeMonth=allUsers.filter(u=>{
+        if(!u.lastAccess)return false;
+        const d=u.lastAccess.toDate?u.lastAccess.toDate():new Date(u.lastAccess);
+        return d>=monthAgo;
+    }).length;
+    const mobileCount=allUsers.filter(u=>u.device==='mobile').length;
+    const desktopCount=allUsers.filter(u=>u.device==='desktop').length;
+    const unreadSugs=allSugs.filter(s=>!s.lida).length;
+
+    document.getElementById('kpis').innerHTML=`
+        <div class="kpi"><div class="kpi-label">Total Usuários</div><div class="kpi-value" style="color:var(--blue)">${totalUsers}</div><div class="kpi-sub">📱 ${mobileCount} mobile · 💻 ${desktopCount} desktop</div></div>
+        <div class="kpi"><div class="kpi-label">Ativos Hoje</div><div class="kpi-value" style="color:var(--green)">${activeToday}</div><div class="kpi-sub">Online agora ou hoje</div></div>
+        <div class="kpi"><div class="kpi-label">Ativos 7 dias</div><div class="kpi-value" style="color:var(--amber)">${activeWeek}</div><div class="kpi-sub">Última semana</div></div>
+        <div class="kpi"><div class="kpi-label">Sugestões</div><div class="kpi-value" style="color:var(--primary)">${allSugs.length}</div><div class="kpi-sub">${unreadSugs} não lidas</div></div>
+    `;
+}
+
+function renderUsers(){
+    const now=new Date();
+    const sorted=[...allUsers].sort((a,b)=>{
+        const da=a.lastAccess?(a.lastAccess.toDate?a.lastAccess.toDate():new Date(a.lastAccess)):new Date(0);
+        const db2=b.lastAccess?(b.lastAccess.toDate?b.lastAccess.toDate():new Date(b.lastAccess)):new Date(0);
+        return db2-da;
+    });
+    document.getElementById('usersTable').innerHTML=sorted.map(u=>{
+        const la=u.lastAccess?(u.lastAccess.toDate?u.lastAccess.toDate():new Date(u.lastAccess)):null;
+        const diffMin=la?Math.floor((now-la)/60000):99999;
+        let statusClass='inactive',statusLabel='Inativo';
+        if(diffMin<15){statusClass='active';statusLabel='Online'}
+        else if(diffMin<1440){statusClass='recent';statusLabel='Hoje'}
+        else if(diffMin<10080){statusClass='recent';statusLabel='Recente'}
+        const laStr=la?la.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'Nunca';
+        const device=u.device==='mobile'?'📱 Mobile':'💻 Desktop';
+        return `<tr>
+            <td><span class="online-dot ${statusClass}"></span>${statusLabel}</td>
+            <td style="font-weight:600">${u.name||'—'}</td>
+            <td style="color:var(--text3);font-size:12px">${u.email||'—'}</td>
+            <td style="font-family:var(--mono);font-size:12px">${laStr}</td>
+            <td>${device}</td>
+        </tr>`;
+    }).join('');
+}
+
+function renderSugestoes(){
+    let filtered=allSugs;
+    if(sugFilterMode==='nao_lidas')filtered=allSugs.filter(s=>!s.lida);
+    if(sugFilterMode==='respondidas')filtered=allSugs.filter(s=>s.respondida);
+    
+    document.getElementById('sugCount').textContent=filtered.length+' sugestões';
+    
+    if(!filtered.length){
+        document.getElementById('sugList').innerHTML='<div style="text-align:center;padding:30px;color:var(--text3)">Nenhuma sugestão</div>';
+        return;
+    }
+    
+    const tipoColors={ideia:'badge-blue',problema:'badge-red',melhoria:'badge-amber',elogio:'badge-green',outro:'badge-purple'};
+    
+    document.getElementById('sugList').innerHTML=filtered.map(s=>{
+        const dt=s.createdAt?(s.createdAt.toDate?s.createdAt.toDate():new Date(s.createdAt)):new Date();
+        const dtStr=dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
+        const badgeClass=tipoColors[s.tipo]||'badge-purple';
+        const unreadClass=s.lida?'':'unread';
+        return `<div class="sug-card ${unreadClass}">
+            <div class="sug-header">
+                <div><strong>${s.user||'Anônimo'}</strong> <span style="color:var(--text3);font-size:11px">${s.email||''}</span></div>
+                <span class="badge ${badgeClass}">${s.tipo||'outro'}</span>
+            </div>
+            <div class="sug-text">${s.texto}</div>
+            <div class="sug-meta">${dtStr}</div>
+            <div class="sug-actions">
+                ${s.lida?'<button disabled style="opacity:0.5">✅ Lida</button>':'<button onclick="markRead(\''+s.id+'\')">Marcar como lida</button>'}
+                ${s.respondida?'<button disabled style="opacity:0.5">💬 Respondida</button>':'<button onclick="markResponded(\''+s.id+'\')">Marcar respondida</button>'}
+                <button onclick="delSug('${s.id}')" style="color:var(--red)">Excluir</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function renderMetricas(){
+    let totalTx=0,totalCp=0,totalAg=0,totalInvOps=0;
+    allUserData.forEach(u=>{
+        const d=u.data;
+        totalTx+=(d.tx||[]).length;
+        totalCp+=(d.cp||[]).length;
+        totalAg+=(d.ag||[]).length;
+        totalInvOps+=(d.investOps||[]).length;
+    });
+    
+    document.getElementById('metricsList').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
+        <div class="kpi"><div class="kpi-label">Lançamentos</div><div class="kpi-value" style="color:var(--green)">${totalTx}</div><div class="kpi-sub">Receitas e Despesas</div></div>
+        <div class="kpi"><div class="kpi-label">Compras Cartão</div><div class="kpi-value" style="color:var(--amber)">${totalCp}</div><div class="kpi-sub">Parceladas e à vista</div></div>
+        <div class="kpi"><div class="kpi-label">Agenda</div><div class="kpi-value" style="color:var(--blue)">${totalAg}</div><div class="kpi-sub">Compromissos agendados</div></div>
+        <div class="kpi"><div class="kpi-label">Investimentos</div><div class="kpi-value" style="color:var(--purple)">${totalInvOps}</div><div class="kpi-sub">Operações de compra/venda</div></div>
+    </div>
+    <div style="margin-top:20px">
+        <div class="section-title">📋 Detalhes por Usuário</div>
+        <div style="overflow-x:auto">
+        <table>
+        <thead><tr><th>Usuário</th><th>Lançamentos</th><th>Cartão</th><th>Agenda</th><th>Investimentos</th><th>Última Atualização</th></tr></thead>
+        <tbody>${allUserData.map(u=>{
+            const d=u.data;
+            const name=d.userName||u.id.substring(0,8);
+            const upd=u.updated?(u.updated.toDate?u.updated.toDate():new Date(u.updated)):null;
+            const updStr=upd?upd.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
+            return `<tr><td style="font-weight:600">${name}</td><td style="font-family:var(--mono)">${(d.tx||[]).length}</td><td style="font-family:var(--mono)">${(d.cp||[]).length}</td><td style="font-family:var(--mono)">${(d.ag||[]).length}</td><td style="font-family:var(--mono)">${(d.investOps||[]).length}</td><td style="font-size:12px;color:var(--text3)">${updStr}</td></tr>`;
+        }).join('')}</tbody>
+        </table>
+        </div>
+    </div>`;
+}
+
+function setTab(tab,el){
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tabUsers').style.display=tab==='users'?'block':'none';
+    document.getElementById('tabSugestoes').style.display=tab==='sugestoes'?'block':'none';
+    document.getElementById('tabMetricas').style.display=tab==='metricas'?'block':'none';
+}
+
+function filterSug(mode,el){
+    sugFilterMode=mode;
+    el.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    el.classList.add('active');
+    renderSugestoes();
+}
+
+async function markRead(id){
+    await db.collection('sugestoes').doc(id).update({lida:true});
+    const s=allSugs.find(x=>x.id===id);if(s)s.lida=true;
+    renderSugestoes();renderKPIs();
+}
+
+async function markResponded(id){
+    await db.collection('sugestoes').doc(id).update({respondida:true,lida:true});
+    const s=allSugs.find(x=>x.id===id);if(s){s.respondida=true;s.lida=true}
+    renderSugestoes();renderKPIs();
+}
+
+async function delSug(id){
+    if(!confirm('Excluir esta sugestão?'))return;
+    await db.collection('sugestoes').doc(id).delete();
+    allSugs=allSugs.filter(x=>x.id!==id);
+    renderSugestoes();renderKPIs();
+}
+
+// Auto-refresh every 60 seconds
+setInterval(()=>{
+    if(document.getElementById('adminPanel').style.display!=='none') loadAll();
+},60000);
+
+// Enter key login
+document.getElementById('adminPass').addEventListener('keyup',e=>{if(e.key==='Enter')doAdminLogin()});
+</script>
+</body>
+</html>
