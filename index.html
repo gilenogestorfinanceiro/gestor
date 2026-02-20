@@ -3454,14 +3454,23 @@ function exportICS(id){
     lines.push('END:VEVENT');
     lines.push('END:VCALENDAR');
     const icsContent=lines.join(NL)+NL;
-    const blob=new Blob([icsContent],{type:'text/calendar;charset=utf-8'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    const safeName=ev.title.replace(/[^a-zA-Z0-9\u00C0-\u017F ]/g,'').trim().replace(/\s+/g,'_')||'evento';
-    a.href=url;a.download=safeName+'.ics';
-    document.body.appendChild(a);a.click();document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast('📅 Abra o arquivo para adicionar ao Calendário');
+    // Use data URI — Safari/Mac opens Calendar app directly
+    const dataUri='data:text/calendar;charset=utf-8,'+encodeURIComponent(icsContent);
+    const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if(isMobile){
+        // Mobile: download as file (iOS opens Calendar picker)
+        const blob=new Blob([icsContent],{type:'text/calendar;charset=utf-8'});
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');
+        const safeName=ev.title.replace(/[^a-zA-Z0-9\u00C0-\u017F ]/g,'').trim().replace(/\s+/g,'_')||'evento';
+        a.href=url;a.download=safeName+'.ics';
+        document.body.appendChild(a);a.click();document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } else {
+        // Desktop: open data URI — triggers Calendar app
+        window.open(dataUri,'_self');
+    }
+    toast('📅 Adicionando ao Calendário...');
 }
 
 function selectAgDay(dateStr){
