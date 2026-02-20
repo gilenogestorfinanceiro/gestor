@@ -67,83 +67,99 @@ input,select{font-family:var(--font);outline:none}
 .main{flex:1;padding:16px 16px 90px;max-width:600px;margin:0 auto;width:100%}
 @media(min-width:768px){.main{max-width:700px;padding:24px 24px 90px}}
 @media(min-width:1024px){
-.main{max-width:900px;padding:28px 32px 90px}
-.app-header{padding:14px 32px}
-.app-logo span{font-size:17px}
-.kpi-value{font-size:24px}
-.kpi-label{font-size:12px}
-.kpi-sub{font-size:12px}
-.kpi{padding:18px}
-.card-title{font-size:13px}
-.month-label{font-size:18px}
-.form-label{font-size:13px}
-.form-input{font-size:15px;padding:13px 16px}
-.btn{font-size:15px;padding:14px 28px}
-.toggle-tab{font-size:14px;padding:11px}
-.tx-desc{font-size:15px}
-.tx-meta{font-size:12px}
-.tx-amount{font-size:16px}
-.tx-icon{width:40px;height:40px;font-size:18px}
-.bank-name{font-size:14px}
-.bank-balance{font-size:15px}
-.card-sum-name{font-size:14px}
-.chart-bar{width:22px}
-.chart-lbl{font-size:10px}
-.nav-item{font-size:10px;padding:8px 12px}
-.nav-bar{padding:8px 16px}
-.modal{max-width:520px}
-.inv-cot-card{padding:16px}
-.inv-cot-price{font-size:17px}
-.inv-cot-label{font-size:12px}
-.inv-cot-var{font-size:12px}
-.empty p{font-size:14px}
-}
-@media(min-width:1280px){
-.main{max-width:1050px;padding:32px 40px 90px}
-.app-header{padding:16px 40px}
+.main{max-width:960px;padding:28px 32px 90px}
+.app-header{padding:16px 32px}
 .app-logo span{font-size:18px}
-.kpi-value{font-size:28px}
-.kpi-label{font-size:13px}
+.app-logo svg{width:32px;height:32px}
+.kpi-value{font-size:26px}
+.kpi-label{font-size:12px;letter-spacing:0.5px}
+.kpi-sub{font-size:12px}
 .kpi{padding:20px}
+.kpi-grid{gap:14px}
 .card{padding:20px}
 .card-title{font-size:14px}
 .month-label{font-size:20px}
-.form-input{font-size:16px;padding:14px 18px}
-.btn{font-size:16px}
-.toggle-tab{font-size:15px;padding:12px}
+.form-label{font-size:13px}
+.form-input{font-size:16px;padding:14px 16px}
+.valor-input-wrap .form-input{font-size:22px}
+.valor-prefix{font-size:16px}
+.btn{font-size:16px;padding:16px 28px}
+.btn-sm{font-size:14px;padding:10px 18px}
+.toggle-tab{font-size:14px;padding:12px}
 .tx-desc{font-size:16px}
-.tx-meta{font-size:13px}
-.tx-amount{font-size:18px}
-.tx-icon{width:44px;height:44px;font-size:20px}
+.tx-meta{font-size:12px}
+.tx-amount{font-size:17px}
+.tx-icon{width:42px;height:42px;font-size:18px}
+.tx-del{width:32px;height:32px;font-size:16px}
 .bank-name{font-size:15px}
-.bank-balance{font-size:17px}
-.chart-bar{width:28px}
+.bank-balance{font-size:16px}
+.card-sum-name{font-size:15px}
+.chart-bar{width:26px}
 .chart-lbl{font-size:11px}
-.inv-cot-card{padding:18px}
-.inv-cot-price{font-size:19px}
+.nav-item{font-size:11px;padding:8px 14px}
+.nav-bar{padding:10px 20px}
+.modal{max-width:540px}
+.inv-cot-card{padding:16px}
+.inv-cot-price{font-size:18px}
 .inv-cot-label{font-size:13px}
-.inv-cot-var{font-size:13px}
-.inv-cot-time{font-size:10px}
-.modal{max-width:560px}
+.inv-cot-var{font-size:12px}
 .empty p{font-size:15px}
-}
-@media(min-width:1024px){
-.bk-table{font-size:13px}
+.bk-table{font-size:14px}
 .bk-table th{font-size:11px;padding:10px 12px}
 .bk-table td{padding:9px 12px}
-.bk-table td:nth-child(3),.bk-table td:nth-child(4),.bk-table td:nth-child(5){font-size:13px}
-.bk-table tr.bk-saldo-row td{font-size:14px}
-.bk-desc{max-width:220px}
-.bk-saldo-final{font-size:18px}
-}
-@media(min-width:1280px){
-.bk-table{font-size:14px}
-.bk-table th{font-size:12px;padding:11px 14px}
-.bk-table td{padding:10px 14px}
 .bk-table td:nth-child(3),.bk-table td:nth-child(4),.bk-table td:nth-child(5){font-size:14px}
 .bk-table tr.bk-saldo-row td{font-size:15px}
-.bk-desc{max-width:300px}
-.bk-saldo-final{font-size:20px}
+.bk-desc{max-width:240px}
+.bk-saldo-final{font-size:18px}
+.bk-header{padding:14px 16px}
+}
+@media(min-width:1280px){
+.main{max-width:1200px;padding:36px 48px 100px}
+.app-header{padding:18px 48px}
+.app-logo span{font-size:20px}
+.app-logo svg{width:36px;height:36px}
+.kpi-value{font-size:32px}
+.kpi-label{font-size:14px}
+.kpi-sub{font-size:13px}
+.kpi{padding:24px}
+.kpi-grid{gap:16px;margin-bottom:20px}
+.card{padding:24px;border-radius:18px;margin-bottom:16px}
+.card-title{font-size:15px;margin-bottom:16px}
+.month-label{font-size:22px;min-width:220px}
+.form-label{font-size:14px}
+.form-input{font-size:17px;padding:16px 20px}
+.valor-input-wrap .form-input{font-size:24px}
+.valor-prefix{font-size:17px}
+.btn{font-size:17px;padding:16px 32px}
+.btn-sm{font-size:14px}
+.toggle-tab{font-size:15px;padding:13px}
+.tx-desc{font-size:17px}
+.tx-meta{font-size:13px}
+.tx-amount{font-size:19px}
+.tx-icon{width:48px;height:48px;font-size:22px}
+.tx-del{width:34px;height:34px;font-size:17px}
+.bank-name{font-size:16px}
+.bank-balance{font-size:18px}
+.card-sum-name{font-size:16px}
+.chart-bar{width:32px}
+.chart-lbl{font-size:12px}
+.nav-item{font-size:12px;padding:10px 16px}
+.nav-bar{padding:12px 24px;gap:6px}
+.modal{max-width:600px}
+.inv-cot-card{padding:20px}
+.inv-cot-price{font-size:20px}
+.inv-cot-label{font-size:14px}
+.inv-cot-var{font-size:13px}
+.inv-cot-time{font-size:11px}
+.empty p{font-size:16px}
+.bk-table{font-size:15px}
+.bk-table th{font-size:12px;padding:12px 14px}
+.bk-table td{padding:11px 14px}
+.bk-table td:nth-child(3),.bk-table td:nth-child(4),.bk-table td:nth-child(5){font-size:15px}
+.bk-table tr.bk-saldo-row td{font-size:16px}
+.bk-desc{max-width:350px;font-size:14px}
+.bk-saldo-final{font-size:22px}
+.bk-header{padding:16px 18px}
 }
 
 .page{display:none;animation:fadeIn .3s ease}.page.active{display:block}
