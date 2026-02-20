@@ -3402,19 +3402,18 @@ function exportICS(id){
     const ev=(D.ag||[]).find(e=>e.id===id);
     if(!ev){toast('Evento não encontrado',true);return}
     const dtStart=ev.date.replace(/-/g,'');
+    const NL='\r\n';
     let startStr,endStr,allDay=false;
     if(ev.time){
         const t=ev.time.replace(':','');
         startStr=dtStart+'T'+t+'00';
-        // End = start + 1 hour
         const h=parseInt(ev.time.split(':')[0]);
         const m=ev.time.split(':')[1];
-        const eh=String(h+1).padStart(2,'0');
+        const eh=String(Math.min(h+1,23)).padStart(2,'0');
         endStr=dtStart+'T'+eh+m+'00';
     } else {
         allDay=true;
         startStr=dtStart;
-        // All day end = next day
         const nd=new Date(ev.date+'T12:00:00');
         nd.setDate(nd.getDate()+1);
         endStr=nd.toISOString().split('T')[0].replace(/-/g,'');
@@ -3423,29 +3422,46 @@ function exportICS(id){
     let desc=typeLabel;
     if(ev.valor)desc+=' - '+fmt(ev.valor);
     if(ev.cat)desc+=' - '+ev.cat;
-    if(ev.notes)desc+='\\n'+ev.notes;
+    if(ev.notes)desc+=' | '+ev.notes.replace(/\n/g,' ');
     const uid=ev.id+'@gileno-gestao';
-    let ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Gileno Gestao Financeira//PT\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\nBEGIN:VEVENT\r\n';
-    ics+='UID:'+uid+'\r\n';
-    ics+='SUMMARY:'+ev.title+'\r\n';
-    ics+='DESCRIPTION:'+desc+'\r\n';
+    const now=new Date();
+    const stamp=now.toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+    const lines=[
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Gileno Gestao Financeira//PT',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+        'BEGIN:VEVENT',
+        'UID:'+uid,
+        'DTSTAMP:'+stamp
+    ];
     if(allDay){
-        ics+='DTSTART;VALUE=DATE:'+startStr+'\r\n';
-        ics+='DTEND;VALUE=DATE:'+endStr+'\r\n';
+        lines.push('DTSTART;VALUE=DATE:'+startStr);
+        lines.push('DTEND;VALUE=DATE:'+endStr);
     } else {
-        ics+='DTSTART:'+startStr+'\r\n';
-        ics+='DTEND:'+endStr+'\r\n';
+        lines.push('DTSTART;TZID=America/Sao_Paulo:'+startStr);
+        lines.push('DTEND;TZID=America/Sao_Paulo:'+endStr);
     }
-    // Alarm 30 min before (or at the time for all-day)
-    ics+='BEGIN:VALARM\r\nTRIGGER:'+(allDay?'-PT8H':'-PT30M')+'\r\nACTION:DISPLAY\r\nDESCRIPTION:'+ev.title+'\r\nEND:VALARM\r\n';
-    ics+='END:VEVENT\r\nEND:VCALENDAR\r\n';
-    const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
+    lines.push('SUMMARY:'+ev.title);
+    lines.push('DESCRIPTION:'+desc);
+    lines.push('STATUS:CONFIRMED');
+    lines.push('BEGIN:VALARM');
+    lines.push('TRIGGER:'+(allDay?'-PT8H':'-PT30M'));
+    lines.push('ACTION:DISPLAY');
+    lines.push('DESCRIPTION:Lembrete: '+ev.title);
+    lines.push('END:VALARM');
+    lines.push('END:VEVENT');
+    lines.push('END:VCALENDAR');
+    const icsContent=lines.join(NL)+NL;
+    const blob=new Blob([icsContent],{type:'text/calendar;charset=utf-8'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
-    a.href=url;a.download=ev.title.replace(/[^a-zA-Z0-9áàâãéèêíïóôõöúüçÁÀÂÃÉÈÊÍÏÓÔÕÖÚÜÇ ]/g,'').trim().replace(/\s+/g,'_')+'.ics';
+    const safeName=ev.title.replace(/[^a-zA-Z0-9\u00C0-\u017F ]/g,'').trim().replace(/\s+/g,'_')||'evento';
+    a.href=url;a.download=safeName+'.ics';
     document.body.appendChild(a);a.click();document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast('📅 Arquivo .ics gerado! Abra para adicionar ao Calendário');
+    toast('📅 Abra o arquivo para adicionar ao Calendário');
 }
 
 function selectAgDay(dateStr){
