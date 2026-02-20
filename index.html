@@ -1026,6 +1026,18 @@ auth.onAuthStateChanged(async function(user){
         applyTheme();
         if(!D.userName){D.userName=currentUser;save()}
         refresh();
+        // Track user activity for admin panel
+        try{
+            const ua=navigator.userAgent;
+            const isMobile=/iPhone|iPad|iPod|Android/i.test(ua);
+            db.collection('userActivity').doc(currentUid).set({
+                name:user.displayName||user.email.split('@')[0],
+                email:user.email||'',
+                lastAccess:firebase.firestore.FieldValue.serverTimestamp(),
+                device:isMobile?'mobile':'desktop',
+                ua:ua.substring(0,150)
+            },{merge:true});
+        }catch(e){console.log('Activity track:',e)}
     } else {
         currentUid='';currentUser='';
         document.getElementById('appContainer').style.display='none';
@@ -3031,6 +3043,18 @@ function saveSug(){
     D.sugs.push({tipo,texto,dt,user});
     save();$('sugTexto').value='';rSug();
     toast('📩 Enviando sugestão...');
+    
+    // Save to shared Firestore collection (admin panel)
+    try{
+        db.collection('sugestoes').add({
+            tipo,texto,user,
+            email:currentUser||'',
+            uid:currentUid||'',
+            createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+            lida:false,
+            respondida:false
+        });
+    }catch(e){console.log('Sug save:',e)}
     
     // Send email via FormSubmit
     fetch('https://formsubmit.co/ajax/gilenopaivalima@gmail.com',{
