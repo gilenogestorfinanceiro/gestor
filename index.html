@@ -2817,9 +2817,6 @@ function delOp(sortedIdx){
     save();rInvestOps();rInvestCarteira();toast('Operação excluída');
 }
 
-async function fetchCotacoes(){
-    const TOP_TICKERS=['PETR4','VALE3','ITUB4','BBDC4','WEGE3','ABEV3','RENT3','BBAS3','SUZB3','MGLU3','ELET3','B3SA3'];
-    
 function fmtCotTime(t){
     if(!t)return'';
     try{
@@ -2832,6 +2829,9 @@ function fmtCotTime(t){
         return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' '+hora;
     }catch(e){return t}
 }
+
+async function fetchCotacoes(){
+    const TOP_TICKERS=['PETR4','VALE3','ITUB4','BBDC4','WEGE3','ABEV3','RENT3','BBAS3','SUZB3','MGLU3','ELET3','B3SA3'];
     
     // AwesomeAPI - moedas + BTC (100% gratuita, sem chave, CORS ok)
     try{
