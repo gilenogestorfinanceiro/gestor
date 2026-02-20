@@ -3245,7 +3245,17 @@ function saveAgenda(){
         }
     }
     save();closeAgendaModal();refresh();
-    toast(agEditId?'Compromisso atualizado!':'Compromisso agendado!');
+    if(agEditId){
+        toast('Compromisso atualizado!');
+    } else {
+        toast('Compromisso agendado!');
+        // Offer to add to device calendar
+        setTimeout(()=>{
+            if(confirm('📅 Deseja adicionar "'+ev.title+'" ao Calendário do seu dispositivo?')){
+                exportICS(ev.id);
+            }
+        },500);
+    }
 }
 
 function toggleAgDone(id){
@@ -3383,8 +3393,59 @@ function renderAgEvent(e,isOverdue){
             ${e.notes?'<div style="font-size:11px;color:var(--text3);margin-top:2px;font-style:italic">'+e.notes+'</div>':''}
             ${isOverdue?'<div style="font-size:10px;color:var(--red);margin-top:2px">⚠️ Vencido</div>':''}
         </div>
+        <button onclick="exportICS('${e.id}')" title="Adicionar ao Calendário" style="background:none;border:none;color:var(--blue);font-size:16px;cursor:pointer;padding:4px">📅</button>
         <button onclick="delAgenda('${e.id}')" style="background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px">&times;</button>
     </div>`;
+}
+
+function exportICS(id){
+    const ev=(D.ag||[]).find(e=>e.id===id);
+    if(!ev){toast('Evento não encontrado',true);return}
+    const dtStart=ev.date.replace(/-/g,'');
+    let startStr,endStr,allDay=false;
+    if(ev.time){
+        const t=ev.time.replace(':','');
+        startStr=dtStart+'T'+t+'00';
+        // End = start + 1 hour
+        const h=parseInt(ev.time.split(':')[0]);
+        const m=ev.time.split(':')[1];
+        const eh=String(h+1).padStart(2,'0');
+        endStr=dtStart+'T'+eh+m+'00';
+    } else {
+        allDay=true;
+        startStr=dtStart;
+        // All day end = next day
+        const nd=new Date(ev.date+'T12:00:00');
+        nd.setDate(nd.getDate()+1);
+        endStr=nd.toISOString().split('T')[0].replace(/-/g,'');
+    }
+    const typeLabel={pagamento:'Pagamento',lembrete:'Lembrete',recebimento:'Recebimento'}[ev.type]||'Compromisso';
+    let desc=typeLabel;
+    if(ev.valor)desc+=' - '+fmt(ev.valor);
+    if(ev.cat)desc+=' - '+ev.cat;
+    if(ev.notes)desc+='\\n'+ev.notes;
+    const uid=ev.id+'@gileno-gestao';
+    let ics='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Gileno Gestao Financeira//PT\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\nBEGIN:VEVENT\r\n';
+    ics+='UID:'+uid+'\r\n';
+    ics+='SUMMARY:'+ev.title+'\r\n';
+    ics+='DESCRIPTION:'+desc+'\r\n';
+    if(allDay){
+        ics+='DTSTART;VALUE=DATE:'+startStr+'\r\n';
+        ics+='DTEND;VALUE=DATE:'+endStr+'\r\n';
+    } else {
+        ics+='DTSTART:'+startStr+'\r\n';
+        ics+='DTEND:'+endStr+'\r\n';
+    }
+    // Alarm 30 min before (or at the time for all-day)
+    ics+='BEGIN:VALARM\r\nTRIGGER:'+(allDay?'-PT8H':'-PT30M')+'\r\nACTION:DISPLAY\r\nDESCRIPTION:'+ev.title+'\r\nEND:VALARM\r\n';
+    ics+='END:VEVENT\r\nEND:VCALENDAR\r\n';
+    const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=ev.title.replace(/[^a-zA-Z0-9áàâãéèêíïóôõöúüçÁÀÂÃÉÈÊÍÏÓÔÕÖÚÜÇ ]/g,'').trim().replace(/\s+/g,'_')+'.ics';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('📅 Arquivo .ics gerado! Abra para adicionar ao Calendário');
 }
 
 function selectAgDay(dateStr){
