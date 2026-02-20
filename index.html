@@ -223,6 +223,7 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 .inv-cot-price{font-family:var(--mono);font-size:16px;font-weight:700}
 .inv-cot-var{font-size:11px;font-weight:600;margin-top:2px}
 .inv-cot-var.up{color:var(--green)}.inv-cot-var.down{color:var(--red)}
+.inv-cot-time{font-size:9px;color:var(--text3);margin-top:2px}
 .inv-tab{background:none;color:var(--text3)}.inv-tab.active{background:var(--primary);color:#fff}
 .inv-ativo{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .inv-ativo:hover{border-color:var(--primary)}
@@ -596,10 +597,10 @@ Entrar com Google
 
 <!-- COTAÇÕES RÁPIDAS -->
 <div id="cotacoesGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px">
-<div class="inv-cot-card"><div class="inv-cot-label">💵 Dólar</div><div class="inv-cot-price" id="cotUSD">--</div><div class="inv-cot-var" id="cotUSDvar">--</div></div>
-<div class="inv-cot-card"><div class="inv-cot-label">💶 Euro</div><div class="inv-cot-price" id="cotEUR">--</div><div class="inv-cot-var" id="cotEURvar">--</div></div>
-<div class="inv-cot-card"><div class="inv-cot-label">₿ Bitcoin</div><div class="inv-cot-price" id="cotBTC">--</div><div class="inv-cot-var" id="cotBTCvar">--</div></div>
-<div class="inv-cot-card"><div class="inv-cot-label">📊 Ibovespa</div><div class="inv-cot-price" id="cotIBOV">--</div><div class="inv-cot-var" id="cotIBOVvar">--</div></div>
+<div class="inv-cot-card"><div class="inv-cot-label">💵 Dólar</div><div class="inv-cot-price" id="cotUSD">--</div><div class="inv-cot-var" id="cotUSDvar">--</div><div class="inv-cot-time" id="cotUSDtime"></div></div>
+<div class="inv-cot-card"><div class="inv-cot-label">💶 Euro</div><div class="inv-cot-price" id="cotEUR">--</div><div class="inv-cot-var" id="cotEURvar">--</div><div class="inv-cot-time" id="cotEURtime"></div></div>
+<div class="inv-cot-card"><div class="inv-cot-label">₿ Bitcoin</div><div class="inv-cot-price" id="cotBTC">--</div><div class="inv-cot-var" id="cotBTCvar">--</div><div class="inv-cot-time" id="cotBTCtime"></div></div>
+<div class="inv-cot-card"><div class="inv-cot-label">📊 Ibovespa</div><div class="inv-cot-price" id="cotIBOV">--</div><div class="inv-cot-var" id="cotIBOVvar">--</div><div class="inv-cot-time" id="cotIBOVtime"></div></div>
 </div>
 
 <!-- TOP AÇÕES -->
@@ -2819,14 +2820,27 @@ function delOp(sortedIdx){
 async function fetchCotacoes(){
     const TOP_TICKERS=['PETR4','VALE3','ITUB4','BBDC4','WEGE3','ABEV3','RENT3','BBAS3','SUZB3','MGLU3','ELET3','B3SA3'];
     
+function fmtCotTime(t){
+    if(!t)return'';
+    try{
+        const d=new Date(t);
+        if(isNaN(d.getTime()))return t;
+        const hoje=new Date();
+        const isHoje=d.toDateString()===hoje.toDateString();
+        const hora=d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+        if(isHoje)return'Hoje '+hora;
+        return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' '+hora;
+    }catch(e){return t}
+}
+    
     // AwesomeAPI - moedas + BTC (100% gratuita, sem chave, CORS ok)
     try{
         const resp=await fetch('https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL,BTC-BRL');
         if(resp.ok){
             const data=await resp.json();
-            if(data.USDBRL) cotacoesCache.USD={price:parseFloat(data.USDBRL.bid),var:parseFloat(data.USDBRL.pctChange)};
-            if(data.EURBRL) cotacoesCache.EUR={price:parseFloat(data.EURBRL.bid),var:parseFloat(data.EURBRL.pctChange)};
-            if(data.BTCBRL) cotacoesCache.BTC={price:parseFloat(data.BTCBRL.bid),var:parseFloat(data.BTCBRL.pctChange)};
+            if(data.USDBRL) cotacoesCache.USD={price:parseFloat(data.USDBRL.bid),var:parseFloat(data.USDBRL.pctChange),time:data.USDBRL.create_date||''};
+            if(data.EURBRL) cotacoesCache.EUR={price:parseFloat(data.EURBRL.bid),var:parseFloat(data.EURBRL.pctChange),time:data.EURBRL.create_date||''};
+            if(data.BTCBRL) cotacoesCache.BTC={price:parseFloat(data.BTCBRL.bid),var:parseFloat(data.BTCBRL.pctChange),time:data.BTCBRL.create_date||''};
         }
     }catch(e){console.log('AwesomeAPI:',e)}
     
@@ -2842,7 +2856,7 @@ async function fetchCotacoes(){
                 const data2=await resp2.json();
                 if(data2.results){
                     data2.results.forEach(r=>{
-                        cotacoesCache[r.symbol]={price:r.regularMarketPrice,var:r.regularMarketChangePercent,name:r.shortName||r.longName||''};
+                        cotacoesCache[r.symbol]={price:r.regularMarketPrice,var:r.regularMarketChangePercent,name:r.shortName||r.longName||'',time:r.regularMarketTime||''};
                     });
                 }
             }
@@ -2855,7 +2869,7 @@ async function fetchCotacoes(){
                 const dataIb=await respIb.json();
                 if(dataIb.results&&dataIb.results[0]){
                     const ib=dataIb.results[0];
-                    cotacoesCache.IBOV={price:ib.regularMarketPrice,var:ib.regularMarketChangePercent};
+                    cotacoesCache.IBOV={price:ib.regularMarketPrice,var:ib.regularMarketChangePercent,time:ib.regularMarketTime||''};
                 }
             }
         }catch(e){console.log('brapi ibov:',e)}
@@ -2873,12 +2887,14 @@ function updateCotacoesUI(){
         const v=Number(u.var);
         $('cotUSDvar').textContent=(v>=0?'+':'')+v.toFixed(2)+'%';
         $('cotUSDvar').className='inv-cot-var '+(v>=0?'up':'down');
+        if(u.time)$('cotUSDtime').textContent=fmtCotTime(u.time);
     }
     if(e){
         $('cotEUR').textContent='R$ '+Number(e.price).toFixed(2);
         const v=Number(e.var);
         $('cotEURvar').textContent=(v>=0?'+':'')+v.toFixed(2)+'%';
         $('cotEURvar').className='inv-cot-var '+(v>=0?'up':'down');
+        if(e.time)$('cotEURtime').textContent=fmtCotTime(e.time);
     }
     if(b){
         const bp=Number(b.price);
@@ -2886,12 +2902,14 @@ function updateCotacoesUI(){
         const v=Number(b.var);
         $('cotBTCvar').textContent=(v>=0?'+':'')+v.toFixed(2)+'%';
         $('cotBTCvar').className='inv-cot-var '+(v>=0?'up':'down');
+        if(b.time)$('cotBTCtime').textContent=fmtCotTime(b.time);
     }
     if(i){
         $('cotIBOV').textContent=Math.round(Number(i.price)).toLocaleString('pt-BR')+' pts';
         const v=Number(i.var);
         $('cotIBOVvar').textContent=(v>=0?'+':'')+v.toFixed(2)+'%';
         $('cotIBOVvar').className='inv-cot-var '+(v>=0?'up':'down');
+        if(i.time)$('cotIBOVtime').textContent=fmtCotTime(i.time);
     }
     
     // Top Ações
@@ -2913,7 +2931,7 @@ function updateCotacoesUI(){
     });
     if(hasStocks){
         $('topAcoesList').innerHTML=topHtml;
-        $('cotLastUpdate').textContent='Atualizado: '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+        $('cotLastUpdate').textContent='Atualizado: '+new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     } else {
         const brapiToken=D.brapiToken||'';
         $('topAcoesList').innerHTML=brapiToken?
@@ -2930,12 +2948,20 @@ async function refreshCotacoes(){
     toast('✅ Cotações atualizadas!');
 }
 
+let invAutoRefresh=null;
 function rInvest(){
     fetchCotacoes().then(()=>{
         updateCotacoesUI();
         rInvestCarteira();
         rInvestDividendos();
     });
+    // Auto-refresh every 5 min while on investimentos
+    if(invAutoRefresh)clearInterval(invAutoRefresh);
+    invAutoRefresh=setInterval(()=>{
+        if(curPage==='investimentos'){
+            fetchCotacoes().then(()=>{updateCotacoesUI();rInvestCarteira()});
+        } else {clearInterval(invAutoRefresh);invAutoRefresh=null}
+    },300000);
 }
 
 function rInvestDividendos(){
