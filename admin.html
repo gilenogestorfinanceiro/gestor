@@ -98,6 +98,7 @@ Entrar com Google
 <button class="tab active" onclick="setTab('users',this)">👥 Usuários</button>
 <button class="tab" onclick="setTab('sugestoes',this)">💬 Sugestões</button>
 <button class="tab" onclick="setTab('metricas',this)">📊 Métricas</button>
+<button class="tab" onclick="setTab('backup',this)">💾 Backup</button>
 </div>
 
 <!-- USERS -->
@@ -131,6 +132,44 @@ Entrar com Google
 <div id="tabMetricas" class="section" style="display:none">
 <div class="section-title">📊 Métricas da Plataforma</div>
 <div id="metricsList"></div>
+</div>
+
+<div id="tabBackup" class="section" style="display:none">
+<div class="section-title">💾 Backup do Sistema</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+<div class="kpi">
+<div class="kpi-label">Último Backup</div>
+<div class="kpi-value" id="bkLastDate" style="font-size:18px;color:var(--green)">—</div>
+<div class="kpi-sub" id="bkLastSize">Carregando...</div>
+</div>
+<div class="kpi">
+<div class="kpi-label">Versão Salva</div>
+<div class="kpi-value" id="bkVersion" style="font-size:18px;color:var(--blue)">—</div>
+<div class="kpi-sub" id="bkChunks"></div>
+</div>
+</div>
+
+<div style="display:flex;gap:12px;flex-wrap:wrap">
+<button onclick="downloadBackup()" style="flex:1;min-width:200px;padding:14px 20px;background:var(--green);border:none;border-radius:var(--radius-sm);color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+⬇️ Baixar Backup (index.html)
+</button>
+<button onclick="forceBackupNow()" style="flex:1;min-width:200px;padding:14px 20px;background:var(--blue);border:none;border-radius:var(--radius-sm);color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+🔄 Forçar Backup Agora
+</button>
+</div>
+
+<div id="bkStatus" style="margin-top:16px;padding:12px;background:var(--surface2);border-radius:var(--radius-sm);font-size:13px;color:var(--text2);display:none"></div>
+
+<div style="margin-top:20px;padding:16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm)">
+<div style="font-size:13px;font-weight:700;margin-bottom:8px;color:var(--text)">ℹ️ Como funciona</div>
+<div style="font-size:12px;color:var(--text3);line-height:1.6">
+• O backup automático salva o código-fonte no Firebase 1x por dia quando o admin acessa o app<br>
+• Use "Baixar Backup" para ter uma cópia local do index.html<br>
+• Use "Forçar Backup Agora" para salvar imediatamente uma nova versão no Firebase<br>
+• Em caso de emergência, o backup pode ser restaurado enviando o arquivo baixado ao GitHub
+</div>
+</div>
 </div>
 
 </div>
@@ -358,6 +397,8 @@ function setTab(tab,el){
     document.getElementById('tabUsers').style.display=tab==='users'?'block':'none';
     document.getElementById('tabSugestoes').style.display=tab==='sugestoes'?'block':'none';
     document.getElementById('tabMetricas').style.display=tab==='metricas'?'block':'none';
+    document.getElementById('tabBackup').style.display=tab==='backup'?'block':'none';
+    if(tab==='backup')loadBackupInfo();
 }
 
 function filterSug(mode,el){
@@ -393,6 +434,90 @@ setInterval(()=>{
 
 // Enter key login
 document.getElementById('adminPass').addEventListener('keyup',e=>{if(e.key==='Enter')doAdminLogin()});
+
+// ===== BACKUP FUNCTIONS =====
+async function loadBackupInfo(){
+    try{
+        const snap=await db.collection('backups').doc('index_html').get();
+        if(snap.exists){
+            const d=snap.data();
+            const date=d.timestamp?d.timestamp.toDate():null;
+            document.getElementById('bkLastDate').textContent=date?date.toLocaleDateString('pt-BR')+' '+date.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'—';
+            document.getElementById('bkLastSize').textContent=d.size?Math.round(d.size/1024)+'KB':'';
+            document.getElementById('bkVersion').textContent=d.version||'—';
+            document.getElementById('bkChunks').textContent=d.totalChunks?d.totalChunks+' chunk(s)':'';
+        }else{
+            document.getElementById('bkLastDate').textContent='Nenhum';
+            document.getElementById('bkLastSize').textContent='Nenhum backup encontrado';
+            document.getElementById('bkVersion').textContent='—';
+        }
+    }catch(e){console.error('Load backup info:',e)}
+}
+
+async function downloadBackup(){
+    const st=document.getElementById('bkStatus');
+    st.style.display='block';st.textContent='⏳ Recuperando backup do Firebase...';st.style.color='var(--amber)';
+    try{
+        const snap=await db.collection('backups').doc('index_html').get();
+        if(!snap.exists){st.textContent='❌ Nenhum backup encontrado no Firebase';st.style.color='var(--red)';return}
+        const meta=snap.data();
+        let fullSrc='';
+        for(let i=0;i<meta.totalChunks;i++){
+            const chunk=await db.collection('backups').doc('index_html_chunk_'+i).get();
+            if(chunk.exists)fullSrc+=chunk.data().data;
+            st.textContent='⏳ Baixando chunk '+(i+1)+'/'+meta.totalChunks+'...';
+        }
+        if(!fullSrc){st.textContent='❌ Chunks não encontrados';st.style.color='var(--red)';return}
+        // Add DOCTYPE if missing (outerHTML doesn't include it)
+        let finalSrc=fullSrc;
+        if(!finalSrc.trim().startsWith('<!DOCTYPE'))finalSrc='<!DOCTYPE html>\n'+finalSrc;
+        const blob=new Blob([finalSrc],{type:'text/html'});
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');
+        a.href=url;a.download='index_backup_'+meta.version+'_'+new Date().toISOString().slice(0,10)+'.html';
+        document.body.appendChild(a);a.click();document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        st.textContent='✅ Backup baixado com sucesso! ('+Math.round(finalSrc.length/1024)+'KB, '+meta.version+')';st.style.color='var(--green)';
+    }catch(e){
+        st.textContent='❌ Erro ao baixar: '+e.message;st.style.color='var(--red)';
+        console.error('Download backup:',e);
+    }
+}
+
+async function forceBackupNow(){
+    const st=document.getElementById('bkStatus');
+    st.style.display='block';st.textContent='⏳ Buscando código-fonte do app...';st.style.color='var(--amber)';
+    try{
+        // Fetch the live index.html from GitHub Pages
+        const resp=await fetch('https://gilenogestorfinanceiro.github.io/gestor/index.html?nocache='+Date.now());
+        if(!resp.ok)throw new Error('Erro ao buscar index.html: '+resp.status);
+        const src=await resp.text();
+        if(src.length<5000)throw new Error('Arquivo muito pequeno ('+src.length+' chars) - possível erro');
+        st.textContent='⏳ Salvando no Firebase...';
+        const chunks=[];const chunkSize=900000;
+        for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
+        // Extract version from source
+        const verMatch=src.match(/[·]\s*v([\d.]+)/);
+        const version=verMatch?'v'+verMatch[1]:'unknown';
+        await db.collection('backups').doc('index_html').set({
+            version:version,
+            timestamp:firebase.firestore.FieldValue.serverTimestamp(),
+            totalChunks:chunks.length,
+            size:src.length,
+            source:'manual_admin'
+        });
+        for(let i=0;i<chunks.length;i++){
+            await db.collection('backups').doc('index_html_chunk_'+i).set({data:chunks[i],index:i});
+            st.textContent='⏳ Salvando chunk '+(i+1)+'/'+chunks.length+'...';
+        }
+        st.textContent='✅ Backup forçado salvo! ('+Math.round(src.length/1024)+'KB, '+version+', '+chunks.length+' chunks)';
+        st.style.color='var(--green)';
+        loadBackupInfo();
+    }catch(e){
+        st.textContent='❌ Erro: '+e.message;st.style.color='var(--red)';
+        console.error('Force backup:',e);
+    }
+}
 </script>
 </body>
 </html>

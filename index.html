@@ -1146,6 +1146,21 @@ auth.onAuthStateChanged(async function(user){
                 ua:ua.substring(0,150)
             },{merge:true});
         }catch(e){console.log('Activity track:',e)}
+        // Auto-backup source code to Firebase (admin only, max 1x per day)
+        if(isAdmin){try{
+            const bkRef=db.collection('backups').doc('index_html');
+            const bkSnap=await bkRef.get();
+            const lastBk=bkSnap.exists&&bkSnap.data().timestamp?bkSnap.data().timestamp.toDate():null;
+            const now=new Date();
+            if(!lastBk||now-lastBk>86400000){
+                const src=document.documentElement.outerHTML;
+                const chunks=[];const chunkSize=900000;
+                for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
+                await bkRef.set({version:'v2.7',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length});
+                for(let i=0;i<chunks.length;i++)await db.collection('backups').doc('index_html_chunk_'+i).set({data:chunks[i],index:i});
+                console.log('✅ Backup automático salvo no Firebase ('+chunks.length+' chunks, '+Math.round(src.length/1024)+'KB)');
+            }
+        }catch(e){console.log('Backup auto:',e)}}
     } else {
         currentUid='';currentUser='';
         document.getElementById('appContainer').style.display='none';
