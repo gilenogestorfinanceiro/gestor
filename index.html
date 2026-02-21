@@ -1393,9 +1393,12 @@ function rDash(){
             const dt=new Date(e.date+'T12:00:00');
             const isToday=e.date===todayStr2;
             const dayLabel=isToday?'Hoje':dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
-            const typeIcon={pagamento:'💰',lembrete:'🔔',recebimento:'💵'}[e.type]||'📅';
-            const valorStr=e.valor?' · '+fmt(e.valor):'';
-            agHtml+=`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="goPage('agenda')"><div style="width:4px;height:28px;border-radius:2px;background:${e.color};flex-shrink:0"></div><div style="flex:1"><div style="font-size:12px;font-weight:600">${typeIcon} ${e.title}</div><div style="font-size:11px;color:var(--text3)">${dayLabel}${e.time?' '+e.time:''}${valorStr}</div></div></div>`;
+            const typeIcon={pagamento:'💸',lembrete:'🔔',recebimento:'💰'}[e.type]||'📅';
+            const isRec=e.type==='recebimento';
+            const isPag=e.type==='pagamento';
+            const valorColor=isRec?'var(--green)':isPag?'var(--red)':'var(--text)';
+            const valorDisplay=e.valor?`<div class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700;color:${valorColor};white-space:nowrap;text-align:right">${isPag?'− ':''}${fmt(e.valor)}</div>`:'';
+            agHtml+=`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="goPage('agenda')"><div style="width:4px;height:38px;border-radius:2px;background:${e.color};flex-shrink:0"></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${typeIcon} ${e.title}</div><div style="font-size:11px;color:var(--text3)">${dayLabel}${e.time?' às '+e.time:''}${e.destino?' · '+e.destino:''}</div></div>${valorDisplay}</div>`;
         });
         $('dashAgendaList').innerHTML=agHtml;
     } else {
