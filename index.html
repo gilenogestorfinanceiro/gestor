@@ -1006,6 +1006,7 @@ function migrateData(d){
 }
 
 let D={}, cMonth=new Date().getMonth(), cYear=new Date().getFullYear(), cPage='dash', txFilt='all', addTp='Receita';
+const BRAPI_TOKEN_DEFAULT='7tfCGLuGgjUvx8wPC3WzHu';
 let currentUser='';
 let currentUid='';
 let db=null;
@@ -2952,7 +2953,7 @@ async function fetchCotacoes(){
     }catch(e){console.log('AwesomeAPI:',e)}
     
     // brapi.dev - ações + Ibovespa (precisa de token gratuito)
-    const brapiToken=D.brapiToken||'';
+    const brapiToken=D.brapiToken||BRAPI_TOKEN_DEFAULT;
     if(brapiToken){
         // Top ações + carteira
         const carteiraT=[...new Set((D.investOps||[]).map(o=>o.ticker))];
@@ -3040,7 +3041,7 @@ function updateCotacoesUI(){
         $('topAcoesList').innerHTML=topHtml;
         $('cotLastUpdate').textContent='Atualizado: '+new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     } else {
-        const brapiToken=D.brapiToken||'';
+        const brapiToken=D.brapiToken||BRAPI_TOKEN_DEFAULT;
         $('topAcoesList').innerHTML=brapiToken?
             '<div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text3);font-size:12px">⏳ Carregando ações...</div>':
             '<div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text3);font-size:12px">🔑 Configure seu token da <b>brapi.dev</b> em Config → API de Cotações para ver ações e Ibovespa ao vivo</div>';
