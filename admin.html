@@ -138,24 +138,30 @@ Entrar com Google
 <div class="section-title">💾 Backup do Sistema</div>
 
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
-<div class="kpi">
-<div class="kpi-label">Último Backup</div>
-<div class="kpi-value" id="bkLastDate" style="font-size:18px;color:var(--green)">—</div>
-<div class="kpi-sub" id="bkLastSize">Carregando...</div>
+<div class="kpi" style="border-left:3px solid var(--green)">
+<div class="kpi-label">🟢 Último Backup Automático</div>
+<div class="kpi-value" id="bkAutoDate" style="font-size:16px;color:var(--green)">—</div>
+<div class="kpi-sub" id="bkAutoInfo">Carregando...</div>
 </div>
-<div class="kpi">
-<div class="kpi-label">Versão Salva</div>
-<div class="kpi-value" id="bkVersion" style="font-size:18px;color:var(--blue)">—</div>
-<div class="kpi-sub" id="bkChunks"></div>
+<div class="kpi" style="border-left:3px solid var(--blue)">
+<div class="kpi-label">🔵 Último Backup Manual</div>
+<div class="kpi-value" id="bkManualDate" style="font-size:16px;color:var(--blue)">—</div>
+<div class="kpi-sub" id="bkManualInfo">Carregando...</div>
 </div>
 </div>
 
 <div style="display:flex;gap:12px;flex-wrap:wrap">
-<button onclick="downloadBackup()" style="flex:1;min-width:200px;padding:14px 20px;background:var(--green);border:none;border-radius:var(--radius-sm);color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
-⬇️ Baixar Backup (index.html)
+<button onclick="downloadBackup('auto')" style="flex:1;min-width:200px;padding:14px 20px;background:var(--green);border:none;border-radius:var(--radius-sm);color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+⬇️ Baixar Automático
 </button>
-<button onclick="forceBackupNow()" style="flex:1;min-width:200px;padding:14px 20px;background:var(--blue);border:none;border-radius:var(--radius-sm);color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
-🔄 Forçar Backup Agora
+<button onclick="downloadBackup('manual')" style="flex:1;min-width:200px;padding:14px 20px;background:var(--blue);border:none;border-radius:var(--radius-sm);color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+⬇️ Baixar Manual
+</button>
+</div>
+
+<div style="margin-top:12px">
+<button onclick="forceBackupNow()" style="width:100%;padding:14px 20px;background:var(--blue);border:none;border-radius:var(--radius-sm);color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+🔄 Forçar Backup Manual Agora
 </button>
 </div>
 
@@ -164,10 +170,11 @@ Entrar com Google
 <div style="margin-top:20px;padding:16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm)">
 <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:var(--text)">ℹ️ Como funciona</div>
 <div style="font-size:12px;color:var(--text3);line-height:1.6">
-• O backup automático salva o código-fonte no Firebase 1x por dia quando o admin acessa o app<br>
-• Use "Baixar Backup" para ter uma cópia local do index.html<br>
-• Use "Forçar Backup Agora" para salvar imediatamente uma nova versão no Firebase<br>
-• Em caso de emergência, o backup pode ser restaurado enviando o arquivo baixado ao GitHub
+• 🟢 <b style="color:var(--green)">Automático</b> — salva a cada 2 horas enquanto o admin estiver com o app aberto<br>
+• 🔵 <b style="color:var(--blue)">Manual</b> — usa o botão "Forçar Backup" para salvar imediatamente<br>
+• Os dois backups são independentes (um não interfere no outro)<br>
+• Use "Baixar" para ter uma cópia local no seu Mac<br>
+• Em caso de emergência, restaure enviando o arquivo baixado ao GitHub
 </div>
 </div>
 </div>
@@ -438,68 +445,106 @@ document.getElementById('adminPass').addEventListener('keyup',e=>{if(e.key==='En
 // ===== BACKUP FUNCTIONS =====
 async function loadBackupInfo(){
     try{
-        const snap=await db.collection('backups').doc('index_html').get();
-        if(snap.exists){
-            const d=snap.data();
+        // Load auto backup info
+        const autoSnap=await db.collection('backups').doc('backup_auto').get();
+        if(autoSnap.exists){
+            const d=autoSnap.data();
             const date=d.timestamp?d.timestamp.toDate():null;
-            document.getElementById('bkLastDate').textContent=date?date.toLocaleDateString('pt-BR')+' '+date.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'—';
-            document.getElementById('bkLastSize').textContent=d.size?Math.round(d.size/1024)+'KB':'';
-            document.getElementById('bkVersion').textContent=d.version||'—';
-            document.getElementById('bkChunks').textContent=d.totalChunks?d.totalChunks+' chunk(s)':'';
+            document.getElementById('bkAutoDate').textContent=date?date.toLocaleDateString('pt-BR')+' '+date.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'—';
+            document.getElementById('bkAutoInfo').textContent=(d.version||'')+(d.size?' · '+Math.round(d.size/1024)+'KB':'');
         }else{
-            document.getElementById('bkLastDate').textContent='Nenhum';
-            document.getElementById('bkLastSize').textContent='Nenhum backup encontrado';
-            document.getElementById('bkVersion').textContent='—';
+            document.getElementById('bkAutoDate').textContent='Nenhum';
+            document.getElementById('bkAutoInfo').textContent='Aguardando primeiro backup';
+        }
+        // Load manual backup info
+        const manSnap=await db.collection('backups').doc('backup_manual').get();
+        if(manSnap.exists){
+            const d=manSnap.data();
+            const date=d.timestamp?d.timestamp.toDate():null;
+            document.getElementById('bkManualDate').textContent=date?date.toLocaleDateString('pt-BR')+' '+date.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'—';
+            document.getElementById('bkManualInfo').textContent=(d.version||'')+(d.size?' · '+Math.round(d.size/1024)+'KB':'');
+        }else{
+            document.getElementById('bkManualDate').textContent='Nenhum';
+            document.getElementById('bkManualInfo').textContent='Use o botão para criar';
+        }
+        // Also check legacy backup (from old system)
+        if(!autoSnap.exists&&!manSnap.exists){
+            const legSnap=await db.collection('backups').doc('index_html').get();
+            if(legSnap.exists){
+                const d=legSnap.data();
+                const date=d.timestamp?d.timestamp.toDate():null;
+                document.getElementById('bkManualDate').textContent=date?date.toLocaleDateString('pt-BR')+' '+date.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'—';
+                document.getElementById('bkManualInfo').textContent=(d.version||'')+' · '+Math.round((d.size||0)/1024)+'KB (legado)';
+            }
         }
     }catch(e){console.error('Load backup info:',e)}
 }
 
-async function downloadBackup(){
+async function downloadBackup(type){
     const st=document.getElementById('bkStatus');
-    st.style.display='block';st.textContent='⏳ Recuperando backup do Firebase...';st.style.color='var(--amber)';
+    st.style.display='block';st.style.color='var(--amber)';
+    const docName=type==='auto'?'backup_auto':'backup_manual';
+    const chunkPrefix=type==='auto'?'backup_auto_chunk_':'backup_manual_chunk_';
+    const label=type==='auto'?'automático':'manual';
+    st.textContent='⏳ Recuperando backup '+label+' do Firebase...';
     try{
-        const snap=await db.collection('backups').doc('index_html').get();
-        if(!snap.exists){st.textContent='❌ Nenhum backup encontrado no Firebase';st.style.color='var(--red)';return}
+        let snap=await db.collection('backups').doc(docName).get();
+        // Fallback to legacy
+        if(!snap.exists&&type==='manual'){
+            snap=await db.collection('backups').doc('index_html').get();
+            if(snap.exists){
+                const meta=snap.data();
+                let fullSrc='';
+                for(let i=0;i<meta.totalChunks;i++){
+                    const chunk=await db.collection('backups').doc('index_html_chunk_'+i).get();
+                    if(chunk.exists)fullSrc+=chunk.data().data;
+                    st.textContent='⏳ Baixando chunk '+(i+1)+'/'+meta.totalChunks+'...';
+                }
+                doDownloadFile(fullSrc,meta.version||'legacy');
+                st.textContent='✅ Backup legado baixado!';st.style.color='var(--green)';return;
+            }
+        }
+        if(!snap.exists){st.textContent='❌ Nenhum backup '+label+' encontrado';st.style.color='var(--red)';return}
         const meta=snap.data();
         let fullSrc='';
         for(let i=0;i<meta.totalChunks;i++){
-            const chunk=await db.collection('backups').doc('index_html_chunk_'+i).get();
+            const chunk=await db.collection('backups').doc(chunkPrefix+i).get();
             if(chunk.exists)fullSrc+=chunk.data().data;
             st.textContent='⏳ Baixando chunk '+(i+1)+'/'+meta.totalChunks+'...';
         }
         if(!fullSrc){st.textContent='❌ Chunks não encontrados';st.style.color='var(--red)';return}
-        // Add DOCTYPE if missing (outerHTML doesn't include it)
-        let finalSrc=fullSrc;
-        if(!finalSrc.trim().startsWith('<!DOCTYPE'))finalSrc='<!DOCTYPE html>\n'+finalSrc;
-        const blob=new Blob([finalSrc],{type:'text/html'});
-        const url=URL.createObjectURL(blob);
-        const a=document.createElement('a');
-        a.href=url;a.download='index_backup_'+meta.version+'_'+new Date().toISOString().slice(0,10)+'.html';
-        document.body.appendChild(a);a.click();document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        st.textContent='✅ Backup baixado com sucesso! ('+Math.round(finalSrc.length/1024)+'KB, '+meta.version+')';st.style.color='var(--green)';
+        doDownloadFile(fullSrc,meta.version||'unknown');
+        st.textContent='✅ Backup '+label+' baixado! ('+Math.round(fullSrc.length/1024)+'KB, '+meta.version+')';st.style.color='var(--green)';
     }catch(e){
-        st.textContent='❌ Erro ao baixar: '+e.message;st.style.color='var(--red)';
-        console.error('Download backup:',e);
+        st.textContent='❌ Erro: '+e.message;st.style.color='var(--red)';
     }
+}
+
+function doDownloadFile(src,version){
+    let finalSrc=src;
+    if(!finalSrc.trim().startsWith('<!DOCTYPE'))finalSrc='<!DOCTYPE html>\n'+finalSrc;
+    const blob=new Blob([finalSrc],{type:'text/html'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='index_backup_'+version+'_'+new Date().toISOString().slice(0,10)+'.html';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
 
 async function forceBackupNow(){
     const st=document.getElementById('bkStatus');
     st.style.display='block';st.textContent='⏳ Buscando código-fonte do app...';st.style.color='var(--amber)';
     try{
-        // Fetch the live index.html from GitHub Pages
         const resp=await fetch('https://gilenogestorfinanceiro.github.io/gestor/index.html?nocache='+Date.now());
         if(!resp.ok)throw new Error('Erro ao buscar index.html: '+resp.status);
         const src=await resp.text();
         if(src.length<5000)throw new Error('Arquivo muito pequeno ('+src.length+' chars) - possível erro');
-        st.textContent='⏳ Salvando no Firebase...';
+        st.textContent='⏳ Salvando backup manual no Firebase...';
         const chunks=[];const chunkSize=900000;
         for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
-        // Extract version from source
         const verMatch=src.match(/[·]\s*v([\d.]+)/);
         const version=verMatch?'v'+verMatch[1]:'unknown';
-        await db.collection('backups').doc('index_html').set({
+        await db.collection('backups').doc('backup_manual').set({
             version:version,
             timestamp:firebase.firestore.FieldValue.serverTimestamp(),
             totalChunks:chunks.length,
@@ -507,15 +552,14 @@ async function forceBackupNow(){
             source:'manual_admin'
         });
         for(let i=0;i<chunks.length;i++){
-            await db.collection('backups').doc('index_html_chunk_'+i).set({data:chunks[i],index:i});
+            await db.collection('backups').doc('backup_manual_chunk_'+i).set({data:chunks[i],index:i});
             st.textContent='⏳ Salvando chunk '+(i+1)+'/'+chunks.length+'...';
         }
-        st.textContent='✅ Backup forçado salvo! ('+Math.round(src.length/1024)+'KB, '+version+', '+chunks.length+' chunks)';
+        st.textContent='✅ Backup manual salvo! ('+Math.round(src.length/1024)+'KB, '+version+')';
         st.style.color='var(--green)';
         loadBackupInfo();
     }catch(e){
         st.textContent='❌ Erro: '+e.message;st.style.color='var(--red)';
-        console.error('Force backup:',e);
     }
 }
 </script>

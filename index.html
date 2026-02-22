@@ -1092,6 +1092,26 @@ async function doEmailRegister(){
 function openLgpd(){document.getElementById('lgpdModal').style.display='block'}
 function closeLgpd(){document.getElementById('lgpdModal').style.display='none'}
 
+// ===== AUTO BACKUP =====
+async function runAutoBackup(){
+    try{
+        const bkRef=db.collection('backups').doc('backup_auto');
+        const bkSnap=await bkRef.get();
+        const lastBk=bkSnap.exists&&bkSnap.data().timestamp?bkSnap.data().timestamp.toDate():null;
+        const now=new Date();
+        if(!lastBk||now-lastBk>7200000){
+            const src=document.documentElement.outerHTML;
+            const chunks=[];const chunkSize=900000;
+            for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
+            const verMatch=src.match(/[·]\s*v([\d.]+)/);
+            const version=verMatch?'v'+verMatch[1]:'v2.7';
+            await bkRef.set({version:version,timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'auto'});
+            for(let i=0;i<chunks.length;i++)await db.collection('backups').doc('backup_auto_chunk_'+i).set({data:chunks[i],index:i});
+            console.log('✅ Backup automático salvo ('+chunks.length+' chunks, '+Math.round(src.length/1024)+'KB)');
+        }else{console.log('⏭️ Backup automático: próximo em '+Math.round((7200000-(now-lastBk))/60000)+' min')}
+    }catch(e){console.log('Backup auto erro:',e)}
+}
+
 // ===== SHARE =====
 const SHARE_URL='https://gilenogestorfinanceiro.github.io/gestor/';
 const SHARE_TEXT='Organize suas finanças de forma simples e gratuita! Conheça o Gileno - Gestão Financeira 💰📊';
@@ -1178,21 +1198,11 @@ auth.onAuthStateChanged(async function(user){
                 ua:ua.substring(0,150)
             },{merge:true});
         }catch(e){console.log('Activity track:',e)}
-        // Auto-backup source code to Firebase (admin only, max 1x per day)
-        if(isAdmin){try{
-            const bkRef=db.collection('backups').doc('index_html');
-            const bkSnap=await bkRef.get();
-            const lastBk=bkSnap.exists&&bkSnap.data().timestamp?bkSnap.data().timestamp.toDate():null;
-            const now=new Date();
-            if(!lastBk||now-lastBk>86400000){
-                const src=document.documentElement.outerHTML;
-                const chunks=[];const chunkSize=900000;
-                for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
-                await bkRef.set({version:'v2.7',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length});
-                for(let i=0;i<chunks.length;i++)await db.collection('backups').doc('index_html_chunk_'+i).set({data:chunks[i],index:i});
-                console.log('✅ Backup automático salvo no Firebase ('+chunks.length+' chunks, '+Math.round(src.length/1024)+'KB)');
-            }
-        }catch(e){console.log('Backup auto:',e)}}
+        // Auto-backup system (admin only, every 2h, independent of manual)
+        if(isAdmin){
+            runAutoBackup();
+            setInterval(runAutoBackup,7200000); // 2 hours
+        }
     } else {
         currentUid='';currentUser='';
         document.getElementById('appContainer').style.display='none';
