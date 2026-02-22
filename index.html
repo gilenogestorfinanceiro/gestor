@@ -174,6 +174,7 @@ input,select{font-family:var(--font);outline:none}
 
 .page{display:none;animation:fadeIn .3s ease}.page.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
 .card-title{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
@@ -902,11 +903,48 @@ Agenda
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
 Cartões
 </button>
+<button class="nav-item" id="navZap" onclick="toggleZapMenu(event)" style="color:#25D366">
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.558 4.126 1.534 5.862L.057 23.521a.75.75 0 00.921.921l5.656-1.477A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75a9.697 9.697 0 01-4.95-1.356l-.355-.21-3.676.96.975-3.564-.23-.368A9.698 9.698 0 012.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z"/></svg>
+<span style="color:#25D366;font-size:9px">Gestor</span>
+</button>
 <button class="nav-item" data-page="cfg" onclick="toggleMaisMenu(event,this)">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
 Mais
 </button>
 </nav>
+<!-- Modal Fale com Gestor (WhatsApp) -->
+<div id="zapMenuOverlay" onclick="closeZapMenu()" style="display:none;position:fixed;inset:0;z-index:998;background:rgba(0,0,0,0.5);backdrop-filter:blur(2px)"></div>
+<div id="zapMenu" style="display:none;position:fixed;bottom:75px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid #25D366;border-radius:20px;box-shadow:0 8px 40px rgba(37,211,102,0.25);z-index:999;min-width:300px;max-width:92vw;overflow:hidden;animation:slideUp .25s ease">
+  <div style="background:linear-gradient(135deg,#25D366,#128C7E);padding:16px 20px;text-align:center">
+    <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:4px">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.558 4.126 1.534 5.862L.057 23.521a.75.75 0 00.921.921l5.656-1.477A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75a9.697 9.697 0 01-4.95-1.356l-.355-.21-3.676.96.975-3.564-.23-.368A9.698 9.698 0 012.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z"/></svg>
+      <span style="color:white;font-size:16px;font-weight:700">Fale com o Gestor</span>
+    </div>
+    <p style="color:rgba(255,255,255,0.85);font-size:12px;margin:0">Canal direto via WhatsApp — escolha o assunto 👇</p>
+  </div>
+  <div style="padding:12px">
+    <button onclick="openZap('suporte')" style="width:100%;padding:14px 16px;background:none;border:none;border-radius:12px;color:var(--text);font-size:14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;font-family:var(--font);border-bottom:1px solid var(--border);transition:background .15s" onmouseover="this.style.background='rgba(37,211,102,0.08)'" onmouseout="this.style.background='none'">
+      <span style="font-size:22px">🛠️</span>
+      <div><div style="font-weight:600">Suporte técnico / Dúvidas do app</div><div style="font-size:11px;color:var(--text3)">Problemas ou dúvidas sobre como usar</div></div>
+    </button>
+    <button onclick="openZap('dicas')" style="width:100%;padding:14px 16px;background:none;border:none;border-radius:12px;color:var(--text);font-size:14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;font-family:var(--font);border-bottom:1px solid var(--border);transition:background .15s" onmouseover="this.style.background='rgba(37,211,102,0.08)'" onmouseout="this.style.background='none'">
+      <span style="font-size:22px">💡</span>
+      <div><div style="font-weight:600">Dicas financeiras</div><div style="font-size:11px;color:var(--text3)">Orientações para organizar melhor seu dinheiro</div></div>
+    </button>
+    <button onclick="openZap('novidades')" style="width:100%;padding:14px 16px;background:none;border:none;border-radius:12px;color:var(--text);font-size:14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;font-family:var(--font);border-bottom:1px solid var(--border);transition:background .15s" onmouseover="this.style.background='rgba(37,211,102,0.08)'" onmouseout="this.style.background='none'">
+      <span style="font-size:22px">🚀</span>
+      <div><div style="font-weight:600">Novidades e atualizações</div><div style="font-size:11px;color:var(--text3)">Fique por dentro das novas funcionalidades</div></div>
+    </button>
+    <button onclick="openZap('feedback')" style="width:100%;padding:14px 16px;background:none;border:none;border-radius:12px;color:var(--text);font-size:14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;font-family:var(--font);transition:background .15s" onmouseover="this.style.background='rgba(37,211,102,0.08)'" onmouseout="this.style.background='none'">
+      <span style="font-size:22px">💬</span>
+      <div><div style="font-weight:600">Feedback e sugestões</div><div style="font-size:11px;color:var(--text3)">Sua opinião nos ajuda a melhorar!</div></div>
+    </button>
+  </div>
+  <div style="padding:0 12px 12px;text-align:center">
+    <button onclick="closeZapMenu()" style="background:none;border:1px solid var(--border);border-radius:10px;padding:8px 24px;color:var(--text3);font-size:13px;cursor:pointer;font-family:var(--font)">Fechar</button>
+  </div>
+</div>
+
 <div id="maisMenu" style="display:none;position:fixed;bottom:70px;right:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 8px 32px rgba(0,0,0,0.5);z-index:999;min-width:180px;overflow:hidden">
 <button onclick="closeMaisMenu();goPage('cfg')" style="width:100%;padding:14px 16px;background:none;border:none;color:var(--text);font-size:14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;font-family:var(--font);border-bottom:1px solid var(--border)">⚙️ Configurações</button>
 <button onclick="closeMaisMenu();goPage('sug')" style="width:100%;padding:14px 16px;background:none;border:none;color:var(--text);font-size:14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;font-family:var(--font)">💬 Sugestões</button>
@@ -1262,6 +1300,33 @@ function toggleMaisMenu(e,el){
     else m.style.display='none';
 }
 function closeMaisMenu(){$('maisMenu').style.display='none'}
+
+// === Fale com o Gestor (WhatsApp) ===
+function toggleZapMenu(e){
+  e.stopPropagation();
+  const m=$('zapMenu'), ov=$('zapMenuOverlay');
+  if(m.style.display==='none'||!m.style.display){
+    m.style.display='block'; ov.style.display='block';
+    closeMaisMenu();
+  } else {
+    closeZapMenu();
+  }
+}
+function closeZapMenu(){
+  $('zapMenu').style.display='none';
+  $('zapMenuOverlay').style.display='none';
+}
+function openZap(tipo){
+  const num='5584988964231';
+  const msgs={
+    suporte:'Olá! Preciso de ajuda com o *Gileno - Gestão Financeira* 🛠️%0A%0AMinh@ dúvida é:',
+    dicas:'Olá! Gostaria de receber *dicas financeiras* para organizar melhor meu dinheiro 💡',
+    novidades:'Olá! Quero saber sobre as *novidades e atualizações* do Gileno - Gestão Financeira 🚀',
+    feedback:'Olá! Tenho um *feedback e sugestões* para o Gileno - Gestão Financeira 💬%0A%0AMinha sugestão:'
+  };
+  closeZapMenu();
+  window.open('https://wa.me/'+num+'?text='+msgs[tipo],'_blank');
+}
 
 function chgMonth(d){
     cMonth+=d;
