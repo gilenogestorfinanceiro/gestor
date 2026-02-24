@@ -2560,6 +2560,18 @@ function saveEdit(){
         }
     }
     
+    // Sincronizar agenda vinculada (busca pelo txId)
+    if(D.ag){
+        const agEv=D.ag.find(e=>e.txId===item.id);
+        if(agEv){
+            if(desc) agEv.title=desc;
+            if(val&&val>0) agEv.valor=val;
+            if(cat&&cat!=='__nova__') agEv.cat=cat;
+            agEv.sub=item.sub||'';
+            if(dataVal) agEv.date=dataVal;
+        }
+    }
+
     save();closeEditModal();rExt();
     toast('✅ Lançamento atualizado!');
 }
@@ -3645,9 +3657,18 @@ function saveAgenda(){
             ev.txId=txId;
         }
     }
+    const wasEdit=!!agEditId;
     save();closeAgendaModal();refresh();
-    if(agEditId){
+    if(wasEdit){
         toast('Compromisso atualizado!');
+        // Oferecer atualizar no calendário do dispositivo
+        setTimeout(()=>{
+            if(confirm('📅 Deseja atualizar "'+ev.title+'" no Calendário do seu dispositivo?
+
+O evento existente será substituído pela versão atualizada.')){
+                exportICS(ev.id);
+            }
+        },500);
     } else {
         toast('Compromisso agendado!');
         // Offer to add to device calendar
