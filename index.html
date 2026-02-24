@@ -983,6 +983,10 @@ Mais
 <div class="form-group"><label class="form-label">Valor (R$)</label><div class="valor-input-wrap"><span class="valor-prefix">R$</span><input type="number" step="0.01" min="0" class="form-input" id="edValor" inputmode="decimal"></div></div>
 <div class="form-group"><label class="form-label">Categoria</label><select class="form-input" id="edCat" onchange="onEdCatChange()"></select></div>
 <div class="form-group"><label class="form-label">Subcategoria</label><select class="form-input" id="edSub"></select></div>
+<div class="form-group" id="edMesRefGroup" style="display:none">
+  <label class="form-label">Mês de referência da fatura</label>
+  <select class="form-input" id="edMesRef"></select>
+</div>
 <div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input" id="edData"></div>
 <div style="display:flex;gap:8px;margin-top:16px">
 <button class="btn btn-outline" onclick="closeEditModal()" style="flex:1">Cancelar</button>
@@ -2430,16 +2434,37 @@ function editItem(type,id){
     
     onEdCatChange(item.sub||'');
     
-    // Preencher data
+    // Preencher data da compra
     if(item.data){
         $('edData').value=item.data;
     } else if(item.dt){
-        // formato DD/MM/YYYY -> YYYY-MM-DD
         const parts=item.dt.split('/');
         if(parts.length===3) $('edData').value=parts[2]+'-'+parts[1]+'-'+parts[0];
         else $('edData').value='';
     } else {
         $('edData').value='';
+    }
+    
+    // Mês de referência da fatura (só para cartão)
+    const mesRefGroup=$('edMesRefGroup');
+    const mesRefSel=$('edMesRef');
+    if(type==='cp'){
+        mesRefGroup.style.display='block';
+        mesRefSel.innerHTML='';
+        const MN=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+        // Mostrar 6 meses passados + mês atual + 3 futuros
+        const hoje=new Date();
+        for(let d=-6;d<=3;d++){
+            const dt=new Date(hoje.getFullYear(),hoje.getMonth()+d,1);
+            const m=dt.getMonth(),y=dt.getFullYear();
+            const o=document.createElement('option');
+            o.value=m+'_'+y;
+            o.textContent=MN[m]+' '+y;
+            if(m===(item.m!==undefined?item.m:cMonth)&&y===(item.y!==undefined?item.y:cYear)) o.selected=true;
+            mesRefSel.appendChild(o);
+        }
+    } else {
+        mesRefGroup.style.display='none';
     }
     
     $('editModal').classList.add('show');
@@ -2518,11 +2543,21 @@ function saveEdit(){
     if(cat&&cat!=='__nova__') item.cat=cat;
     item.sub=(sub==='__nova_sub__'||!sub)?'':sub;
     
-    // Salvar data e atualizar campo dt (DD/MM/YYYY) para compatibilidade
+    // Salvar data da compra
     if(dataVal){
         item.data=dataVal;
         const parts=dataVal.split('-');
         if(parts.length===3) item.dt=parts[2]+'/'+parts[1]+'/'+parts[0];
+    }
+    
+    // Salvar mês de referência da fatura (só cartão)
+    if(editingType==='cp'){
+        const mesRefVal=$('edMesRef').value;
+        if(mesRefVal){
+            const [nm,ny]=mesRefVal.split('_');
+            item.m=parseInt(nm);
+            item.y=parseInt(ny);
+        }
     }
     
     save();closeEditModal();rExt();
