@@ -2452,16 +2452,9 @@ function editItem(type,id){
     
     onEdCatChange(item.sub||'');
     
-    // Preencher data da compra
-    if(item.data){
-        $('edData').value=item.data;
-    } else if(item.dt){
-        const parts=item.dt.split('/');
-        if(parts.length===3) $('edData').value=parts[2]+'-'+parts[1]+'-'+parts[0];
-        else $('edData').value='';
-    } else {
-        $('edData').value='';
-    }
+    // Preencher data da compra (normaliza qualquer formato para YYYY-MM-DD)
+    const dtParaExibir=normalizeDt(item.data||item.dt||'');
+    $('edData').value=dtParaExibir;
     
     // Mês de referência da fatura (só para cartão)
     const mesRefGroup=$('edMesRefGroup');
