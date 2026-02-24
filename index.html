@@ -2554,10 +2554,15 @@ function saveEdit(){
     if(cat&&cat!=='__nova__') item.cat=cat;
     item.sub=(sub==='__nova_sub__'||!sub)?'':sub;
     
-    // Salvar data da compra
+    // Salvar data e atualizar m/y (mês de referência para transações de conta)
     if(dataVal){
         item.data=dataVal;
         item.dt=normalizeDt(dataVal);
+        // Atualizar mês/ano de referência para transações de conta
+        if(editingType==='tx'){
+            item.m=parseInt(dataVal.split('-')[1])-1;
+            item.y=parseInt(dataVal.split('-')[0]);
+        }
     }
     
     // Salvar mês de referência da fatura (só cartão)
@@ -2578,7 +2583,9 @@ function saveEdit(){
             if(val&&val>0) agEv.valor=val;
             if(cat&&cat!=='__nova__') agEv.cat=cat;
             agEv.sub=item.sub||'';
-            if(dataVal) agEv.date=dataVal;
+            if(dataVal){
+                agEv.date=dataVal;
+            }
         }
     }
 
@@ -3654,9 +3661,9 @@ function saveAgenda(){
                     tx.m=parseInt(ev.date.split('-')[1])-1;
                     tx.y=parseInt(ev.date.split('-')[0]);
                     tx.desc=ev.title;
-                    tx.v=ev.valor||tx.v;
-                    tx.cat=ev.cat||tx.cat;
-                    tx.sub=ev.sub||tx.sub;
+                    if(ev.valor>0) tx.v=ev.valor;
+                    if(ev.cat) tx.cat=ev.cat;
+                    tx.sub=ev.sub||'';
                     if(ev.banco) tx.banco=ev.banco;
                 }
                 const cp=D.cp.find(c=>c.id===ev.txId);
@@ -3665,7 +3672,7 @@ function saveAgenda(){
                     cp.m=parseInt(ev.date.split('-')[1])-1;
                     cp.y=parseInt(ev.date.split('-')[0]);
                     cp.desc=ev.title;
-                    cp.v=ev.valor||cp.v;
+                    if(ev.valor>0) cp.v=ev.valor;
                     cp.cat=ev.cat||cp.cat;
                     cp.sub=ev.sub||cp.sub;
                     if(ev.cartao) cp.card=ev.cartao;
