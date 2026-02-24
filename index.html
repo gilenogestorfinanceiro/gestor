@@ -3658,6 +3658,7 @@ function saveAgenda(){
                 const tx=D.tx.find(t=>t.id===ev.txId);
                 if(tx){
                     tx.dt=normalizeDt(ev.date);
+                    tx.data=normalizeDt(ev.date);
                     tx.m=parseInt(ev.date.split('-')[1])-1;
                     tx.y=parseInt(ev.date.split('-')[0]);
                     tx.desc=ev.title;
@@ -3669,6 +3670,7 @@ function saveAgenda(){
                 const cp=D.cp.find(c=>c.id===ev.txId);
                 if(cp){
                     cp.dt=normalizeDt(ev.date);
+                    cp.data=normalizeDt(ev.date);
                     cp.m=parseInt(ev.date.split('-')[1])-1;
                     cp.y=parseInt(ev.date.split('-')[0]);
                     cp.desc=ev.title;
