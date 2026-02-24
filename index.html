@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Gileno - Gestão Financeira</title>
 <meta name="description" content="Gileno - Gestão Financeira. Controle suas finanças pessoais com segurança na nuvem.">
 <meta property="og:title" content="Gileno - Gestão Financeira">
@@ -344,6 +347,21 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+// Cache-busting automático — força reload se versão mudou
+(function(){
+    const APP_VERSION='2.7.1';
+    const stored=localStorage.getItem('app_version');
+    if(stored && stored!==APP_VERSION){
+        localStorage.setItem('app_version',APP_VERSION);
+        // Recarrega com timestamp para forçar novo download
+        const sep=location.href.includes('?')?'&':'?';
+        location.replace(location.href.split('?')[0]+sep+'v='+APP_VERSION.replace(/\./g,''));
+    } else {
+        localStorage.setItem('app_version',APP_VERSION);
+    }
+})();
+</script>
 </head>
 <body>
 <!-- LOGIN SCREEN -->
