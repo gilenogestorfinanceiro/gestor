@@ -3554,8 +3554,8 @@ function openAgendaAdd(dateStr){
 function openAgendaEdit(id){
     const ev=(D.ag||[]).find(e=>e.id===id);
     if(!ev)return;
-    agEditId=id;
-    openAgendaAdd(ev.date);
+    openAgendaAdd(ev.date); // abre e reseta agEditId=null
+    agEditId=id; // restaura DEPOIS do reset
     $('agTitle').value=ev.title||'';
     $('agDate').value=ev.date||'';
     $('agTime').value=ev.time||'';
@@ -3607,7 +3607,36 @@ function saveAgenda(){
     };
     if(agEditId){
         const idx=D.ag.findIndex(e=>e.id===agEditId);
-        if(idx>=0){ev.done=D.ag[idx].done;ev.txId=D.ag[idx].txId;D.ag[idx]=ev}
+        if(idx>=0){
+            ev.done=D.ag[idx].done;
+            ev.txId=D.ag[idx].txId;
+            D.ag[idx]=ev;
+            // Sincronizar transação vinculada
+            if(ev.txId){
+                const tx=D.tx.find(t=>t.id===ev.txId);
+                if(tx){
+                    tx.dt=ev.date;
+                    tx.m=parseInt(ev.date.split('-')[1])-1;
+                    tx.y=parseInt(ev.date.split('-')[0]);
+                    tx.desc=ev.title;
+                    tx.v=ev.valor||tx.v;
+                    tx.cat=ev.cat||tx.cat;
+                    tx.sub=ev.sub||tx.sub;
+                    if(ev.banco) tx.banco=ev.banco;
+                }
+                const cp=D.cp.find(c=>c.id===ev.txId);
+                if(cp){
+                    cp.dt=ev.date;
+                    cp.m=parseInt(ev.date.split('-')[1])-1;
+                    cp.y=parseInt(ev.date.split('-')[0]);
+                    cp.desc=ev.title;
+                    cp.v=ev.valor||cp.v;
+                    cp.cat=ev.cat||cp.cat;
+                    cp.sub=ev.sub||cp.sub;
+                    if(ev.cartao) cp.card=ev.cartao;
+                }
+            }
+        }
     } else {
         D.ag.push(ev);
         // Auto-create pending transaction for payments/receipts
