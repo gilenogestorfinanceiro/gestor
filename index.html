@@ -3663,9 +3663,7 @@ function saveAgenda(){
         toast('Compromisso atualizado!');
         // Oferecer atualizar no calendário do dispositivo
         setTimeout(()=>{
-            if(confirm('📅 Deseja atualizar "'+ev.title+'" no Calendário do seu dispositivo?
-
-O evento existente será substituído pela versão atualizada.')){
+            if(confirm('📅 Deseja atualizar "'+ev.title+'" no Calendário do seu dispositivo?\n\nO evento existente será substituído pela versão atualizada.')){
                 exportICS(ev.id);
             }
         },500);
