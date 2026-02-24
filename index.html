@@ -2564,8 +2564,7 @@ function saveEdit(){
     // Salvar data da compra
     if(dataVal){
         item.data=dataVal;
-        const parts=dataVal.split('-');
-        if(parts.length===3) item.dt=parts[2]+'/'+parts[1]+'/'+parts[0];
+        item.dt=normalizeDt(dataVal);
     }
     
     // Salvar mês de referência da fatura (só cartão)
@@ -2595,6 +2594,19 @@ function saveEdit(){
 }
 
 function closeEditModal(){$('editModal').classList.remove('show')}
+
+// Normaliza qualquer formato de data para YYYY-MM-DD
+function normalizeDt(dt){
+    if(!dt) return '';
+    // Já está em YYYY-MM-DD
+    if(/^\d{4}-\d{2}-\d{2}$/.test(dt)) return dt;
+    // Está em DD/MM/YYYY
+    if(/^\d{2}\/\d{2}\/\d{4}$/.test(dt)){
+        const p=dt.split('/');
+        return p[2]+'-'+p[1]+'-'+p[0];
+    }
+    return dt;
+}
 
 function rCfg(){
     // Brapi token
@@ -3645,7 +3657,7 @@ function saveAgenda(){
             if(ev.txId){
                 const tx=D.tx.find(t=>t.id===ev.txId);
                 if(tx){
-                    tx.dt=ev.date;
+                    tx.dt=normalizeDt(ev.date);
                     tx.m=parseInt(ev.date.split('-')[1])-1;
                     tx.y=parseInt(ev.date.split('-')[0]);
                     tx.desc=ev.title;
@@ -3656,7 +3668,7 @@ function saveAgenda(){
                 }
                 const cp=D.cp.find(c=>c.id===ev.txId);
                 if(cp){
-                    cp.dt=ev.date;
+                    cp.dt=normalizeDt(ev.date);
                     cp.m=parseInt(ev.date.split('-')[1])-1;
                     cp.y=parseInt(ev.date.split('-')[0]);
                     cp.desc=ev.title;
@@ -3892,15 +3904,23 @@ function exportICS(id){
     lines.push('END:VEVENT');
     lines.push('END:VCALENDAR');
     const icsContent=lines.join(NL)+NL;
-    // Blob download funciona em todos os browsers (Safari, Chrome, mobile)
-    const safeName=ev.title.replace(/[^a-zA-Z0-9\u00C0-\u017F ]/g,'').trim().replace(/\s+/g,'_')||'evento';
-    const blob=new Blob([icsContent],{type:'text/calendar;charset=utf-8'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url;a.download=safeName+'.ics';
-    document.body.appendChild(a);a.click();document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast('📅 Arquivo .ics baixado — abra para adicionar ao Calendário');
+    const safeName=ev.title.replace(/[^a-zA-Z0-9À-ſ ]/g,'').trim().replace(/\s+/g,'_')||'evento';
+    const isSafariIOS=/iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if(isSafariIOS){
+        // iOS Safari: data URI com text/calendar abre direto no app Calendário
+        const dataUri='data:text/calendar;charset=utf-8,'+encodeURIComponent(icsContent);
+        window.open(dataUri,'_blank');
+        toast('📅 Abrindo no Calendário...');
+    } else {
+        // Desktop e Android: blob download
+        const blob=new Blob([icsContent],{type:'text/calendar;charset=utf-8'});
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');
+        a.href=url;a.download=safeName+'.ics';
+        document.body.appendChild(a);a.click();document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast('📅 Arquivo .ics baixado — abra para adicionar ao Calendário');
+    }
 }
 
 function selectAgDay(dateStr){
