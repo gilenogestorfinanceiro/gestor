@@ -351,6 +351,24 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 // Cache-busting automático — força reload se versão mudou
 (function(){
     const APP_VERSION='2.7.2';
+
+    // Registrar Service Worker para atualizações automáticas
+    if('serviceWorker' in navigator){
+        navigator.serviceWorker.register('./sw.js').then(reg=>{
+            console.log('[App] Service Worker registrado');
+        }).catch(err=>console.log('[App] SW erro:', err));
+
+        // Ouvir notificação de nova versão do SW
+        navigator.serviceWorker.addEventListener('message', event=>{
+            if(event.data && event.data.type==='NEW_VERSION'){
+                const v=event.data.version;
+                if(v!==APP_VERSION){
+                    // Recarrega silenciosamente para pegar a versão nova
+                    window.location.reload();
+                }
+            }
+        });
+    }
     document.addEventListener('DOMContentLoaded',()=>{const fv=document.getElementById('footerVersion');if(fv)fv.textContent='v'+APP_VERSION;const hv=document.getElementById('headerVersion');if(hv)hv.textContent='v'+APP_VERSION;});
     const stored=localStorage.getItem('app_version');
     if(stored && stored!==APP_VERSION){
