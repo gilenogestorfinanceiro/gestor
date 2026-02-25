@@ -1081,6 +1081,7 @@ let D={}, cMonth=new Date().getMonth(), cYear=new Date().getFullYear(), cPage='d
 const BRAPI_TOKEN_DEFAULT='7tfCGLuGgjUvx8wPC3WzHu';
 let currentUser='';
 let currentUid='';
+let currentEmail='';
 let db=null;
 let saveTimeout=null;
 let valHidden=false;
@@ -1238,6 +1239,7 @@ auth.onAuthStateChanged(async function(user){
     if(user){
         currentUid=user.uid;
         currentUser=user.displayName||user.email.split('@')[0];
+        currentEmail=user.email||'';
         const isAdmin=user.email&&user.email.toLowerCase()==='gilenopaivalima@gmail.com';
         if(isAdmin&&document.getElementById('cfgBrapiCard'))document.getElementById('cfgBrapiCard').style.display='block';
         document.getElementById('loginScreen').style.display='none';
@@ -1265,7 +1267,7 @@ auth.onAuthStateChanged(async function(user){
             setInterval(runAutoBackup,7200000); // 2 hours
         }
     } else {
-        currentUid='';currentUser='';
+        currentUid='';currentUser='';currentEmail='';
         document.getElementById('appContainer').style.display='none';
         document.getElementById('loginScreen').style.display='flex';
         document.getElementById('loginPass').value='';
@@ -3466,7 +3468,7 @@ function saveSug(){
     try{
         db.collection('sugestoes').add({
             tipo,texto,user,
-            email:currentUser||'',
+            email:currentEmail||'',
             uid:currentUid||'',
             createdAt:firebase.firestore.FieldValue.serverTimestamp(),
             lida:false,
@@ -3483,7 +3485,7 @@ function saveSug(){
             Tipo:tipo,
             Sugestão:texto,
             Usuário:user,
-            Email:currentUser||'Não logado',
+            Email:currentEmail||'Não logado',
             Data:new Date().toLocaleString('pt-BR')
         })
     }).then(r=>r.json()).then(data=>{
