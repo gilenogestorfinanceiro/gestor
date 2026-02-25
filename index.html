@@ -2433,8 +2433,23 @@ function confirmarEfetivar(id){
     const tx=D.tx.find(t=>t.id===id);
     if(!tx)return;
     const novaData=document.getElementById('efetivarData').value;
-    if(novaData)tx.dt=novaData;
+    if(novaData){
+        tx.dt=normalizeDt(novaData);
+        tx.data=normalizeDt(novaData);
+        tx.m=parseInt(novaData.split('-')[1])-1;
+        tx.y=parseInt(novaData.split('-')[0]);
+    }
     tx.st='efetivado';
+    
+    // Sincronizar agenda vinculada — marcar como feito (done)
+    if(D.ag){
+        const agEv=D.ag.find(e=>e.txId===id);
+        if(agEv){
+            agEv.done=true;
+            if(novaData) agEv.date=normalizeDt(novaData);
+        }
+    }
+    
     save();rExt();
     cancelEfetivar();
     const isR=tx.tp==='Receita';
