@@ -348,17 +348,27 @@ function renderSugestoes(){
         const dtStr=dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
         const badgeClass=tipoColors[s.tipo]||'badge-purple';
         const unreadClass=s.lida?'':'unread';
-        return `<div class="sug-card ${unreadClass}">
+        const temEmail=s.email&&s.email.includes('@');
+        return `<div class="sug-card ${unreadClass}" id="sug-card-${s.id}">
             <div class="sug-header">
                 <div><strong>${s.user||'Anônimo'}</strong> <span style="color:var(--text3);font-size:11px">${s.email||''}</span></div>
                 <span class="badge ${badgeClass}">${s.tipo||'outro'}</span>
             </div>
             <div class="sug-text">${s.texto}</div>
+            ${s.respostaTexto?`<div style="margin-top:10px;padding:10px;background:rgba(16,185,129,0.08);border-left:3px solid var(--green);border-radius:6px;font-size:13px;color:var(--text2)"><span style="font-size:11px;color:var(--green);font-weight:600">✅ Sua resposta:</span><br>${s.respostaTexto}</div>`:''}
             <div class="sug-meta">${dtStr}</div>
             <div class="sug-actions">
                 ${s.lida?'<button disabled style="opacity:0.5">✅ Lida</button>':'<button onclick="markRead(\''+s.id+'\')">Marcar como lida</button>'}
-                ${s.respondida?'<button disabled style="opacity:0.5">💬 Respondida</button>':'<button onclick="markResponded(\''+s.id+'\')">Marcar respondida</button>'}
+                ${temEmail?`<button onclick="toggleResposta('${s.id}')" style="background:var(--green);color:#fff;border-color:var(--green)">💬 Responder</button>`:''}
                 <button onclick="delSug('${s.id}')" style="color:var(--red)">Excluir</button>
+            </div>
+            <div id="resposta-box-${s.id}" style="display:none;margin-top:12px">
+                <textarea id="resposta-txt-${s.id}" placeholder="Digite sua resposta para ${s.user||'o usuário'}..." style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-family:inherit;resize:vertical;min-height:80px"></textarea>
+                <div style="display:flex;gap:8px;margin-top:8px">
+                    <button onclick="enviarResposta('${s.id}','${s.email||''}','${(s.user||'usuario').replace(/'/g,'')}','${s.texto.substring(0,50).replace(/'/g,'').replace(/
+/g,' ')}')" style="background:var(--green);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:inherit">📤 Enviar resposta</button>
+                    <button onclick="toggleResposta('${s.id}')" style="background:none;border:1px solid var(--border);border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;color:var(--text3);font-family:inherit">Cancelar</button>
+                </div>
             </div>
         </div>`;
     }).join('');
@@ -425,6 +435,56 @@ async function markResponded(id){
     await db.collection('sugestoes').doc(id).update({respondida:true,lida:true});
     const s=allSugs.find(x=>x.id===id);if(s){s.respondida=true;s.lida=true}
     renderSugestoes();renderKPIs();
+}
+
+function toggleResposta(id){
+    const box=document.getElementById('resposta-box-'+id);
+    if(box) box.style.display=box.style.display==='none'?'block':'none';
+}
+
+async function enviarResposta(id,email,user,textoOriginal){
+    const txt=document.getElementById('resposta-txt-'+id).value.trim();
+    if(!txt){alert('Digite uma resposta antes de enviar.');return}
+    if(!email||!email.includes('@')){alert('Usuário sem email válido.');return}
+    
+    const btn=event.target;
+    btn.textContent='Enviando...';btn.disabled=true;
+    
+    try{
+        // Enviar email via FormSubmit
+        const res=await fetch('https://formsubmit.co/ajax/'+email,{
+            method:'POST',
+            headers:{'Content-Type':'application/json','Accept':'application/json'},
+            body:JSON.stringify({
+                _subject:'💬 Resposta do Gileno - Gestão Financeira',
+                _replyto:'gilenopaivalima@gmail.com',
+                Mensagem:txt,
+                'Em resposta a':textoOriginal+'...',
+                De:'Gileno - Gestão Financeira'
+            })
+        });
+        const data=await res.json();
+        
+        // Salvar resposta no Firestore
+        await db.collection('sugestoes').doc(id).update({
+            respondida:true,
+            lida:true,
+            respostaTexto:txt,
+            respondidaEm:firebase.firestore.FieldValue.serverTimestamp()
+        });
+        const s=allSugs.find(x=>x.id===id);
+        if(s){s.respondida=true;s.lida=true;s.respostaTexto=txt;}
+        
+        if(data.success){
+            alert('✅ Resposta enviada para '+email+'!');
+        } else {
+            alert('⚠️ Email pode não ter chegado, mas resposta salva no sistema.');
+        }
+        renderSugestoes();renderKPIs();
+    }catch(e){
+        alert('❌ Erro ao enviar: '+e.message);
+        btn.textContent='📤 Enviar resposta';btn.disabled=false;
+    }
 }
 
 async function delSug(id){

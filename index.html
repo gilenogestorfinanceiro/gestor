@@ -2352,6 +2352,34 @@ function saveTx(){
 }
 
 function delTx(id){
+    const tx=D.tx.find(t=>t.id===id);
+    if(!tx)return;
+    
+    // Se é recorrente, oferecer opções
+    if(tx.rec && tx.recGroup){
+        const grupo=D.tx.filter(t=>t.recGroup===tx.recGroup);
+        const proximos=D.tx.filter(t=>t.recGroup===tx.recGroup&&t.recIdx>=tx.recIdx);
+        const opcao=confirm(
+            '♻️ Este é um lançamento recorrente ('+tx.recIdx+'/'+tx.recDur+').
+
+'+
+            '✅ OK = Excluir ESTE e os PRÓXIMOS ('+proximos.length+' lançamentos)
+'+
+            '❌ Cancelar = Excluir SÓ ESTE'
+        );
+        if(opcao===true){
+            // Excluir este e todos os próximos da série
+            const idsRemover=proximos.map(t=>t.id);
+            D.tx=D.tx.filter(t=>!idsRemover.includes(t.id));
+            save();rExt();toast('🗑️ '+idsRemover.length+' lançamento(s) excluído(s)');
+        } else {
+            // Excluir só este
+            D.tx=D.tx.filter(t=>t.id!==id);
+            save();rExt();toast('Lançamento excluído');
+        }
+        return;
+    }
+    
     if(!confirm('Excluir este lançamento?'))return;
     D.tx=D.tx.filter(t=>t.id!==id);save();rExt();toast('Lançamento excluído');
 }
