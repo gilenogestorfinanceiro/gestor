@@ -2361,14 +2361,7 @@ function delTx(id){
     if(tx.rec && tx.recGroup){
         const grupo=D.tx.filter(t=>t.recGroup===tx.recGroup);
         const proximos=D.tx.filter(t=>t.recGroup===tx.recGroup&&t.recIdx>=tx.recIdx);
-        const opcao=confirm(
-            '♻️ Este é um lançamento recorrente ('+tx.recIdx+'/'+tx.recDur+').
-
-'+
-            '✅ OK = Excluir ESTE e os PRÓXIMOS ('+proximos.length+' lançamentos)
-'+
-            '❌ Cancelar = Excluir SÓ ESTE'
-        );
+        const opcao=confirm('♻️ Lançamento recorrente ('+tx.recIdx+'/'+tx.recDur+').\n\nOK = Excluir ESTE e os PRÓXIMOS ('+proximos.length+' lançamentos)\nCancelar = Excluir SÓ ESTE');
         if(opcao===true){
             // Excluir este e todos os próximos da série
             const idsRemover=proximos.map(t=>t.id);
