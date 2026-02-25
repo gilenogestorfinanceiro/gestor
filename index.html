@@ -1878,6 +1878,15 @@ let addStatus='efetivado'; // 'efetivado' or 'agendado'
 let contaFreq='unico'; // 'unico' or 'recorrente'
 
 function setStatus(st,el){
+    // Validar data passada ao agendar
+    if(st==='agendado'){
+        const dataLanc=$('fDate').value;
+        const hoje=new Date().toISOString().split('T')[0];
+        if(dataLanc && dataLanc<hoje){
+            toast('⚠️ Não é possível agendar para uma data passada!',true);
+            return;
+        }
+    }
     addStatus=st;
     document.querySelectorAll('#statusTabs .toggle-tab').forEach(t=>t.classList.remove('active'));
     if(el)el.classList.add('active');
@@ -2312,8 +2321,34 @@ function saveTx(){
             });
             toast('✅ '+addTp+' recorrente: '+freqLabel+' × '+qtd+'x');
         } else {
-            D.tx.push({id:uid(),dt:$('fDate').value,m:my.m,y:my.y,desc,v:val,tp:addTp,banco,cat,sub:subCatClean,st:addStatus});
-            toast(addTp==='Receita'?'✅ Receita salva!':'✅ Despesa salva!');
+            const txId=uid();
+            D.tx.push({id:txId,dt:$('fDate').value,m:my.m,y:my.y,desc,v:val,tp:addTp,banco,cat,sub:subCatClean,st:addStatus});
+            // Se agendado, criar evento na agenda automaticamente
+            if(addStatus==='agendado'){
+                if(!D.ag) D.ag=[];
+                const agId='ag_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+                D.ag.push({
+                    id:agId,
+                    title:desc,
+                    date:$('fDate').value,
+                    time:'',
+                    type:addTp==='Receita'?'recebimento':'pagamento',
+                    valor:val,
+                    destino:'conta',
+                    banco:banco,
+                    cartao:'',
+                    cat:cat,
+                    sub:subCatClean,
+                    repeat:'none',
+                    notes:'',
+                    color:addTp==='Receita'?'#10b981':'#ef4444',
+                    done:false,
+                    txId:txId
+                });
+                toast(addTp==='Receita'?'✅ Receita agendada e adicionada à agenda!':'✅ Despesa agendada e adicionada à agenda!');
+            } else {
+                toast(addTp==='Receita'?'✅ Receita salva!':'✅ Despesa salva!');
+            }
         }
         save();
         $('fDesc').value='';$('fValor').value='';
