@@ -1903,6 +1903,11 @@ function setStatus(st,el){
         const hoje=new Date().toISOString().split('T')[0];
         if(dataLanc && dataLanc<hoje){
             toast('⚠️ Não é possível agendar para uma data passada!',true);
+            // Garante que o botão Efetivado continue ativo
+            document.querySelectorAll('#statusTabs .toggle-tab').forEach(t=>t.classList.remove('active'));
+            const btnEf=document.querySelector('#statusTabs .toggle-tab');
+            if(btnEf)btnEf.classList.add('active');
+            addStatus='efetivado';
             return;
         }
     }
@@ -1990,6 +1995,12 @@ function rAdd(){
     updateCatOptions();
     updateDestinoUI();
     if(!$('fDate').value){$('fDate').value=new Date().toISOString().split('T')[0]}
+    // Resetar status para Efetivado sempre que o formulário é aberto
+    addStatus='efetivado';
+    document.querySelectorAll('#statusTabs .toggle-tab').forEach((t,i)=>{
+        t.classList.remove('active');
+        if(i===0) t.classList.add('active'); // Primeiro botão = Efetivado
+    });
 }
 
 function updateCatOptions(){
@@ -2301,6 +2312,16 @@ function saveTx(){
     const val=parseFloat($('fValor').value);
     if(!val||val<=0){toast('Preencha o valor',true);return}
     const my=parseMonthSel($('fMonth').value);
+    
+    // Validar data passada ao salvar com status agendado
+    if(addStatus==='agendado'){
+        const dataLanc=$('fDate').value;
+        const hoje=new Date().toISOString().split('T')[0];
+        if(dataLanc && dataLanc<hoje){
+            toast('⚠️ Não é possível agendar para uma data passada!',true);
+            return;
+        }
+    }
     
     // TRANSFERÊNCIA
     if(addTp==='Transf'){
@@ -3721,6 +3742,14 @@ function saveAgenda(){
     if(!title){toast('Preencha o título');return}
     const date=$('agDate').value;
     if(!date){toast('Preencha a data');return}
+    // Validar data passada (só para novos eventos, não para edições)
+    if(!agEditId){
+        const hoje=new Date().toISOString().split('T')[0];
+        if(date<hoje){
+            toast('⚠️ Não é possível agendar para uma data passada!',true);
+            return;
+        }
+    }
     if(!D.ag)D.ag=[];
     const ev={
         id:agEditId||'ag_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
