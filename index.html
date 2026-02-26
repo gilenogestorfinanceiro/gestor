@@ -350,7 +350,7 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 <script>
 // Cache-busting automático — força reload se versão mudou
 (function(){
-    const APP_VERSION='2.7.4';
+    const APP_VERSION='2.7.5';
 
     // Registrar Service Worker para atualizações automáticas
     if('serviceWorker' in navigator){
@@ -1555,10 +1555,12 @@ function rDash(){
         renderCatSection('catBreakRec',catsRec,PIECOLORS_REC,totalRec2);
     }
     // Banks
-    $('bankList').innerHTML=getBancos().map(b=>{
+    const bancosAtuais=getBancos();
+    const saldoTotal=bancosAtuais.reduce((sum,b)=>sum+bankBal(b,cMonth,cYear),0);
+    $('bankList').innerHTML=bancosAtuais.map(b=>{
         const bal=bankBal(b,cMonth,cYear);
-        return`<div class="bank-item"><span class="bank-name">${b}</span><span class="bank-balance${bal<0?' neg':''}">${fmt(bal)}</span></div>`;
-    }).join('');
+        return`<div class="bank-item"><span class="bank-name">${b}</span><span class="bank-balance kpi-val-hide${bal<0?' neg':''}">${fmt(bal)}</span></div>`;
+    }).join('')+`<div class="bank-item" style="border-top:2px solid var(--border);margin-top:6px;padding-top:8px"><span class="bank-name" style="font-weight:700;color:var(--text)">💰 Total em Contas</span><span class="bank-balance kpi-val-hide${saldoTotal<0?' neg':''}" style="font-weight:700;font-size:16px">${fmt(saldoTotal)}</span></div>`;
     // Dashboard Agenda Widget
     const todayStr2=new Date().toISOString().split('T')[0];
     const agUpcoming=(D.ag||[]).filter(e=>!e.done&&e.date>=todayStr2).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
