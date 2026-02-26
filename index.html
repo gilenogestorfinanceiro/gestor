@@ -350,7 +350,7 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 <script>
 // Cache-busting automático — força reload se versão mudou
 (function(){
-    const APP_VERSION='2.7.3';
+    const APP_VERSION='2.7.4';
 
     // Registrar Service Worker para atualizações automáticas
     if('serviceWorker' in navigator){
@@ -2441,17 +2441,23 @@ function delTx(id){
             // Excluir este e todos os próximos da série
             const idsRemover=proximos.map(t=>t.id);
             D.tx=D.tx.filter(t=>!idsRemover.includes(t.id));
+            // Remover eventos vinculados na agenda
+            if(D.ag) D.ag=D.ag.filter(e=>!idsRemover.includes(e.txId));
             save();rExt();toast('🗑️ '+idsRemover.length+' lançamento(s) excluído(s)');
         } else {
             // Excluir só este
             D.tx=D.tx.filter(t=>t.id!==id);
+            if(D.ag) D.ag=D.ag.filter(e=>e.txId!==id);
             save();rExt();toast('Lançamento excluído');
         }
         return;
     }
     
     if(!confirm('Excluir este lançamento?'))return;
-    D.tx=D.tx.filter(t=>t.id!==id);save();rExt();toast('Lançamento excluído');
+    D.tx=D.tx.filter(t=>t.id!==id);
+    // Remover evento vinculado na agenda
+    if(D.ag) D.ag=D.ag.filter(e=>e.txId!==id);
+    save();rExt();toast('Lançamento excluído');
 }
 
 function toggleTxStatus(id){
