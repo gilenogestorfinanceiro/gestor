@@ -350,7 +350,7 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 <script>
 // Cache-busting automático — força reload se versão mudou
 (function(){
-    const APP_VERSION='2.7.6';
+    const APP_VERSION='2.7.7';
 
     // Registrar Service Worker para atualizações automáticas
     if('serviceWorker' in navigator){
@@ -2358,8 +2358,34 @@ function saveTx(){
             const dates=recDatesCalc(startDt,unidade,intervalo,qtd);
             const recGroupId=uid();
             const freqLabel=recFreqLabel(unidade,intervalo);
+            const recGroupAgId=uid();
+            if(!D.ag) D.ag=[];
             dates.forEach((d,r)=>{
-                D.tx.push({id:uid(),dt:d.dt,m:d.m,y:d.y,desc:desc+' ♻️',v:val,tp:addTp,banco,cat,sub:subCatClean,st:r===0?addStatus:'agendado',rec:true,recGroup:recGroupId,recDur:qtd,recIdx:r+1,recFreq:freqLabel});
+                const txId=uid();
+                const stTx=r===0?addStatus:'agendado';
+                D.tx.push({id:txId,dt:d.dt,m:d.m,y:d.y,desc:desc+' ♻️',v:val,tp:addTp,banco,cat,sub:subCatClean,st:stTx,rec:true,recGroup:recGroupId,recDur:qtd,recIdx:r+1,recFreq:freqLabel});
+                // Criar evento na agenda para cada parcela agendada
+                if(stTx==='agendado'){
+                    const agId='ag_'+Date.now()+'_'+r+'_'+Math.random().toString(36).slice(2,6);
+                    D.ag.push({
+                        id:agId,
+                        title:desc+' ♻️ ('+(r+1)+'/'+qtd+')',
+                        date:d.dt,
+                        time:'',
+                        type:addTp==='Receita'?'recebimento':'pagamento',
+                        valor:val,
+                        destino:'conta',
+                        banco:banco,
+                        cartao:'',
+                        cat:cat,
+                        sub:subCatClean,
+                        repeat:'none',
+                        notes:'Recorrente: '+freqLabel,
+                        color:addTp==='Receita'?'#10b981':'#ef4444',
+                        done:false,
+                        txId:txId
+                    });
+                }
             });
             toast('✅ '+addTp+' recorrente: '+freqLabel+' × '+qtd+'x');
         } else {
@@ -3698,6 +3724,8 @@ function openAgendaAdd(dateStr){
     $('agValor').value='';
     $('agNotes').value='';
     $('agRepeat').value='none';
+    $('agQtdRow').style.display='none';
+    if($('agQtd'))$('agQtd').value='12';
     // Populate selects
     const bs=$('agBanco');if(bs){bs.innerHTML='';getBancos().forEach(b=>{const o=document.createElement('option');o.value=b;o.textContent=b;bs.appendChild(o)})}
     const cs=$('agCartao');if(cs){cs.innerHTML='';getCartoes().forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;cs.appendChild(o)})}
@@ -3744,6 +3772,11 @@ function openAgendaEdit(id){
 }
 
 function closeAgendaModal(){$('agendaModal').classList.remove('show')}
+
+function toggleAgQtd(){
+    const rep=$('agRepeat').value;
+    $('agQtdRow').style.display=rep!=='none'?'block':'none';
+}
 
 function saveAgenda(){
     const title=$('agTitle').value.trim();
@@ -3811,12 +3844,36 @@ function saveAgenda(){
             }
         }
     } else {
-        D.ag.push(ev);
-        // Auto-create pending transaction for payments/receipts
-        if(ev.type!=='lembrete' && ev.valor>0 && ev.destino!=='nenhum'){
-            const txId=launchAgendaTxPending(ev);
-            ev.txId=txId;
+        const repeat=$('agRepeat').value||'none';
+        const qtdRep=repeat!=='none'?parseInt($('agQtd').value)||12:1;
+        // Gerar datas das repetições
+        const agDates=[];
+        let dtBase=new Date(date+'T12:00:00');
+        for(let r=0;r<qtdRep;r++){
+            const dtStr=dtBase.toISOString().split('T')[0];
+            agDates.push(dtStr);
+            if(repeat==='weekly') dtBase.setDate(dtBase.getDate()+7);
+            else if(repeat==='biweekly') dtBase.setDate(dtBase.getDate()+14);
+            else if(repeat==='monthly') dtBase.setMonth(dtBase.getMonth()+1);
+            else if(repeat==='yearly') dtBase.setFullYear(dtBase.getFullYear()+1);
+            else break; // none = só 1
         }
+        agDates.forEach((dt,r)=>{
+            const evR={
+                ...ev,
+                id:r===0?ev.id:'ag_'+Date.now()+'_'+r+'_'+Math.random().toString(36).slice(2,6),
+                date:dt,
+                title:qtdRep>1?ev.title+' ('+(r+1)+'/'+qtdRep+')':ev.title,
+                txId:null
+            };
+            D.ag.push(evR);
+            // Auto-create pending transaction para cada evento
+            if(evR.type!=='lembrete' && evR.valor>0 && evR.destino!=='nenhum'){
+                const txId=launchAgendaTxPending(evR);
+                evR.txId=txId;
+            }
+            if(r===0) ev.txId=evR.txId; // mantém ref do primeiro
+        });
     }
     const wasEdit=!!agEditId;
     save();closeAgendaModal();refresh();
@@ -4184,13 +4241,15 @@ Copiar link
 
 <!-- Recurrence -->
 <div class="form-group"><label class="form-label">Repetir</label>
-<select class="form-input" id="agRepeat">
+<select class="form-input" id="agRepeat" onchange="toggleAgQtd()">
 <option value="none">Não repetir</option>
 <option value="weekly">Semanal</option>
 <option value="biweekly">Quinzenal</option>
 <option value="monthly">Mensal</option>
 <option value="yearly">Anual</option>
 </select></div>
+<div class="form-group" id="agQtdRow" style="display:none"><label class="form-label">Quantidade de repetições</label>
+<input type="number" class="form-input" id="agQtd" min="1" max="120" value="12" placeholder="Ex: 12"></div>
 
 <div class="form-group"><label class="form-label">Notas (opcional)</label>
 <textarea class="form-input" id="agNotes" rows="2" placeholder="Observações..." style="resize:vertical;font-family:var(--font)"></textarea></div>
