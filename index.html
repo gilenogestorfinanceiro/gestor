@@ -347,10 +347,11 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
 <script>
 // Cache-busting automático — força reload se versão mudou
 (function(){
-    const APP_VERSION='2.7.8';
+    const APP_VERSION='2.8.0';
 
     // Registrar Service Worker para atualizações automáticas
     if('serviceWorker' in navigator){
@@ -622,6 +623,11 @@ Entrar com Google
 <div class="page" id="page-agenda">
 <h2 style="font-size:20px;font-weight:700;margin-bottom:16px">📅 Agenda</h2>
 
+<div style="display:flex;justify-content:flex-end;padding:0 16px 8px">
+<button onclick="publicarWebCal()" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--card);border:1px solid var(--border);border-radius:20px;font-size:12px;color:var(--text2);cursor:pointer">
+📅 Sincronizar Calendário
+</button>
+</div>
 <!-- Month selector -->
 <div class="month-selector">
 <button class="month-btn" onclick="chgMonth(-1)">‹</button>
@@ -1130,6 +1136,7 @@ const firebaseConfig={
 };
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth();
+const storage=firebase.storage();
 db=firebase.firestore();
 
 function loginMsg(msg,err){
@@ -3898,6 +3905,7 @@ function saveAgenda(){
     }
     const wasEdit=!!agEditId;
     save();closeAgendaModal();refresh();
+    webcalAutoSync();
     if(wasEdit){
         toast('Compromisso atualizado!');
         // Oferecer atualizar no calendário do dispositivo
@@ -4131,6 +4139,138 @@ function exportICS(id){
         toast('📅 Arquivo .ics baixado — abra para adicionar ao Calendário');
     }
 }
+
+
+// ===================== WEBCAL / ICS FEED =====================
+function gerarICSCompleto(){
+    const eventos=(D.ag||[]).filter(e=>!e.done);
+    if(!eventos.length) return null;
+    const NL='\r\n';
+    const now=new Date();
+    const stamp=now.toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+    let lines=[
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Gileno Gestao Financeira//PT',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+        'X-WR-CALNAME:Gileno - Gestão Financeira',
+        'X-WR-CALDESC:Agenda financeira sincronizada',
+        'X-WR-TIMEZONE:America/Sao_Paulo',
+        'REFRESH-INTERVAL;VALUE=DURATION:PT15M',
+        'X-PUBLISHED-TTL:PT15M'
+    ];
+    eventos.forEach(ev=>{
+        const dtParts=ev.date.split('-');
+        const dtStart=dtParts.join(''); // YYYYMMDD
+        const nd=new Date(ev.date+'T12:00:00');
+        nd.setDate(nd.getDate()+1);
+        const dtEnd=nd.toISOString().split('T')[0].replace(/-/g,'');
+        const typeLabel={pagamento:'💸 Pagamento',lembrete:'🔔 Lembrete',recebimento:'💰 Recebimento'}[ev.type]||'📅 Compromisso';
+        let desc=typeLabel;
+        if(ev.valor) desc+=' - R$ '+ev.valor.toFixed(2).replace('.',',');
+        if(ev.cat) desc+=' - '+ev.cat;
+        if(ev.notes) desc+=' | '+ev.notes.replace(/\n/g,' ');
+        const summary=(typeLabel+' '+ev.title).replace(/,/g,'\,').replace(/;/g,'\;');
+        const descEsc=desc.replace(/,/g,'\,').replace(/;/g,'\;');
+        lines=lines.concat([
+            'BEGIN:VEVENT',
+            'UID:'+ev.id+'@gileno-gestao',
+            'DTSTAMP:'+stamp,
+            'DTSTART;VALUE=DATE:'+dtStart,
+            'DTEND;VALUE=DATE:'+dtEnd,
+            'SUMMARY:'+summary,
+            'DESCRIPTION:'+descEsc,
+            'STATUS:CONFIRMED',
+            'BEGIN:VALARM',
+            'TRIGGER:-PT8H',
+            'ACTION:DISPLAY',
+            'DESCRIPTION:'+summary,
+            'END:VALARM',
+            'END:VEVENT'
+        ]);
+    });
+    lines.push('END:VCALENDAR');
+    return lines.join(NL)+NL;
+}
+
+async function publicarWebCal(){
+    if(!currentUser){toast('Faça login primeiro',true);return}
+    const icsContent=gerarICSCompleto();
+    if(!icsContent){toast('Nenhum evento na agenda para sincronizar',true);return}
+    toast('⏳ Publicando calendário...');
+    try{
+        const uid=firebase.auth().currentUser.uid;
+        const ref=storage.ref('webcal/'+uid+'/agenda.ics');
+        const blob=new Blob([icsContent],{type:'text/calendar;charset=utf-8'});
+        const snapshot=await ref.put(blob,{contentType:'text/calendar',cacheControl:'public,max-age=900'});
+        const url=await ref.getDownloadURL();
+        // Salvar URL no perfil
+        if(!D.webcalUrl) D.webcalUrl=url;
+        D.webcalUrl=url;
+        save();
+        mostrarWebCalModal(url);
+    } catch(err){
+        console.error(err);
+        toast('❌ Erro ao publicar: '+err.message,true);
+    }
+}
+
+function mostrarWebCalModal(url){
+    // Converter URL do Firebase para webcal://
+    const webcalUrl=url.replace('https://','webcal://');
+    const httpsUrl=url;
+    let html=`
+    <div class="modal-overlay show" id="webcalModal" onclick="if(event.target===this)this.remove()">
+    <div class="modal-box" style="max-width:460px">
+        <div class="modal-header"><h3>📅 Sincronizar Calendário</h3><button class="btn-icon" onclick="$('webcalModal').remove()">✕</button></div>
+        <div style="padding:16px">
+            <p style="font-size:13px;color:var(--text2);margin-bottom:16px">Assine o calendário no seu dispositivo para sincronizar automaticamente. Os eventos do Gestor aparecerão no seu app de calendário nativo.</p>
+            
+            <div style="background:var(--card);border-radius:var(--radius);padding:12px;margin-bottom:12px">
+                <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px">📱 IPHONE / MAC</div>
+                <p style="font-size:12px;color:var(--text2);margin-bottom:8px">Toque no botão abaixo — o Calendário abrirá automaticamente para assinar:</p>
+                <a href="${webcalUrl}" style="display:block;text-align:center;background:var(--red);color:#fff;padding:10px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none">📅 Assinar no iPhone/Mac</a>
+            </div>
+            
+            <div style="background:var(--card);border-radius:var(--radius);padding:12px;margin-bottom:12px">
+                <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px">🤖 ANDROID / GOOGLE AGENDA</div>
+                <p style="font-size:12px;color:var(--text2);margin-bottom:8px">Copie o link e cole no Google Agenda → + → De URL:</p>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <input id="webcalUrlInput" value="${httpsUrl}" readonly style="flex:1;font-size:10px;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text)">
+                    <button onclick="navigator.clipboard.writeText('${httpsUrl}');toast('✅ Link copiado!')" style="padding:8px 12px;background:var(--green);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px">Copiar</button>
+                </div>
+            </div>
+            
+            <div style="background:var(--card);border-radius:var(--radius);padding:12px;margin-bottom:12px">
+                <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px">🖥️ PC / OUTLOOK / OUTROS</div>
+                <p style="font-size:12px;color:var(--text2)">Use o link acima ou procure a opção "Assinar calendário por URL" no seu app preferido.</p>
+            </div>
+
+            <div style="background:var(--yellow-bg,#fef3c7);border-radius:8px;padding:10px;font-size:11px;color:var(--text2)">
+                ⏱️ A sincronização é automática a cada 15 minutos. Para forçar uma atualização, toque em "Publicar" novamente.
+            </div>
+        </div>
+    </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend',html);
+}
+
+// Republicar automaticamente ao salvar agenda
+function webcalAutoSync(){
+    if(D.webcalUrl && (D.ag||[]).length>0){
+        setTimeout(()=>{
+            const uid=firebase.auth().currentUser?.uid;
+            if(!uid) return;
+            const icsContent=gerarICSCompleto();
+            if(!icsContent) return;
+            const ref=storage.ref('webcal/'+uid+'/agenda.ics');
+            const blob=new Blob([icsContent],{type:'text/calendar;charset=utf-8'});
+            ref.put(blob,{contentType:'text/calendar',cacheControl:'public,max-age=900'}).catch(()=>{});
+        },2000);
+    }
+}
+// ===================== FIM WEBCAL =====================
 
 function selectAgDay(dateStr){
     agSelectedDay=(agSelectedDay===dateStr)?null:dateStr;
