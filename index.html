@@ -351,7 +351,7 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 <script>
 // Cache-busting automático — força reload se versão mudou
 (function(){
-    const APP_VERSION='2.8.0';
+    const APP_VERSION='2.8.1';
 
     // Registrar Service Worker para atualizações automáticas
     if('serviceWorker' in navigator){
@@ -4217,38 +4217,40 @@ async function publicarWebCal(){
 }
 
 function mostrarWebCalModal(url){
-    // Converter URL do Firebase para webcal://
-    const webcalUrl=url.replace('https://','webcal://');
     const httpsUrl=url;
+    // webcal:// para iOS/Mac — mesma URL mas com protocolo diferente
+    const webcalUrl=url.replace('https://','webcal://');
+    // Salvar globalmente para usar nos botões
+    window._lastWebcalHttps=httpsUrl;
+    window._lastWebcalUrl=webcalUrl;
     let html=`
     <div class="modal-overlay show" id="webcalModal" onclick="if(event.target===this)this.remove()">
     <div class="modal-box" style="max-width:460px">
         <div class="modal-header"><h3>📅 Sincronizar Calendário</h3><button class="btn-icon" onclick="$('webcalModal').remove()">✕</button></div>
         <div style="padding:16px">
-            <p style="font-size:13px;color:var(--text2);margin-bottom:16px">Assine o calendário no seu dispositivo para sincronizar automaticamente. Os eventos do Gestor aparecerão no seu app de calendário nativo.</p>
+            <p style="font-size:13px;color:var(--text2);margin-bottom:16px">Assine o calendário no seu dispositivo. Os eventos do Gestor aparecerão automaticamente no app Calendário nativo.</p>
             
             <div style="background:var(--card);border-radius:var(--radius);padding:12px;margin-bottom:12px">
                 <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px">📱 IPHONE / MAC</div>
-                <p style="font-size:12px;color:var(--text2);margin-bottom:8px">Toque no botão abaixo — o Calendário abrirá automaticamente para assinar:</p>
-                <a href="${webcalUrl}" style="display:block;text-align:center;background:var(--red);color:#fff;padding:10px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none">📅 Assinar no iPhone/Mac</a>
+                <p style="font-size:12px;color:var(--text2);margin-bottom:8px">Copie o link e cole em <b>Calendário → Arquivo → Nova Assinatura de Calendário</b> (Mac) ou <b>Ajustes → Calendário → Contas → Adicionar Conta → Outro → Assinatura de Calendário</b> (iPhone):</p>
+                <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+                    <input id="webcalUrlInputIOS" value="${webcalUrl}" readonly style="flex:1;font-size:9px;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text)">
+                    <button onclick="navigator.clipboard.writeText(window._lastWebcalUrl);toast('✅ Link copiado!')" style="padding:8px 12px;background:var(--red);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">Copiar</button>
+                </div>
+                <button onclick="window.open(window._lastWebcalUrl,'_blank')" style="display:block;width:100%;text-align:center;background:var(--red);color:#fff;padding:10px;border-radius:8px;font-weight:700;font-size:13px;border:none;cursor:pointer">📅 Abrir direto no Calendário</button>
             </div>
             
             <div style="background:var(--card);border-radius:var(--radius);padding:12px;margin-bottom:12px">
                 <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px">🤖 ANDROID / GOOGLE AGENDA</div>
-                <p style="font-size:12px;color:var(--text2);margin-bottom:8px">Copie o link e cole no Google Agenda → + → De URL:</p>
+                <p style="font-size:12px;color:var(--text2);margin-bottom:8px">Copie o link e cole no Google Agenda → <b>+</b> → <b>De URL</b>:</p>
                 <div style="display:flex;gap:8px;align-items:center">
-                    <input id="webcalUrlInput" value="${httpsUrl}" readonly style="flex:1;font-size:10px;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text)">
-                    <button onclick="navigator.clipboard.writeText('${httpsUrl}');toast('✅ Link copiado!')" style="padding:8px 12px;background:var(--green);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px">Copiar</button>
+                    <input id="webcalUrlInput" value="${httpsUrl}" readonly style="flex:1;font-size:9px;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text)">
+                    <button onclick="navigator.clipboard.writeText(window._lastWebcalHttps);toast('✅ Link copiado!')" style="padding:8px 12px;background:var(--green);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">Copiar</button>
                 </div>
-            </div>
-            
-            <div style="background:var(--card);border-radius:var(--radius);padding:12px;margin-bottom:12px">
-                <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px">🖥️ PC / OUTLOOK / OUTROS</div>
-                <p style="font-size:12px;color:var(--text2)">Use o link acima ou procure a opção "Assinar calendário por URL" no seu app preferido.</p>
             </div>
 
             <div style="background:var(--yellow-bg,#fef3c7);border-radius:8px;padding:10px;font-size:11px;color:var(--text2)">
-                ⏱️ A sincronização é automática a cada 15 minutos. Para forçar uma atualização, toque em "Publicar" novamente.
+                ⏱️ Sincronização automática a cada 15 minutos. Para forçar atualização, toque em "Sincronizar Calendário" novamente.
             </div>
         </div>
     </div>
