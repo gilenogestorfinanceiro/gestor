@@ -350,7 +350,7 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 <script>
 // Cache-busting automático — força reload se versão mudou
 (function(){
-    const APP_VERSION='2.7.7';
+    const APP_VERSION='2.7.8';
 
     // Registrar Service Worker para atualizações automáticas
     if('serviceWorker' in navigator){
@@ -2315,12 +2315,33 @@ function saveTx(){
     if(!val||val<=0){toast('Preencha o valor',true);return}
     const my=parseMonthSel($('fMonth').value);
     
-    // Validar data passada ao salvar com status agendado
-    if(addStatus==='agendado'){
-        const dataLanc=$('fDate').value;
-        const hoje=new Date().toISOString().split('T')[0];
-        if(dataLanc && dataLanc<hoje){
+    // Validações de data/mês/status
+    const dataLanc=$('fDate').value;
+    const hoje=new Date().toISOString().split('T')[0];
+
+    if(dataLanc){
+        // 1. Data futura não pode ser Efetivado
+        if(dataLanc>hoje && addStatus==='efetivado'){
+            toast('⚠️ Data futura não pode ser Efetivada! Use Agendado.',true);
+            // Forçar botão para Agendado
+            addStatus='agendado';
+            document.querySelectorAll('#statusTabs .toggle-tab').forEach((t,i)=>{
+                t.classList.remove('active');
+                if(i===1) t.classList.add('active');
+            });
+            return;
+        }
+        // 2. Data passada não pode ser Agendado
+        if(dataLanc<hoje && addStatus==='agendado'){
             toast('⚠️ Não é possível agendar para uma data passada!',true);
+            return;
+        }
+        // 3. Data e mês referência devem ser compatíveis
+        const dtParts=dataLanc.split('-');
+        const dtM=parseInt(dtParts[1])-1; // 0-based
+        const dtY=parseInt(dtParts[0]);
+        if(dtM!==my.m || dtY!==my.y){
+            toast('⚠️ A data ('+dataLanc.split('-').reverse().join('/')+') não corresponde ao mês de referência selecionado!',true);
             return;
         }
     }
