@@ -351,7 +351,7 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 <script>
 // Cache-busting automático — força reload se versão mudou
 (function(){
-    const APP_VERSION='2.8.1';
+    const APP_VERSION='2.8.2';
 
     // Registrar Service Worker para atualizações automáticas
     if('serviceWorker' in navigator){
@@ -4154,18 +4154,23 @@ function gerarICSCompleto(){
         'PRODID:-//Gileno Gestao Financeira//PT',
         'CALSCALE:GREGORIAN',
         'METHOD:PUBLISH',
-        'X-WR-CALNAME:Gileno - Gestão Financeira',
+        'X-WR-CALNAME:Gileno - Gestao Financeira',
         'X-WR-CALDESC:Agenda financeira sincronizada',
         'X-WR-TIMEZONE:America/Sao_Paulo',
         'REFRESH-INTERVAL;VALUE=DURATION:PT15M',
-        'X-PUBLISHED-TTL:PT15M'
+        'X-PUBLISHED-TTL:PT15M',
+        // VTIMEZONE para America/Sao_Paulo — necessário para eventos com hora
+        'BEGIN:VTIMEZONE',
+        'TZID:America/Sao_Paulo',
+        'BEGIN:STANDARD',
+        'DTSTART:19701018T000000',
+        'TZOFFSETFROM:-0300',
+        'TZOFFSETTO:-0300',
+        'TZNAME:BRT',
+        'END:STANDARD',
+        'END:VTIMEZONE'
     ];
     eventos.forEach(ev=>{
-        const dtParts=ev.date.split('-');
-        const dtStart=dtParts.join(''); // YYYYMMDD
-        const nd=new Date(ev.date+'T12:00:00');
-        nd.setDate(nd.getDate()+1);
-        const dtEnd=nd.toISOString().split('T')[0].replace(/-/g,'');
         const typeLabel={pagamento:'💸 Pagamento',lembrete:'🔔 Lembrete',recebimento:'💰 Recebimento'}[ev.type]||'📅 Compromisso';
         let desc=typeLabel;
         if(ev.valor) desc+=' - R$ '+ev.valor.toFixed(2).replace('.',',');
@@ -4173,17 +4178,40 @@ function gerarICSCompleto(){
         if(ev.notes) desc+=' | '+ev.notes.replace(/\n/g,' ');
         const summary=(typeLabel+' '+ev.title).replace(/,/g,'\,').replace(/;/g,'\;');
         const descEsc=desc.replace(/,/g,'\,').replace(/;/g,'\;');
+        // UID estável — sempre o mesmo para o mesmo evento (evita duplicação)
+        const uid='gileno-'+ev.id+'@gestaofinanceira';
+        let dtStartStr, dtEndStr, alarmTrigger;
+        if(ev.time && ev.time.match(/^\d{2}:\d{2}$/)){
+            // Com horário — DTSTART com hora no timezone de Brasília
+            const [hh,mm]=ev.time.split(':');
+            const dateParts=ev.date.split('-');
+            dtStartStr='DTSTART;TZID=America/Sao_Paulo:'+dateParts.join('')+'T'+hh+mm+'00';
+            // DTEND = início + 1 hora
+            const endH=String(parseInt(hh)+1).padStart(2,'0');
+            dtEndStr='DTEND;TZID=America/Sao_Paulo:'+dateParts.join('')+'T'+endH+mm+'00';
+            alarmTrigger='-PT30M'; // 30min antes quando tem hora
+        } else {
+            // Dia inteiro
+            const dtStart=ev.date.replace(/-/g,'');
+            const nd=new Date(ev.date+'T12:00:00');
+            nd.setDate(nd.getDate()+1);
+            const dtEnd=nd.toISOString().split('T')[0].replace(/-/g,'');
+            dtStartStr='DTSTART;VALUE=DATE:'+dtStart;
+            dtEndStr='DTEND;VALUE=DATE:'+dtEnd;
+            alarmTrigger='-PT8H'; // 8h antes para dia inteiro
+        }
         lines=lines.concat([
             'BEGIN:VEVENT',
-            'UID:'+ev.id+'@gileno-gestao',
+            'UID:'+uid,
             'DTSTAMP:'+stamp,
-            'DTSTART;VALUE=DATE:'+dtStart,
-            'DTEND;VALUE=DATE:'+dtEnd,
+            dtStartStr,
+            dtEndStr,
             'SUMMARY:'+summary,
             'DESCRIPTION:'+descEsc,
             'STATUS:CONFIRMED',
+            'SEQUENCE:0',
             'BEGIN:VALARM',
-            'TRIGGER:-PT8H',
+            'TRIGGER:'+alarmTrigger,
             'ACTION:DISPLAY',
             'DESCRIPTION:'+summary,
             'END:VALARM',
@@ -4237,7 +4265,7 @@ function mostrarWebCalModal(url){
                     <input id="webcalUrlInputIOS" value="${webcalUrl}" readonly style="flex:1;font-size:9px;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text)">
                     <button onclick="navigator.clipboard.writeText(window._lastWebcalUrl);toast('✅ Link copiado!')" style="padding:8px 12px;background:var(--red);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">Copiar</button>
                 </div>
-                <button onclick="window.open(window._lastWebcalUrl,'_blank')" style="display:block;width:100%;text-align:center;background:var(--red);color:#fff;padding:10px;border-radius:8px;font-weight:700;font-size:13px;border:none;cursor:pointer">📅 Abrir direto no Calendário</button>
+                <button onclick="window.location.href=window._lastWebcalUrl" style="display:block;width:100%;text-align:center;background:var(--red);color:#fff;padding:10px;border-radius:8px;font-weight:700;font-size:13px;border:none;cursor:pointer">📅 Abrir direto no Calendário</button>
             </div>
             
             <div style="background:var(--card);border-radius:var(--radius);padding:12px;margin-bottom:12px">
@@ -4249,8 +4277,11 @@ function mostrarWebCalModal(url){
                 </div>
             </div>
 
-            <div style="background:var(--yellow-bg,#fef3c7);border-radius:8px;padding:10px;font-size:11px;color:var(--text2)">
-                ⏱️ Sincronização automática a cada 15 minutos. Para forçar atualização, toque em "Sincronizar Calendário" novamente.
+            <div style="background:#fff3cd;border-radius:8px;padding:10px;font-size:11px;color:#856404;margin-bottom:8px">
+                ⚠️ <b>Primeira vez?</b> Se aparecerem eventos duplicados, remova a assinatura antiga no Calendário e adicione novamente com o link acima.
+            </div>
+            <div style="background:rgba(255,255,255,0.05);border-radius:8px;padding:10px;font-size:11px;color:var(--text2)">
+                ⏱️ Sincronização automática a cada 15 minutos. Ao publicar novamente, eventos existentes serão atualizados (sem duplicar).
             </div>
         </div>
     </div>
