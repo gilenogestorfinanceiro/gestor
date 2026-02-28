@@ -351,7 +351,7 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 <script>
 // Cache-busting automático — força reload se versão mudou
 (function(){
-    const APP_VERSION='2.8.2';
+    const APP_VERSION='2.8.3';
 
     // Registrar Service Worker para atualizações automáticas
     if('serviceWorker' in navigator){
@@ -4159,14 +4159,23 @@ function gerarICSCompleto(){
         'X-WR-TIMEZONE:America/Sao_Paulo',
         'REFRESH-INTERVAL;VALUE=DURATION:PT15M',
         'X-PUBLISHED-TTL:PT15M',
-        // VTIMEZONE para America/Sao_Paulo — necessário para eventos com hora
+        // VTIMEZONE completo para America/Sao_Paulo
         'BEGIN:VTIMEZONE',
         'TZID:America/Sao_Paulo',
-        'BEGIN:STANDARD',
-        'DTSTART:19701018T000000',
+        'X-LIC-LOCATION:America/Sao_Paulo',
+        'BEGIN:DAYLIGHT',
         'TZOFFSETFROM:-0300',
+        'TZOFFSETTO:-0200',
+        'TZNAME:BRST',
+        'DTSTART:19701004T000000',
+        'RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=10',
+        'END:DAYLIGHT',
+        'BEGIN:STANDARD',
+        'TZOFFSETFROM:-0200',
         'TZOFFSETTO:-0300',
         'TZNAME:BRT',
+        'DTSTART:19710221T000000',
+        'RRULE:FREQ=YEARLY;BYDAY=3SU;BYMONTH=2',
         'END:STANDARD',
         'END:VTIMEZONE'
     ];
@@ -4265,7 +4274,7 @@ function mostrarWebCalModal(url){
                     <input id="webcalUrlInputIOS" value="${webcalUrl}" readonly style="flex:1;font-size:9px;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text)">
                     <button onclick="navigator.clipboard.writeText(window._lastWebcalUrl);toast('✅ Link copiado!')" style="padding:8px 12px;background:var(--red);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">Copiar</button>
                 </div>
-                <button onclick="window.location.href=window._lastWebcalUrl" style="display:block;width:100%;text-align:center;background:var(--red);color:#fff;padding:10px;border-radius:8px;font-weight:700;font-size:13px;border:none;cursor:pointer">📅 Abrir direto no Calendário</button>
+                <a id="webcalOpenBtn" href="" style="display:block;text-align:center;background:var(--red);color:#fff;padding:10px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none" onclick="this.href=window._lastWebcalUrl">📅 Abrir direto no Calendário</a>
             </div>
             
             <div style="background:var(--card);border-radius:var(--radius);padding:12px;margin-bottom:12px">
