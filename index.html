@@ -351,7 +351,7 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 <script>
 // Cache-busting automático — força reload se versão mudou
 (function(){
-    const APP_VERSION='2.8.6';
+    const APP_VERSION='2.8.7';
 
     // Registrar Service Worker para atualizações automáticas
     if('serviceWorker' in navigator){
@@ -3908,6 +3908,24 @@ function openAgendaAdd(dateStr){
 function openAgendaEdit(id){
     const ev=(D.ag||[]).find(e=>e.id===id);
     if(!ev)return;
+    // Evento de vencimento de fatura — abre modal de pagamento direto
+    if(ev.isVencFatura && !ev.done){
+        const card=ev.cartao||ev.title.replace('💳 Fatura ','').trim();
+        const faturas=(D.cp||[]).filter(c=>c.card===card&&c.st!=='paga');
+        if(!faturas.length){toast('⚠️ Fatura de '+card+' já foi paga!');return}
+        // Pegar mês/ano com maior valor em aberto
+        const meses={};
+        faturas.forEach(c=>{const k=c.m+'_'+c.y;meses[k]=(meses[k]||0)+c.v});
+        const topKey=Object.entries(meses).sort((a,b)=>b[1]-a[1])[0][0];
+        const [cM,cY]=topKey.split('_').map(Number);
+        const prevM=cMonth, prevY=cYear;
+        cMonth=cM; cYear=cY;
+        window._agVencId=id;
+        window._prevM=prevM;
+        window._prevY=prevY;
+        payFatura(card);
+        return;
+    }
     openAgendaAdd(ev.date); // abre e reseta agEditId=null
     agEditId=id; // restaura DEPOIS do reset
     $('agTitle').value=ev.title||'';
