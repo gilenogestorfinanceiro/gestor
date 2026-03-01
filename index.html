@@ -351,7 +351,7 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 <script>
 // Cache-busting automático — força reload se versão mudou
 (function(){
-    const APP_VERSION='2.8.8';
+    const APP_VERSION='2.8.9';
 
     // Registrar Service Worker para atualizações automáticas
     if('serviceWorker' in navigator){
@@ -2866,37 +2866,13 @@ function saveEdit(){
     if(cat&&cat!=='__nova__') item.cat=cat;
     item.sub=(sub==='__nova_sub__'||!sub)?'':sub;
 
-    // Trocar conta — ajustar saldos se necessário
+    // Trocar conta — o saldo é calculado dinamicamente pelo bankBal,
+    // então basta atualizar item.banco e item.v que tudo se recalcula sozinho
     if(editingType==='tx'){
         const novaBanco=$('edBanco').value;
-        const oldVal=item.v;
-        const newVal=(val&&val>0)?val:oldVal;
-        const contaMudou=novaBanco && novaBanco!==item.banco;
-        const valorMudou=val&&val>0&&val!==oldVal;
-
-        if(contaMudou || valorMudou){
-            if(!D.bs) D.bs={};
-            const bancoAtual=item.banco;
-            const tp=item.tp; // 'Receita' ou 'Despesa'
-            // Reverter efeito na conta antiga
-            if(bancoAtual && item.st==='efetivado'){
-                if(tp==='Receita') D.bs[bancoAtual]=(D.bs[bancoAtual]||0)-oldVal;
-                else D.bs[bancoAtual]=(D.bs[bancoAtual]||0)+oldVal;
-            }
-            // Aplicar na conta nova com novo valor
-            if(contaMudou) item.banco=novaBanco;
-            item.v=newVal;
-            if(item.st==='efetivado'){
-                const bancoNovo=item.banco;
-                if(tp==='Receita') D.bs[bancoNovo]=(D.bs[bancoNovo]||0)+newVal;
-                else D.bs[bancoNovo]=(D.bs[bancoNovo]||0)-newVal;
-            }
-        } else {
-            if(val&&val>0) item.v=val;
-        }
-    } else {
-        if(val&&val>0) item.v=val;
+        if(novaBanco) item.banco=novaBanco;
     }
+    if(val&&val>0) item.v=val;
     
     // Salvar data e atualizar m/y (mês de referência para transações de conta)
     if(dataVal){
