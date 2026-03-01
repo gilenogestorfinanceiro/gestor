@@ -351,7 +351,7 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 <script>
 // Cache-busting automático — força reload se versão mudou
 (function(){
-    const APP_VERSION='2.8.4';
+    const APP_VERSION='2.8.5';
 
     // Registrar Service Worker para atualizações automáticas
     if('serviceWorker' in navigator){
@@ -1274,6 +1274,7 @@ auth.onAuthStateChanged(async function(user){
         await loadFromCloud();
         applyTheme();
         if(!D.userName){D.userName=currentUser;save()}
+        sincronizarFaturasEmAberto();
         refresh();
         // Track user activity for admin panel
         try{
@@ -2484,6 +2485,73 @@ function saveTx(){
         $('fDesc').value='';$('fValor').value='';
         toast('✅ Compra registrada no cartão!');
     }
+}
+
+function sincronizarFaturasEmAberto(){
+    // Varre todos os cartões e cria/atualiza lembretes das faturas não pagas
+    const cartoes=D.cartoes||[];
+    if(!cartoes.length) return;
+    const hoje=new Date().toISOString().split('T')[0];
+    // Agrupar compras não pagas por cartão+mês+ano
+    const grupos={};
+    (D.cp||[]).forEach(c=>{
+        if(c.st==='paga') return; // ignorar faturas já pagas
+        const key=c.card+'_'+c.m+'_'+c.y;
+        if(!grupos[key]) grupos[key]={card:c.card, m:c.m, y:c.y, total:0};
+        grupos[key].total+=c.v;
+    });
+    if(!D.ag) D.ag=[];
+    let alterou=false;
+    Object.values(grupos).forEach(({card, m, y, total})=>{
+        const ci=cartoes.indexOf(card);
+        if(ci<0) return;
+        const vencDia=getVencs()[ci]||10;
+        const vencDate=new Date(y, m, vencDia);
+        const vencStr=vencDate.toISOString().split('T')[0];
+        const agUid='venc_'+card.replace(/\s+/g,'_')+'_'+m+'_'+y;
+        const evVenc={
+            id: agUid,
+            title: '💳 Fatura '+card,
+            date: vencStr,
+            time: '08:00',
+            type: 'pagamento',
+            valor: total,
+            destino: 'nenhum',
+            banco: '',
+            cartao: card,
+            cat: 'Cartão Crédito',
+            sub: '',
+            repeat: 'none',
+            notes: 'Vencimento da fatura de '+card+' — '+['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][m]+'/'+y,
+            color: '#ef4444',
+            done: false,
+            txId: null,
+            isVencFatura: true
+        };
+        const existIdx=D.ag.findIndex(e=>e.id===agUid);
+        if(existIdx>=0){
+            D.ag[existIdx]=evVenc; // atualizar valor
+        } else {
+            D.ag.push(evVenc); // criar novo
+        }
+        alterou=true;
+    });
+    // Remover lembretes de faturas que foram pagas
+    if(D.ag){
+        const antes=D.ag.length;
+        D.ag=D.ag.filter(e=>{
+            if(!e.isVencFatura) return true; // manter eventos normais
+            // Se existe compra não paga para esse vencimento, manter
+            const parts=e.id.replace('venc_','').split('_');
+            const ano=parseInt(parts[parts.length-1]);
+            const mes=parseInt(parts[parts.length-2]);
+            const cardNome=parts.slice(0,parts.length-2).join(' ');
+            const temAberto=(D.cp||[]).some(c=>c.card===cardNome&&c.m===mes&&c.y===ano&&c.st!=='paga');
+            return temAberto;
+        });
+        if(D.ag.length!==antes) alterou=true;
+    }
+    if(alterou){ save(); webcalAutoSync(); }
 }
 
 function criarLembreteVencimento(card, mes, ano){
