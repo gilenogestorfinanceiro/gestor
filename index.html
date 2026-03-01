@@ -351,7 +351,7 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 <script>
 // Cache-busting automático — força reload se versão mudou
 (function(){
-    const APP_VERSION='2.8.3';
+    const APP_VERSION='2.8.4';
 
     // Registrar Service Worker para atualizações automáticas
     if('serviceWorker' in navigator){
@@ -2479,9 +2479,59 @@ function saveTx(){
             D.cp.push({id:uid(),dt:$('fDate').value,m:my.m,y:my.y,card,desc,v:val,tipo:'À Vista',parc:'',cat,sub:subCatClean,st:addStatus});
         }
         save();
+        // Criar/atualizar lembrete de vencimento da fatura na agenda
+        criarLembreteVencimento(card, my.m, my.y);
         $('fDesc').value='';$('fValor').value='';
         toast('✅ Compra registrada no cartão!');
     }
+}
+
+function criarLembreteVencimento(card, mes, ano){
+    const cartoes=D.cartoes||[];
+    const ci=cartoes.indexOf(card);
+    if(ci<0) return;
+    const vencDia=getVencs()[ci]||10;
+    if(!vencDia) return;
+    // Calcular data de vencimento: dia do venc no mês da fatura
+    const vencDate=new Date(ano, mes, vencDia);
+    const vencStr=vencDate.toISOString().split('T')[0]; // YYYY-MM-DD
+    const hoje=new Date().toISOString().split('T')[0];
+    // UID único por cartão + mês + ano (evita duplicar)
+    const agUid='venc_'+card.replace(/\s+/g,'_')+'_'+mes+'_'+ano;
+    if(!D.ag) D.ag=[];
+    // Verificar se já existe lembrete para esse vencimento
+    const existIdx=D.ag.findIndex(e=>e.id===agUid);
+    const totalFatura=(D.cp||[]).filter(c=>c.card===card&&c.m===mes&&c.y===ano).reduce((s,c)=>s+c.v,0);
+    const evVenc={
+        id: agUid,
+        title: '💳 Fatura '+card,
+        date: vencStr,
+        time: '08:00',
+        type: 'pagamento',
+        valor: totalFatura,
+        destino: 'nenhum',
+        banco: '',
+        cartao: card,
+        cat: 'Cartão Crédito',
+        sub: '',
+        repeat: 'none',
+        notes: 'Vencimento da fatura de '+card+' — '+['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][mes]+'/'+ano,
+        color: '#ef4444',
+        done: false,
+        txId: null,
+        isVencFatura: true
+    };
+    if(existIdx>=0){
+        // Atualizar valor da fatura
+        D.ag[existIdx]=evVenc;
+    } else {
+        // Só criar se a data de vencimento não passou
+        if(vencStr>=hoje){
+            D.ag.push(evVenc);
+        }
+    }
+    save();
+    webcalAutoSync();
 }
 
 function delTx(id){
@@ -2977,6 +3027,12 @@ function confirmPayFatura(){
         pgtoCard:card
     });
     
+    // Marcar lembrete de vencimento como concluído na agenda
+    const agUid='venc_'+card.replace(/\s+/g,'_')+'_'+cMonth+'_'+cYear;
+    if(D.ag){
+        const evIdx=D.ag.findIndex(e=>e.id===agUid);
+        if(evIdx>=0) D.ag[evIdx].done=true;
+    }
     save();closePayModal();rCard();
     toast('✅ Fatura do '+card+' paga! '+fmt(total)+' debitado de '+conta);
 }
