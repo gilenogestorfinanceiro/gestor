@@ -351,7 +351,7 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 <script>
 // Cache-busting automático — força reload se versão mudou
 (function(){
-    const APP_VERSION='2.8.5';
+    const APP_VERSION='2.8.6';
 
     // Registrar Service Worker para atualizações automáticas
     if('serviceWorker' in navigator){
@@ -3101,7 +3101,18 @@ function confirmPayFatura(){
         const evIdx=D.ag.findIndex(e=>e.id===agUid);
         if(evIdx>=0) D.ag[evIdx].done=true;
     }
-    save();closePayModal();rCard();
+    // Restaurar mês/ano se veio da agenda
+    if(window._agVencId){
+        cMonth=window._prevM;
+        cYear=window._prevY;
+        window._agVencId=null;
+        save();closePayModal();
+        toast('✅ Fatura paga! Evento concluído na agenda.');
+        refresh();
+        showPage('agenda');
+    } else {
+        save();closePayModal();rCard();
+    }
     toast('✅ Fatura do '+card+' paga! '+fmt(total)+' debitado de '+conta);
 }
 
@@ -4052,6 +4063,33 @@ function saveAgenda(){
 function toggleAgDone(id){
     const ev=(D.ag||[]).find(e=>e.id===id);
     if(!ev)return;
+    // Evento de vencimento de fatura — abre modal de pagamento
+    if(ev.isVencFatura && !ev.done){
+        // Extrair cartão e mês/ano do evento
+        const card=ev.cartao||ev.title.replace('💳 Fatura ','').trim();
+        // Buscar mês/ano da fatura pelo date do evento
+        const evDate=new Date(ev.date+'T12:00:00');
+        // O mês da fatura é o mês ANTERIOR ao vencimento na maioria dos casos
+        // mas usamos o que está armazenado nas compras em aberto para esse cartão
+        const faturas=(D.cp||[]).filter(c=>c.card===card&&c.st!=='paga');
+        if(!faturas.length){toast('⚠️ Não há compras em aberto para '+card,true);return}
+        // Pegar mês/ano da maioria das compras em aberto
+        const meses={};
+        faturas.forEach(c=>{const k=c.m+'_'+c.y;meses[k]=(meses[k]||0)+c.v});
+        const topKey=Object.entries(meses).sort((a,b)=>b[1]-a[1])[0][0];
+        const [cM,cY]=topKey.split('_').map(Number);
+        // Salvar contexto e abrir modal payFatura
+        // Temporariamente ajustar cMonth/cYear para o mês da fatura
+        const prevM=cMonth, prevY=cYear;
+        cMonth=cM; cYear=cY;
+        payFatura(card);
+        // Sobrescrever o confirmPayFatura para restaurar o mês após pagar
+        const origConfirm=window._origConfirmPay;
+        window._agVencId=id;
+        window._prevM=prevM;
+        window._prevY=prevY;
+        return;
+    }
     ev.done=!ev.done;
     // When marking done, efetivate the linked transaction
     if(ev.done && ev.txId){
