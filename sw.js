@@ -1,6 +1,6 @@
 // Gileno - Gestão Financeira | Service Worker
 // Atualizar este número a cada nova versão do app
-const CACHE_VERSION = '2.9.1';
+const CACHE_VERSION = '2.9.2';
 const CACHE_NAME = 'gileno-gf-' + CACHE_VERSION;
 
 const FILES_TO_CACHE = [
