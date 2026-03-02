@@ -351,7 +351,7 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 <script>
 // Cache-busting automático — força reload se versão mudou
 (function(){
-    const APP_VERSION='2.9.0';
+    const APP_VERSION='2.9.1';
 
     // Registrar Service Worker para atualizações automáticas
     if('serviceWorker' in navigator){
@@ -4226,19 +4226,22 @@ function efetivarAgCompromisso(){
         }
         const cp=D.cp.find(c=>c.id===ev.txId);
         if(cp){cp.st='paga';cp.paidDt=data;}
-    } else if(ev.valor>0 && ev.destino==='conta'){
+    } else if(ev.valor>0 && ev.type!=='lembrete'){
         // Evento sem txId — criar transação agora
+        // Funciona para destino='conta', destino indefinido, ou eventos antigos
         const tp=ev.type==='recebimento'?'Receita':'Despesa';
         const txId='tx_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+        const contaFinal=banco||ev.banco||getBancos()[0];
         D.tx.push({
             id:txId,dt:data,desc:ev.title,
-            v:ev.valor,tp,banco:banco||ev.banco||getBancos()[0],
+            v:ev.valor,tp,banco:contaFinal,
             cat:ev.cat||'',sub:ev.sub||'',
             st:'efetivado',
             m:parseInt(data.split('-')[1])-1,
             y:parseInt(data.split('-')[0])
         });
         ev.txId=txId;
+        ev.banco=contaFinal;
     }
     ev.done=true;
     closeConfirmAgModal();
