@@ -351,7 +351,7 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 <script>
 // Cache-busting automático — força reload se versão mudou
 (function(){
-    const APP_VERSION='2.8.9';
+    const APP_VERSION='2.9.0';
 
     // Registrar Service Worker para atualizações automáticas
     if('serviceWorker' in navigator){
@@ -1013,6 +1013,31 @@ Mais
 <div style="display:flex;gap:8px;margin-top:16px">
 <button class="btn btn-outline" onclick="closePayModal()" style="flex:1">Cancelar</button>
 <button class="btn btn-green" onclick="confirmPayFatura()" style="flex:2">✅ Confirmar Pagamento</button>
+</div>
+</div>
+</div>
+
+<!-- CONFIRMAR COMPROMISSO MODAL -->
+<div class="modal-overlay" id="confirmAgModal" onclick="if(event.target===this)closeConfirmAgModal()">
+<div class="modal">
+<div class="modal-handle"></div>
+<div class="modal-title" id="confirmAgTitle">✅ Confirmar Compromisso</div>
+<div style="padding:0 0 12px">
+<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--text2);font-size:13px">Compromisso</span><span id="confirmAgDesc" style="font-weight:600;font-size:13px;text-align:right;max-width:60%"></span></div>
+<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--text2);font-size:13px">Tipo</span><span id="confirmAgTipo" style="font-weight:600;font-size:13px"></span></div>
+<div style="display:flex;justify-content:space-between"><span style="color:var(--text2);font-size:13px">Valor</span><span id="confirmAgValor" style="font-family:var(--mono);font-weight:700;color:var(--green);font-size:18px"></span></div>
+</div>
+<div class="form-group" id="confirmAgBancoGroup">
+  <label class="form-label">Conta</label>
+  <select class="form-input" id="confirmAgBanco"></select>
+</div>
+<div class="form-group">
+  <label class="form-label">Data de efetivação</label>
+  <input type="date" class="form-input" id="confirmAgData">
+</div>
+<div style="display:flex;gap:8px;margin-top:16px">
+<button class="btn btn-outline" onclick="closeConfirmAgModal()" style="flex:1">Cancelar</button>
+<button class="btn btn-green" onclick="efetivarAgCompromisso()" style="flex:2" id="confirmAgBtn">✅ Confirmar</button>
 </div>
 </div>
 </div>
@@ -4135,22 +4160,90 @@ function toggleAgDone(id){
         window._prevY=prevY;
         return;
     }
-    ev.done=!ev.done;
-    // When marking done, efetivate the linked transaction
-    if(ev.done && ev.txId){
-        const tx=D.tx.find(t=>t.id===ev.txId);
-        if(tx){tx.st='efetivado';toast('✅ Lançamento efetivado!')}
-        const cp=D.cp.find(c=>c.id===ev.txId);
-        if(cp){cp.st='paga';toast('✅ Compra marcada como paga!')}
+    // Se já está concluído — desmarcar diretamente
+    if(ev.done){
+        ev.done=false;
+        if(ev.txId){
+            const tx=D.tx.find(t=>t.id===ev.txId);
+            if(tx) tx.st='agendado';
+            const cp=D.cp.find(c=>c.id===ev.txId);
+            if(cp) cp.st='aberta';
+        }
+        save();refresh();
+        return;
     }
-    // When unmarking, set back to pending
-    if(!ev.done && ev.txId){
-        const tx=D.tx.find(t=>t.id===ev.txId);
-        if(tx)tx.st='agendado';
-        const cp=D.cp.find(c=>c.id===ev.txId);
-        if(cp)cp.st='aberta';
+    // Se é pagamento ou recebimento — abre modal de confirmação
+    if(ev.type==='pagamento'||ev.type==='recebimento'){
+        abrirConfirmAgModal(ev.id);
+        return;
     }
+    // Lembrete — marca direto
+    ev.done=true;
     save();refresh();
+}
+
+function abrirConfirmAgModal(id){
+    const ev=(D.ag||[]).find(e=>e.id===id);
+    if(!ev) return;
+    window._confirmAgId=id;
+    const isPag=ev.type==='pagamento';
+    $('confirmAgTitle').textContent=isPag?'💸 Confirmar Pagamento':'💰 Confirmar Recebimento';
+    $('confirmAgDesc').textContent=ev.title;
+    $('confirmAgTipo').textContent=isPag?'Pagamento':'Recebimento';
+    $('confirmAgValor').textContent=fmt(ev.valor||0);
+    $('confirmAgValor').style.color=isPag?'var(--red)':'var(--green)';
+    $('confirmAgBtn').textContent=isPag?'✅ Confirmar Pagamento':'✅ Confirmar Recebimento';
+    const bancoGroup=$('confirmAgBancoGroup');
+    const bancoSel=$('confirmAgBanco');
+    bancoSel.innerHTML='';
+    getBancos().forEach(b=>{
+        const o=document.createElement('option');
+        o.value=b; o.textContent=b;
+        if(b===ev.banco) o.selected=true;
+        bancoSel.appendChild(o);
+    });
+    bancoGroup.style.display=(ev.destino==='nenhum'||ev.type==='lembrete')?'none':'block';
+    $('confirmAgData').value=new Date().toISOString().split('T')[0];
+    $('confirmAgModal').classList.add('show');
+}
+
+function closeConfirmAgModal(){$('confirmAgModal').classList.remove('show')}
+
+function efetivarAgCompromisso(){
+    const id=window._confirmAgId;
+    const ev=(D.ag||[]).find(e=>e.id===id);
+    if(!ev){closeConfirmAgModal();return}
+    const data=$('confirmAgData').value;
+    const banco=$('confirmAgBanco').value;
+    if(ev.txId){
+        const tx=D.tx.find(t=>t.id===ev.txId);
+        if(tx){
+            tx.st='efetivado';
+            tx.dt=data;
+            if(banco) tx.banco=banco;
+            tx.m=parseInt(data.split('-')[1])-1;
+            tx.y=parseInt(data.split('-')[0]);
+        }
+        const cp=D.cp.find(c=>c.id===ev.txId);
+        if(cp){cp.st='paga';cp.paidDt=data;}
+    } else if(ev.valor>0 && ev.destino==='conta'){
+        // Evento sem txId — criar transação agora
+        const tp=ev.type==='recebimento'?'Receita':'Despesa';
+        const txId='tx_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+        D.tx.push({
+            id:txId,dt:data,desc:ev.title,
+            v:ev.valor,tp,banco:banco||ev.banco||getBancos()[0],
+            cat:ev.cat||'',sub:ev.sub||'',
+            st:'efetivado',
+            m:parseInt(data.split('-')[1])-1,
+            y:parseInt(data.split('-')[0])
+        });
+        ev.txId=txId;
+    }
+    ev.done=true;
+    closeConfirmAgModal();
+    save();refresh();
+    toast('✅ Compromisso efetivado!');
 }
 
 function launchAgendaTxPending(ev){
