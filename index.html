@@ -351,7 +351,7 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 <script>
 // Cache-busting automático — força reload se versão mudou
 (function(){
-    const APP_VERSION='2.9.2';
+    const APP_VERSION='2.9.3';
 
     // Registrar Service Worker para atualizações automáticas
     if('serviceWorker' in navigator){
@@ -674,7 +674,7 @@ Entrar com Google
 <div class="kpi red"><div class="kpi-label">Total Faturas do Mês</div><div class="kpi-value" id="kCard">-</div></div>
 </div>
 <div class="card-summary" id="cardSum"></div>
-<button class="btn btn-primary" style="margin-top:16px" onclick="goPage('add');setAddType('Despesa',document.querySelector('#addTabs .t-red'));setTimeout(()=>setDestino('cartao',document.querySelector('#destinoTabs .toggle-tab:last-child')),100)">+ Nova Compra no Cartão</button>
+<button class="btn btn-primary" style="margin-top:16px" onclick="addFromCard=true;goPage('add');setAddType('Despesa',document.querySelector('#addTabs .t-red'));setTimeout(()=>setDestino('cartao',document.querySelector('#destinoTabs .toggle-tab:last-child')),100)">+ Nova Compra no Cartão</button>
 </div>
 
 <!-- CONFIG -->
@@ -1364,6 +1364,8 @@ function fmt(v){if(!v&&v!==0)return'R$ 0,00';const a=Math.abs(v);return(v<0?'-R$
 function toast(msg,err){const t=$('toast');t.textContent=msg;t.className='toast'+(err?' error':'')+' show';setTimeout(()=>t.className='toast',2500)}
 
 function goPage(p,el){
+    // Resetar addFromCard ao sair da página de lançamento
+    if(p!=='add') addFromCard=false;
     cPage=p;
     document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
     $('page-'+p).classList.add('active');
@@ -1934,6 +1936,7 @@ ${txsAg.length?`<div style="background:rgba(245,158,11,0.1);border:1px solid rgb
 let addDestino='conta'; // 'conta' or 'cartao'
 let addStatus='efetivado'; // 'efetivado' or 'agendado'
 let contaFreq='unico'; // 'unico' or 'recorrente'
+let addFromCard=false; // true quando vem de "Nova Compra no Cartão"
 
 function setStatus(st,el){
     // Validar data passada ao agendar
@@ -2012,6 +2015,16 @@ function calcContaRec(){
 }
 
 function rAdd(){
+    // Mostrar/ocultar abas conforme contexto
+    const addTabs=$('addTabs');
+    if(addTabs){
+        if(addFromCard){
+            // Compra no cartão — esconder Receita e Transferência
+            addTabs.style.display='none';
+        } else {
+            addTabs.style.display='';
+        }
+    }
     const sel=$('fMonth');
     sel.innerHTML='';
     for(let y=BASE_YEAR;y<=cYear+2;y++){
@@ -2373,13 +2386,15 @@ function saveTx(){
             toast('⚠️ Não é possível agendar para uma data passada!',true);
             return;
         }
-        // 3. Data e mês referência devem ser compatíveis
-        const dtParts=dataLanc.split('-');
-        const dtM=parseInt(dtParts[1])-1; // 0-based
-        const dtY=parseInt(dtParts[0]);
-        if(dtM!==my.m || dtY!==my.y){
-            toast('⚠️ A data ('+dataLanc.split('-').reverse().join('/')+') não corresponde ao mês de referência selecionado!',true);
-            return;
+        // 3. Data e mês referência devem ser compatíveis (só para conta, não cartão)
+        if(addDestino!=='cartao'){
+            const dtParts=dataLanc.split('-');
+            const dtM=parseInt(dtParts[1])-1; // 0-based
+            const dtY=parseInt(dtParts[0]);
+            if(dtM!==my.m || dtY!==my.y){
+                toast('⚠️ A data ('+dataLanc.split('-').reverse().join('/')+') não corresponde ao mês de referência selecionado!',true);
+                return;
+            }
         }
     }
     
