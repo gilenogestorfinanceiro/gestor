@@ -1204,7 +1204,9 @@ auth.onAuthStateChanged(async function(user){
         if(isAdmin&&document.getElementById('cfgBrapiCard'))document.getElementById('cfgBrapiCard').style.display='block';
         document.getElementById('loginScreen').style.display='none';
         document.getElementById('appContainer').style.display='flex';
-        document.getElementById('headerUser').textContent='👤 '+currentUser;
+        const verMH=document.body.innerHTML.match(/·\s*v([\d.]+)/);
+        const appVerH=verMH?'v'+verMH[1]:'';
+        document.getElementById('headerUser').innerHTML='👤 '+currentUser+(appVerH?` <span style="font-size:10px;color:var(--text3)">${appVerH}</span>`:'');
         await loadFromCloud();
         applyTheme();
         if(!D.userName){D.userName=currentUser;save()}
@@ -1421,9 +1423,7 @@ function refresh(){
 }
 
 function rDash(){
-    const verM=document.body.innerHTML.match(/·\s*v([\d.]+)/);
-    const appVer=verM?'v'+verM[1]:'';
-    if(D.userName) $('appUserHeader').innerHTML='👤 '+D.userName+(appVer?` <span style="font-size:10px;color:var(--text3);margin-left:6px">${appVer}</span>`:'');
+    if(D.userName) $('appUserHeader').textContent='👤 '+D.userName;
     const r=mRec(cMonth,cYear),d=mDesp(cMonth,cYear),res=r-d,ct=mCardT(cMonth,cYear);
     const txM=mTx(cMonth,cYear);
     const rEf=txM.filter(t=>t.tp==='Receita'&&(t.st==='efetivado'||!t.st)).reduce((s,t)=>s+t.v,0);
