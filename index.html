@@ -875,7 +875,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.12
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.13
 </div>
 
 <!-- BOTTOM NAV -->
@@ -1181,7 +1181,9 @@ auth.onAuthStateChanged(async function(user){
         if(isAdmin&&document.getElementById('cfgBrapiCard'))document.getElementById('cfgBrapiCard').style.display='block';
         document.getElementById('loginScreen').style.display='none';
         document.getElementById('appContainer').style.display='flex';
-        document.getElementById('headerUser').textContent='👤 '+currentUser;
+        const _verMH=document.body.innerHTML.match(/·\s*v([\d.]+)/);
+        const _appVerH=_verMH?'v'+_verMH[1]:'';
+        document.getElementById('headerUser').innerHTML='👤 '+currentUser+(_appVerH?' <span style="font-size:10px;color:var(--text3)">'+_appVerH+'</span>':'');
         await loadFromCloud();
         applyTheme();
         if(!D.userName){D.userName=currentUser;save()}
@@ -2622,6 +2624,13 @@ function confirmPayFatura(){
         const cp=D.cp.find(x=>x.id===c.id);
         if(cp){cp.st='paga';cp.paidDt=data;cp.paidConta=conta}
     });
+    // Remover tx agendado de fatura (será substituído pelo tx real abaixo)
+    const fatTxId='agfat_tx_'+card.replace(/\s+/g,'_')+'_'+cMonth+'_'+cYear;
+    D.tx=D.tx.filter(t=>t.id!==fatTxId);
+    // Marcar evento da agenda como done
+    const agFatId='agfat_'+card.replace(/\s+/g,'_')+'_'+cMonth+'_'+cYear;
+    const agEv=D.ag.find(e=>e.id===agFatId);
+    if(agEv){agEv.done=true;}
     
     // Create transaction in bank account (flagged to avoid category duplication)
     D.tx.push({
@@ -3433,6 +3442,12 @@ function openAgendaAdd(dateStr){
 
 function sincronizarFaturasEmAberto(){
     if(!D.ag) D.ag=[];
+    // Remover eventos de fatura antigos que não têm isFaturaEvent (criados pela versão anterior)
+    D.ag=D.ag.filter(e=>{
+        if(!e.isFaturaEvent && e.title && e.title.startsWith('Fatura ') && e.notes && e.notes.includes('Vencimento da fatura'))
+            return false; // remove evento legado
+        return true;
+    });
     const cartoes=getCartoes();
     const vencs=getVencs();
     const hoje=new Date();
@@ -3477,8 +3492,28 @@ function sincronizarFaturasEmAberto(){
                 // Atualiza valor e data (mantém done e txId)
                 ev.done=D.ag[existIdx].done;
                 ev.txId=D.ag[existIdx].txId;
+                // Atualizar tx agendado correspondente se existir
+                if(ev.txId){
+                    const txIdx=D.tx.findIndex(t=>t.id===ev.txId);
+                    if(txIdx>=0){D.tx[txIdx].v=total;D.tx[txIdx].dt=dateStr;}
+                }
                 D.ag[existIdx]=ev;
             } else {
+                // Criar tx agendado no extrato da conta
+                const txId='agfat_tx_'+card.replace(/\s+/g,'_')+'_'+m+'_'+y;
+                const banco=D.ca[card]||getBancos()[0]||'';
+                // Remover tx anterior se existir (evitar duplicata)
+                D.tx=D.tx.filter(t=>t.id!==txId);
+                D.tx.push({
+                    id:txId,dt:dateStr,m,y,
+                    desc:title,v:total,
+                    tp:'Despesa',banco,
+                    cat:'Cartão Crédito',sub:card,
+                    st:'agendado',
+                    pgtoFatura:true,pgtoCard:card,
+                    faturaAgendada:true
+                });
+                ev.txId=txId;
                 D.ag.push(ev);
             }
         });
