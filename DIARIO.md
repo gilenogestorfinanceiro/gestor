@@ -157,3 +157,32 @@ Isso elimina absolutamente qualquer legado independente de formato de ID ou enco
 2. `sincronizarFaturasEmAberto()` faz limpeza nuclear
 3. `save()` persiste os dados limpos no Firestore
 4. Nas próximas cargas, nenhum legado sobrevive
+
+---
+
+## v2.9.17 — FIX: debounce cancelava o save da sincronização
+
+### Causa raiz encontrada (nível 3)
+O `save()` usa debounce de 1 segundo. No fluxo do `onAuthStateChanged`:
+1. `await loadFromCloud()` → chama `sincronizarFaturasEmAberto()` → chama `save()` → inicia timer 1s
+2. Retorna para `onAuthStateChanged`
+3. `if(!D.userName){D.userName=currentUser;save()}` → **cancela o timer anterior** com `clearTimeout`!
+4. O save da sincronização nunca executa no Firestore
+
+### Correção
+Adicionada `saveImmediate()` — save direto sem debounce, cancela qualquer timer pendente:
+```js
+async function saveImmediate(){
+    if(!currentUid)return;
+    if(saveTimeout){clearTimeout(saveTimeout);saveTimeout=null;}
+    await db.collection('users').doc(currentUid).set({data:..., updated:...}, {merge:true});
+}
+```
+`loadFromCloud()` agora usa `await saveImmediate()` após a sincronização.
+
+### Debug adicionado
+`console.log('[Sync] ag: X→Y | tx: X→Y')` no início da sincronização para confirmar quantos eventos são removidos/criados.
+
+### Verificar no console do browser após deploy:
+- Deve aparecer `[Sync] ag: 4→0 | tx: X→0` (removeu os 4 legados)
+- Em seguida recria 2 (um por mês) para cada cartão com fatura aberta

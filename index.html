@@ -875,7 +875,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.16
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.17
 </div>
 
 <!-- BOTTOM NAV -->
@@ -1220,7 +1220,7 @@ async function loadFromCloud(){
         if(doc.exists){
             D=migrateData(doc.data().data||{});
             sincronizarFaturasEmAberto();
-            save(); // persistir limpeza de legados no Firestore
+            await saveImmediate(); // salva imediatamente — não pode usar debounce aqui
         } else {
             D=migrateData({tx:[],cp:[],bs:{...DSALDOS},ca:{...DCARDS},catsD:[...CATS_D_DEFAULT],catsR:[...CATS_R_DEFAULT],subCats:{...SUBCATS_DEFAULT},bancos:[...BANCOS_DEFAULT],cartoes:[...CARTOES_DEFAULT],vencs:[...VENCS_DEFAULT]});
         }
@@ -1241,6 +1241,15 @@ function save(){
             await db.collection('users').doc(currentUid).set({data:JSON.parse(JSON.stringify(D)),updated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
         }catch(e){console.error('Save error:',e);toast('⚠️ Erro ao salvar na nuvem',true)}
     },1000);
+}
+
+async function saveImmediate(){
+    // Save direto, sem debounce — usar apenas em situações críticas (ex: limpeza de migração)
+    if(!currentUid)return;
+    if(saveTimeout){clearTimeout(saveTimeout);saveTimeout=null;}
+    try{
+        await db.collection('users').doc(currentUid).set({data:JSON.parse(JSON.stringify(D)),updated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+    }catch(e){console.error('SaveImmediate error:',e);}
 }
 
 function checkAutoLogin(){/* handled by onAuthStateChanged */}
@@ -3452,21 +3461,20 @@ function sincronizarFaturasEmAberto(){
     ];
 
     // === LIMPEZA NUCLEAR — remove QUALQUER rastro de fatura não-paga ===
-    // Critério intencional amplo: título começa com "Fatura " OU tem isFaturaEvent
-    // Não depende de ID exato nem título exato — previne qualquer legado
+    const _agAntes=D.ag.length, _txAntes=D.tx.length;
     D.ag=D.ag.filter(e=>{
-        if(e.done) return true; // preserva apenas os confirmados/pagos
-        if(e.isFaturaEvent) return false; // remove qualquer evento marcado como fatura
-        if(e.title && e.title.startsWith('Fatura ')) return false; // remove legados sem a flag
+        if(e.done) return true;
+        if(e.isFaturaEvent) return false;
+        if(e.title && e.title.startsWith('Fatura ')) return false;
         return true;
     });
 
-    // Remove QUALQUER tx de fatura não-paga — por faturaAgendada OU por pgtoFatura+agendado
     D.tx=D.tx.filter(t=>{
         if(t.pgtoFatura && t.st==='agendado') return false;
         if(t.faturaAgendada) return false;
         return true;
     });
+    console.log(`[Sync] ag: ${_agAntes}→${D.ag.length} | tx: ${_txAntes}→${D.tx.length}`);
 
     // === RECRIAÇÃO com dados frescos ===
     meses.forEach(({m,y})=>{
