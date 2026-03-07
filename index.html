@@ -1199,7 +1199,9 @@ auth.onAuthStateChanged(async function(user){
         if(isAdmin&&document.getElementById('cfgBrapiCard'))document.getElementById('cfgBrapiCard').style.display='block';
         document.getElementById('loginScreen').style.display='none';
         document.getElementById('appContainer').style.display='flex';
-        document.getElementById('headerUser').textContent='👤 '+currentUser;
+        const _verMH=document.body.innerHTML.match(/·\s*v([\d.]+)/);
+        const _appVerH=_verMH?'v'+_verMH[1]:'';
+        document.getElementById('headerUser').innerHTML='👤 '+currentUser+(_appVerH?' <span style="font-size:10px;color:var(--text3)">'+_appVerH+'</span>':'');
         await loadFromCloud();
         applyTheme();
         if(!D.userName){D.userName=currentUser;save()}
