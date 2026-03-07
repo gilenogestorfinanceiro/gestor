@@ -875,7 +875,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.7
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.9
 </div>
 
 <!-- BOTTOM NAV -->
@@ -1041,7 +1041,7 @@ function toggleValVis(){
 // Firebase Init
 const firebaseConfig={
     apiKey:"AIzaSyDNq64Kqr2kt1baYlgPduSo5LbTsfdxdWQ",
-    authDomain:"gestor-financeiro-pessoa-90a13.firebaseapp.com",
+    authDomain:"gilenogestorfinanceiro.github.io",
     projectId:"gestor-financeiro-pessoa-90a13",
     storageBucket:"gestor-financeiro-pessoa-90a13.firebasestorage.app",
     messagingSenderId:"465890133373",
@@ -1066,17 +1066,8 @@ function fireAuthError(code){
 
 async function doGoogleLogin(){
     const provider=new firebase.auth.GoogleAuthProvider();
-    try{
-        await auth.signInWithPopup(provider);
-    }catch(e){
-        // Safari bloqueia popup em alguns contextos — tenta redirect como fallback
-        if(e.code==='auth/popup-blocked'||e.code==='auth/popup-closed-by-user'){
-            try{ await auth.signInWithRedirect(provider); }
-            catch(e2){ loginMsg(fireAuthError(e2.code),true); }
-        } else {
-            loginMsg(fireAuthError(e.code),true);
-        }
-    }
+    try{ await auth.signInWithPopup(provider); }
+    catch(e){ loginMsg(fireAuthError(e.code),true); }
 }
 
 async function doEmailLogin(){
