@@ -339,3 +339,49 @@ const meses = [_prev, {m:cMonth,y:cYear}, _next];
 ```
 
 ### Versão atual: v2.9.22
+
+---
+
+## v2.9.23 — Fix: lançamento via agenda no cartão com mês correto + validação fatura paga
+
+### Problema
+Ao criar compromisso na agenda com destino "Cartão":
+1. Não havia campo para escolher o mês da fatura — usava o mês da data do evento
+2. Permitia lançar em fatura já paga, alterando o valor incorretamente
+
+### Fix
+- **Campo "Mês da fatura"** adicionado no modal da agenda quando destino=Cartão
+  - Mostra mês anterior, atual e próximo
+  - Meses com fatura já paga aparecem como `✅ Paga` e ficam desabilitados (`disabled`)
+- **`launchAgendaTxPending`** agora usa `ev.faturaMes` (formato `"m_y"`) para determinar m/y do D.cp
+- **Validação**: se todos os cp do mês/cartão já estão `st:'paga'`, bloqueia e mostra toast de erro
+- **`faturaMes`** salvo no objeto do evento (D.ag) para persistência
+
+### Versão atual: v2.9.23
+
+---
+
+## ⚠️ FEATURE CRÍTICA — NÃO PODE SER PERDIDA EM RECUPERAÇÕES DE ARQUIVO
+
+### Lançamento via Agenda → Cartão: campo "Mês da fatura"
+
+Esta feature foi implementada, perdida após recuperação via `curl` do GitHub, e reimplementada. **Se o arquivo for recuperado do GitHub novamente, verificar imediatamente se esses elementos existem:**
+
+**1. Campo HTML no modal da agenda** (`id="agFaturaMes"`):
+```html
+<div id="agCartaoField" style="display:none">
+  <div class="form-group"><label>Cartão</label><select id="agCartao"></select></div>
+  <div class="form-group"><label>Mês da fatura</label><select id="agFaturaMes"></select></div>
+</div>
+```
+
+**2. `setAgDestino('cartao',...)` deve preencher `#agFaturaMes`** com meses anterior/atual/próximo, mostrando os pagos como `✅ Paga` e `disabled`.
+
+**3. `launchAgendaTxPending(ev)`** deve usar `ev.faturaMes` (formato `"m_y"`) para definir `m` e `y` do `D.cp`, NÃO a data do evento.
+
+**4. Validação**: bloquear lançamento se fatura do mês selecionado já está paga.
+
+**5. `faturaMes` salvo no objeto D.ag** ao salvar o compromisso.
+
+Se qualquer um desses pontos estiver faltando após uma recuperação, reimplementar antes de qualquer outra coisa.
+

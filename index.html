@@ -878,7 +878,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.22
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.23
 </div>
 
 <!-- BOTTOM NAV -->
@@ -3419,6 +3419,29 @@ function setAgDestino(d,el){
     if(el)el.classList.add('active');
     $('agContaField').style.display=(d==='conta')?'block':'none';
     $('agCartaoField').style.display=(d==='cartao')?'block':'none';
+    if(d==='cartao'){
+        // Preenche meses disponíveis: mês anterior, atual e próximo
+        const _agDate=$('agDate').value||new Date().toISOString().split('T')[0];
+        const _agY=parseInt(_agDate.split('-')[0]),_agM=parseInt(_agDate.split('-')[1])-1;
+        const _mOpts=[];
+        for(let delta=-1;delta<=1;delta++){
+            let mm=_agM+delta,yy=_agY;
+            if(mm<0){mm=11;yy--;}if(mm>11){mm=0;yy++;}
+            _mOpts.push({m:mm,y:yy});
+        }
+        const _fatSel=$('agFaturaMes');
+        _fatSel.innerHTML=_mOpts.map(o=>{
+            const lbl=MN[o.m]+'/'+o.y;
+            // Verificar se fatura já paga para o cartão selecionado
+            const card=$('agCartao').value;
+            const cpList=(D.cp||[]).filter(c=>c.card===card&&c.m===o.m&&c.y===o.y);
+            const allPaid=cpList.length>0&&cpList.every(c=>c.st==='paga');
+            const paidLabel=allPaid?' ✅ Paga':'';
+            return`<option value="${o.m}_${o.y}"${allPaid?' disabled':''}>${lbl}${paidLabel}</option>`;
+        }).join('');
+        // Seleciona o mês mais provável (atual por padrão)
+        _fatSel.value=`${_agM}_${_agY}`;
+    }
 }
 function setAgColor(color,el){
     agColor=color;
@@ -3630,6 +3653,7 @@ function saveAgenda(){
         destino:agType!=='lembrete'?agDestino:'nenhum',
         banco:agDestino==='conta'?$('agBanco').value:'',
         cartao:agDestino==='cartao'?$('agCartao').value:'',
+        faturaMes:agDestino==='cartao'?$('agFaturaMes').value:'',
         cat:$('agCat').value||'',
         sub:$('agSubCat').value||'',
         repeat:$('agRepeat').value||'none',
@@ -3691,8 +3715,21 @@ function launchAgendaTxPending(ev){
         const tx={id:txId,dt:ev.date,desc:ev.title,v:ev.valor,tp,banco:ev.banco,cat:ev.cat,sub:ev.sub||'',st:'agendado',m:parseInt(ev.date.split('-')[1])-1,y:parseInt(ev.date.split('-')[0])};
         D.tx.push(tx);
     } else if(ev.destino==='cartao'){
-        const m=parseInt(ev.date.split('-')[1])-1;
-        const y=parseInt(ev.date.split('-')[0]);
+        // Usa o mês da fatura selecionado (ev.faturaMes = "m_y"), não a data do evento
+        let m,y;
+        if(ev.faturaMes){
+            const parts=ev.faturaMes.split('_');
+            m=parseInt(parts[0]);y=parseInt(parts[1]);
+        } else {
+            m=parseInt(ev.date.split('-')[1])-1;
+            y=parseInt(ev.date.split('-')[0]);
+        }
+        // Verificar se fatura já está paga — não permitir lançar em fatura paga
+        const cpExist=(D.cp||[]).filter(c=>c.card===ev.cartao&&c.m===m&&c.y===y);
+        if(cpExist.length>0&&cpExist.every(c=>c.st==='paga')){
+            toast('⚠️ Fatura de '+MN[m]+'/'+y+' já está paga!',true);
+            return null;
+        }
         const cp={id:txId,dt:ev.date,desc:ev.title,v:ev.valor,card:ev.cartao,cat:ev.cat,sub:ev.sub||'',tipo:'À Vista',m,y,st:'aberta'};
         D.cp.push(cp);
     }
@@ -4001,7 +4038,10 @@ Copiar link
 </div></div>
 
 <div id="agContaField"><div class="form-group"><label class="form-label">Banco/Conta</label><select class="form-input" id="agBanco"></select></div></div>
-<div id="agCartaoField" style="display:none"><div class="form-group"><label class="form-label">Cartão</label><select class="form-input" id="agCartao"></select></div></div>
+<div id="agCartaoField" style="display:none">
+<div class="form-group"><label class="form-label">Cartão</label><select class="form-input" id="agCartao"></select></div>
+<div class="form-group"><label class="form-label">Mês da fatura</label><select class="form-input" id="agFaturaMes"></select></div>
+</div>
 
 <div class="form-group"><label class="form-label">Categoria</label><div style="display:flex;gap:6px"><select class="form-input" id="agCat" onchange="onAgCatChange()" style="flex:1"></select><button class="btn btn-outline btn-sm" onclick="addAgCat()" style="white-space:nowrap;padding:6px 10px">+ Nova</button></div></div>
 <div class="form-group" id="agSubCatRow" style="display:none"><label class="form-label">Subcategoria</label><div style="display:flex;gap:6px"><select class="form-input" id="agSubCat" style="flex:1"></select><button class="btn btn-outline btn-sm" onclick="addAgSubCat()" style="white-space:nowrap;padding:6px 10px">+ Nova</button></div></div>
