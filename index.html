@@ -875,7 +875,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.5
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.6
 </div>
 
 <!-- BOTTOM NAV -->
@@ -932,24 +932,6 @@ Mais
 <div style="display:flex;gap:8px;margin-top:16px">
 <button class="btn btn-outline" onclick="closePayModal()" style="flex:1">Cancelar</button>
 <button class="btn btn-green" onclick="confirmPayFatura()" style="flex:2">✅ Confirmar Pagamento</button>
-</div>
-</div>
-</div>
-
-<!-- EDIT SCOPE MODAL -->
-<div class="modal-overlay" id="editScopeModal" onclick="if(event.target===this)closeEditScopeModal()">
-<div class="modal">
-<div class="modal-handle"></div>
-<div class="modal-title">✏️ Editar Lançamento</div>
-<div id="editScopeInfo" style="background:var(--surface2);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px;font-size:13px;color:var(--text2);line-height:1.5"></div>
-<div style="display:flex;flex-direction:column;gap:10px">
-<button class="btn btn-primary" onclick="(()=>{const it=editingType==='tx'?D.tx.find(t=>t.id===editingId):D.cp.find(c=>c.id===editingId);_applyEdit(it,'only')})()">
-  ✏️ Somente este lançamento
-</button>
-<button class="btn btn-outline" style="color:var(--orange);border-color:var(--orange)" onclick="(()=>{const it=editingType==='tx'?D.tx.find(t=>t.id===editingId):D.cp.find(c=>c.id===editingId);_applyEdit(it,'forward')})()">
-  ⏩ Este e os próximos
-</button>
-<button class="btn btn-outline" onclick="closeEditScopeModal()" style="margin-top:4px">Cancelar</button>
 </div>
 </div>
 </div>
@@ -1083,10 +1065,16 @@ function fireAuthError(code){
 }
 
 async function doGoogleLogin(){
-    try{
-        const provider=new firebase.auth.GoogleAuthProvider();
-        await auth.signInWithPopup(provider);
-    }catch(e){loginMsg(fireAuthError(e.code),true)}
+    const provider=new firebase.auth.GoogleAuthProvider();
+    const isSafari=/^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
+    if(isSafari||isIOS){
+        try{ await auth.signInWithRedirect(provider); }
+        catch(e){ loginMsg(fireAuthError(e.code),true); }
+    } else {
+        try{ await auth.signInWithPopup(provider); }
+        catch(e){ loginMsg(fireAuthError(e.code),true); }
+    }
 }
 
 async function doEmailLogin(){
@@ -1189,6 +1177,9 @@ function doLogout(){
     if(!confirm('Sair da conta?'))return;
     auth.signOut();
 }
+
+// Capturar retorno do redirect (Safari/iOS)
+auth.getRedirectResult().catch(e=>{ if(e&&e.code) loginMsg(fireAuthError(e.code),true); });
 
 // Auth state listener
 auth.onAuthStateChanged(async function(user){
@@ -2448,85 +2439,20 @@ function saveEdit(){
     if(editingType==='tx') item=D.tx.find(t=>t.id===editingId);
     else item=D.cp.find(c=>c.id===editingId);
     if(!item)return;
-
+    
     const desc=$('edDesc').value.trim();
     const val=parseFloat($('edValor').value);
     const cat=$('edCat').value;
     const sub=$('edSub').value;
-    const newVal=(val&&val>0)?val:null;
-
-    // Detectar se é recorrente (tx) ou parcelado (cp)
-    const isRec=(editingType==='tx'&&item.rec&&item.recGroup);
-    const isParc=(editingType==='cp'&&item.tipo==='Parcelado'&&item.parc);
-    const isRecCartao=(editingType==='cp'&&item.tipo==='Recorrente');
-    const valorMudou=newVal&&newVal!==item.v;
-
-    if(valorMudou&&(isRec||isParc||isRecCartao)){
-        // Mostrar modal de escolha
-        window._editPendingDesc=desc;
-        window._editPendingVal=newVal;
-        window._editPendingCat=cat;
-        window._editPendingSub=sub;
-        const tipo=isParc?'parcelamento':(isRecCartao?'recorrência':'recorrência');
-        $('editScopeInfo').textContent=`Este lançamento faz parte de um ${tipo}. O que deseja alterar?`;
-        $('editScopeModal').classList.add('show');
-        return;
-    }
-
-    // Edição simples (sem recorrência ou valor não mudou)
-    _applyEdit(item,'only');
+    
+    if(desc) item.desc=desc;
+    if(val&&val>0) item.v=val;
+    if(cat&&cat!=='__nova__') item.cat=cat;
+    item.sub=(sub==='__nova_sub__'||!sub)?'':sub;
+    
+    save();closeEditModal();rExt();
+    toast('✅ Lançamento atualizado!');
 }
-
-function _applyEdit(item, scope){
-    const desc=window._editPendingDesc!==undefined?window._editPendingDesc:$('edDesc').value.trim();
-    const val=window._editPendingVal!==undefined?window._editPendingVal:parseFloat($('edValor').value);
-    const cat=window._editPendingCat!==undefined?window._editPendingCat:$('edCat').value;
-    const sub=window._editPendingSub!==undefined?window._editPendingSub:$('edSub').value;
-    // Limpar pendentes
-    delete window._editPendingDesc; delete window._editPendingVal;
-    delete window._editPendingCat; delete window._editPendingSub;
-
-    const applyToItem=(it)=>{
-        if(desc) it.desc=desc;
-        if(val&&val>0) it.v=val;
-        if(cat&&cat!=='__nova__') it.cat=cat;
-        it.sub=(sub==='__nova_sub__'||!sub)?'':sub;
-    };
-
-    if(scope==='only'){
-        applyToItem(item);
-    } else if(scope==='forward'){
-        // Recorrente tx: mesmo recGroup, recIdx >= atual
-        if(editingType==='tx'&&item.recGroup){
-            D.tx.filter(t=>t.recGroup===item.recGroup&&t.recIdx>=item.recIdx).forEach(t=>{
-                if(val&&val>0) t.v=val;
-                if(cat&&cat!=='__nova__') t.cat=cat;
-                t.sub=(sub==='__nova_sub__'||!sub)?'':sub;
-            });
-        }
-        // Parcelado cartão: mesmo desc base, parcela >= atual
-        else if(editingType==='cp'&&item.tipo==='Parcelado'){
-            const baseDesc=item.desc.replace(/\s*\(\d+\/\d+\)$/,'').trim();
-            const currParc=parseInt((item.parc||'1/1').split('/')[0]);
-            D.cp.filter(c=>c.tipo==='Parcelado'&&c.card===item.card&&c.desc.replace(/\s*\(\d+\/\d+\)$/,'').trim()===baseDesc).forEach(c=>{
-                const p=parseInt((c.parc||'1/1').split('/')[0]);
-                if(p>=currParc){if(val&&val>0)c.v=val;if(cat&&cat!=='__nova__')c.cat=cat;c.sub=(sub==='__nova_sub__'||!sub)?'':sub;}
-            });
-        }
-        // Recorrente cartão: mesmo desc base
-        else if(editingType==='cp'&&item.tipo==='Recorrente'){
-            const baseDesc=item.desc.replace(/\s*♻️\s*$/,'').trim();
-            D.cp.filter(c=>c.tipo==='Recorrente'&&c.card===item.card&&c.desc.replace(/\s*♻️\s*$/,'').trim()===baseDesc&&(c.y>item.y||(c.y===item.y&&c.m>=item.m))).forEach(c=>{
-                if(val&&val>0)c.v=val;if(cat&&cat!=='__nova__')c.cat=cat;c.sub=(sub==='__nova_sub__'||!sub)?'':sub;
-            });
-        }
-    }
-
-    save();closeEditModal();closeEditScopeModal();rExt();rCard();
-    toast(scope==='forward'?'✅ Este e os próximos atualizados!':'✅ Lançamento atualizado!');
-}
-
-function closeEditScopeModal(){$('editScopeModal').classList.remove('show')}
 
 function closeEditModal(){$('editModal').classList.remove('show')}
 
