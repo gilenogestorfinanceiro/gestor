@@ -232,3 +232,47 @@ D.ag.filter(e=>!e.done && e.date>=todayStr && e.date!==agSelectedDay)
 ### Bug 2 (conta errada no extrato)
 O tx agendado aparece na conta correta conforme `D.ca[card]` — configuração do usuário.
 Se aparecer na conta "errada", verificar em Configurações → Cartões qual conta está configurada para cada cartão.
+
+---
+
+## v2.9.20 — Limpeza nuclear v2 + trim() para encodings
+
+### Problema confirmado
+Existem DE FATO dois eventos no D.ag para o mesmo cartão/mês:
+- Evento legado (R$1.423,83): criado por versão anterior, sem `isFaturaEvent`, possivelmente com título com espaço ou encoding diferente
+- Evento novo (R$3.050,67): criado pela sincronização atual, com `isFaturaEvent:true` e banco correto
+
+### Melhorias na limpeza:
+1. **Set de títulos exatos** dos cartões cadastrados (`'Fatura ' + card`) para match preciso
+2. **`.trim()`** no título antes de comparar — pega títulos com espaços extras no início/fim
+3. Mesmo fix aplicado ao botão "🧹 Limpar Faturas Legadas" no painel admin
+
+### Se ainda persistir após v2.9.20:
+Rodar no console para ver o título EXATO do evento legado:
+```js
+D.ag.filter(e=>e.title&&e.title.includes('Sicredi')).forEach((e,i)=>
+  console.log(i, JSON.stringify([...e.title].map(c=>c.charCodeAt(0))), e.title, e.id))
+```
+Isso mostra os char codes do título — se houver encoding diferente ficará visível.
+
+---
+
+## v2.9.21 — CAUSA RAIZ DEFINITIVA dos legados
+
+### Descoberto via console
+Os eventos legados têm IDs com prefixo **`venc_`** (ex: `venc_Sicredi_Mossoró_2_2026`).
+Foram criados por uma versão muito antiga do app com formato de ID completamente diferente.
+Como `isFaturaEvent` é undefined nesses eventos, escapavam de todos os filtros anteriores.
+O título provavelmente também é diferente de "Fatura X", por isso `startsWith` também falhava.
+
+### Fix definitivo
+Adicionado filtro por prefixo de ID:
+```js
+if(e.id && e.id.startsWith('venc_')) return false; // legados venc_*
+if(e.id && e.id.startsWith('agfat_')) return false; // novos agfat_* não-pagos
+```
+Isso garante remoção de qualquer evento de fatura independente de título ou flag.
+
+### Padrões de ID históricos identificados:
+- `venc_NomeCartao_mes_ano` — formato muito antigo (pré-isFaturaEvent)
+- `agfat_NomeCartao_mes_ano` — formato atual

@@ -878,7 +878,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.19
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.21
 </div>
 
 <!-- BOTTOM NAV -->
@@ -2848,10 +2848,13 @@ async function limparFaturasLegadas(){
     if(!D.ag)D.ag=[];
     if(!D.tx)D.tx=[];
     const agAntes=D.ag.length, txAntes=D.tx.length;
+    const _tit=new Set();getCartoes().forEach(c=>_tit.add('Fatura '+c));
     D.ag=D.ag.filter(e=>{
         if(e.done)return true;
         if(e.isFaturaEvent)return false;
-        if(e.title&&e.title.startsWith('Fatura '))return false;
+        if(e.id&&(e.id.startsWith('venc_')||e.id.startsWith('agfat_')))return false;
+        if(e.title&&_tit.has(e.title.trim()))return false;
+        if(e.title&&e.title.trim().startsWith('Fatura '))return false;
         return true;
     });
     D.tx=D.tx.filter(t=>{
@@ -3505,12 +3508,20 @@ function sincronizarFaturasEmAberto(){
         {m:(cMonth+1)%12,y:cMonth===11?cYear+1:cYear}
     ];
 
-    // === LIMPEZA NUCLEAR — remove QUALQUER rastro de fatura não-paga ===
+    // === LIMPEZA NUCLEAR — remove QUALQUER evento/tx de fatura não-paga ===
+    // Constrói lista de títulos possíveis para todos os cartões (qualquer variação)
+    const _titulosFatura=new Set();
+    getCartoes().forEach(c=>{ _titulosFatura.add('Fatura '+c); });
+
     const _agAntes=D.ag.length, _txAntes=D.tx.length;
+
     D.ag=D.ag.filter(e=>{
-        if(e.done) return true;
-        if(e.isFaturaEvent) return false;
-        if(e.title && e.title.startsWith('Fatura ')) return false;
+        if(e.done) return true; // preserva pagos/confirmados
+        if(e.isFaturaEvent) return false; // flag nova
+        if(e.id && e.id.startsWith('venc_')) return false; // legados formato antigo (venc_*)
+        if(e.id && e.id.startsWith('agfat_')) return false; // formato novo não-pago
+        if(e.title && _titulosFatura.has(e.title.trim())) return false; // título exato
+        if(e.title && e.title.trim().startsWith('Fatura ')) return false; // qualquer "Fatura X"
         return true;
     });
 
