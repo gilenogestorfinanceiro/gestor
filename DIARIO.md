@@ -446,3 +446,25 @@ Se o usuário trocava o cartão ou a data depois, os meses não eram recalculado
 - Validação de fatura paga: só bloqueia se `cpList.length>0 && every(paga)` — compras em aberto permitem juntar ✅
 
 ### Versão atual: v2.9.27
+
+---
+
+## v2.9.28 — Fix: extrato da conta mostrando valor errado da fatura após novo lançamento
+
+### Problema raiz
+Quando uma nova compra era lançada no cartão (por qualquer das 3 formas), o tx agendado
+no extrato da conta ("Fatura C6 Bank") **não era atualizado** com o novo total.
+
+Isso porque `sincronizarFaturasEmAberto()` — que recalcula o total e recria o tx agendado —
+só era chamada em `loadFromCloud`, `payFatura` e `reopenFatura`. Não era chamada ao salvar
+um novo lançamento de cartão.
+
+### Fix
+- **`saveAgenda()`**: adicionado `sincronizarFaturasEmAberto()` antes do `save()` quando `agDestino==='cartao'`
+- **`saveTx()`** (botão + / Nova Compra): adicionado `sincronizarFaturasEmAberto()` antes do `save()` no bloco de cartão
+
+### Resultado
+As 3 formas de lançamento agora recalculam o total da fatura imediatamente:
+- Novo lançamento → D.cp atualizado → sincronizar recalcula total → tx agendado no extrato reflete valor correto
+
+### Versão atual: v2.9.28
