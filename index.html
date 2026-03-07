@@ -875,7 +875,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.13
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.14
 </div>
 
 <!-- BOTTOM NAV -->
@@ -2624,12 +2624,12 @@ function confirmPayFatura(){
         const cp=D.cp.find(x=>x.id===c.id);
         if(cp){cp.st='paga';cp.paidDt=data;cp.paidConta=conta}
     });
-    // Remover tx agendado de fatura (será substituído pelo tx real abaixo)
+    // Remover tx agendado de fatura (substituído pelo tx real abaixo)
     const fatTxId='agfat_tx_'+card.replace(/\s+/g,'_')+'_'+cMonth+'_'+cYear;
     D.tx=D.tx.filter(t=>t.id!==fatTxId);
     // Marcar evento da agenda como done
     const agFatId='agfat_'+card.replace(/\s+/g,'_')+'_'+cMonth+'_'+cYear;
-    const agEv=D.ag.find(e=>e.id===agFatId);
+    const agEv=(D.ag||[]).find(e=>e.id===agFatId);
     if(agEv){agEv.done=true;}
     
     // Create transaction in bank account (flagged to avoid category duplication)
@@ -3442,80 +3442,71 @@ function openAgendaAdd(dateStr){
 
 function sincronizarFaturasEmAberto(){
     if(!D.ag) D.ag=[];
-    // Remover eventos de fatura antigos que não têm isFaturaEvent (criados pela versão anterior)
-    D.ag=D.ag.filter(e=>{
-        if(!e.isFaturaEvent && e.title && e.title.startsWith('Fatura ') && e.notes && e.notes.includes('Vencimento da fatura'))
-            return false; // remove evento legado
-        return true;
-    });
+    if(!D.tx) D.tx=[];
     const cartoes=getCartoes();
     const vencs=getVencs();
-    const hoje=new Date();
-    // Verifica mês atual e próximo
     const meses=[
         {m:cMonth,y:cYear},
         {m:(cMonth+1)%12,y:cMonth===11?cYear+1:cYear}
     ];
+
+    // Remover TODOS os eventos de fatura existentes (legados e novos) para recriar limpos
+    // Mantém apenas os que estão done=true (já pagos via agenda)
+    const agIdsGerados=[];
+    meses.forEach(({m,y})=>{
+        cartoes.forEach(card=>{
+            agIdsGerados.push(`agfat_${card.replace(/\s+/g,'_')}_${m}_${y}`);
+        });
+    });
+
+    // Remover eventos de fatura NÃO pagos (done=false) para recriar com valores corretos
+    D.ag=D.ag.filter(e=>{
+        if(agIdsGerados.includes(e.id) && !e.done) return false;
+        // Remover também eventos legados sem isFaturaEvent
+        if(!e.isFaturaEvent && e.title && e.title.startsWith('Fatura ') && e.notes && e.notes.includes('Vencimento da fatura') && !e.done) return false;
+        return true;
+    });
+
+    // Remover tx agendados de fatura não pagos para recriar
+    D.tx=D.tx.filter(t=>!(t.faturaAgendada && !t.pgtoFaturaConfirmado));
+
     meses.forEach(({m,y})=>{
         cartoes.forEach((card,i)=>{
             const cpList=(D.cp||[]).filter(c=>c.card===card&&c.m===m&&c.y===y);
-            if(!cpList.length) return; // sem compras, não cria evento
+            if(!cpList.length) return;
             const allPaid=cpList.every(c=>c.st==='paga');
-            if(allPaid) return; // fatura já paga, não precisa de lembrete
+            if(allPaid) return;
             const vencDia=vencs[i]||10;
             const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(vencDia).padStart(2,'0')}`;
             const total=cpList.reduce((s,c)=>s+c.v,0);
             const title=`Fatura ${card}`;
             const agId=`agfat_${card.replace(/\s+/g,'_')}_${m}_${y}`;
-            // Verificar se já existe
-            const existIdx=D.ag.findIndex(e=>e.id===agId);
-            const ev={
-                id:agId,
-                title,
-                date:dateStr,
-                time:'08:00',
-                type:'pagamento',
-                valor:total,
-                destino:'conta',
-                banco:D.ca[card]||'',
-                cartao:card,
-                cat:'Cartão Crédito',
-                sub:card,
-                color:'#cc2222',
-                repeat:'none',
+            const txId=`agfat_tx_${card.replace(/\s+/g,'_')}_${m}_${y}`;
+            const banco=D.ca[card]||getBancos()[0]||'';
+
+            // Criar tx agendado no extrato
+            D.tx.push({
+                id:txId,dt:dateStr,m,y,
+                desc:title,v:total,
+                tp:'Despesa',banco,
+                cat:'Cartão Crédito',sub:card,
+                st:'agendado',
+                pgtoFatura:true,pgtoCard:card,
+                faturaAgendada:true
+            });
+
+            // Criar evento na agenda
+            D.ag.push({
+                id:agId,title,date:dateStr,
+                time:'08:00',type:'pagamento',
+                valor:total,destino:'conta',
+                banco,cartao:card,
+                cat:'Cartão Crédito',sub:card,
+                color:'#cc2222',repeat:'none',
                 notes:`Vencimento da fatura de ${card} — ${MN[m]}/${y}`,
-                done:false,
-                txId:null,
+                done:false,txId,
                 isFaturaEvent:true
-            };
-            if(existIdx>=0){
-                // Atualiza valor e data (mantém done e txId)
-                ev.done=D.ag[existIdx].done;
-                ev.txId=D.ag[existIdx].txId;
-                // Atualizar tx agendado correspondente se existir
-                if(ev.txId){
-                    const txIdx=D.tx.findIndex(t=>t.id===ev.txId);
-                    if(txIdx>=0){D.tx[txIdx].v=total;D.tx[txIdx].dt=dateStr;}
-                }
-                D.ag[existIdx]=ev;
-            } else {
-                // Criar tx agendado no extrato da conta
-                const txId='agfat_tx_'+card.replace(/\s+/g,'_')+'_'+m+'_'+y;
-                const banco=D.ca[card]||getBancos()[0]||'';
-                // Remover tx anterior se existir (evitar duplicata)
-                D.tx=D.tx.filter(t=>t.id!==txId);
-                D.tx.push({
-                    id:txId,dt:dateStr,m,y,
-                    desc:title,v:total,
-                    tp:'Despesa',banco,
-                    cat:'Cartão Crédito',sub:card,
-                    st:'agendado',
-                    pgtoFatura:true,pgtoCard:card,
-                    faturaAgendada:true
-                });
-                ev.txId=txId;
-                D.ag.push(ev);
-            }
+            });
         });
     });
 }
