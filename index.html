@@ -1421,7 +1421,9 @@ function refresh(){
 }
 
 function rDash(){
-    if(D.userName) $('appUserHeader').textContent='👤 '+D.userName;
+    const verM=document.body.innerHTML.match(/·\s*v([\d.]+)/);
+    const appVer=verM?'v'+verM[1]:'';
+    if(D.userName) $('appUserHeader').innerHTML='👤 '+D.userName+(appVer?` <span style="font-size:10px;color:var(--text3);margin-left:6px">${appVer}</span>`:'');
     const r=mRec(cMonth,cYear),d=mDesp(cMonth,cYear),res=r-d,ct=mCardT(cMonth,cYear);
     const txM=mTx(cMonth,cYear);
     const rEf=txM.filter(t=>t.tp==='Receita'&&(t.st==='efetivado'||!t.st)).reduce((s,t)=>s+t.v,0);
