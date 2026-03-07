@@ -875,7 +875,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.11
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.12
 </div>
 
 <!-- BOTTOM NAV -->
@@ -1181,9 +1181,7 @@ auth.onAuthStateChanged(async function(user){
         if(isAdmin&&document.getElementById('cfgBrapiCard'))document.getElementById('cfgBrapiCard').style.display='block';
         document.getElementById('loginScreen').style.display='none';
         document.getElementById('appContainer').style.display='flex';
-        const _verMH=document.body.innerHTML.match(/·\s*v([\d.]+)/);
-        const _appVerH=_verMH?'v'+_verMH[1]:'';
-        document.getElementById('headerUser').innerHTML='👤 '+currentUser+(_appVerH?' <span style="font-size:10px;color:var(--text3)">'+_appVerH+'</span>':'');
+        document.getElementById('headerUser').textContent='👤 '+currentUser;
         await loadFromCloud();
         applyTheme();
         if(!D.userName){D.userName=currentUser;save()}
@@ -1219,6 +1217,7 @@ async function loadFromCloud(){
         const doc=await db.collection('users').doc(currentUid).get();
         if(doc.exists){
             D=migrateData(doc.data().data||{});
+            sincronizarFaturasEmAberto();
         } else {
             D=migrateData({tx:[],cp:[],bs:{...DSALDOS},ca:{...DCARDS},catsD:[...CATS_D_DEFAULT],catsR:[...CATS_R_DEFAULT],subCats:{...SUBCATS_DEFAULT},bancos:[...BANCOS_DEFAULT],cartoes:[...CARTOES_DEFAULT],vencs:[...VENCS_DEFAULT]});
         }
@@ -2641,7 +2640,7 @@ function confirmPayFatura(){
         pgtoCard:card
     });
     
-    save();closePayModal();rCard();
+    sincronizarFaturasEmAberto();save();closePayModal();rCard();
     toast('✅ Fatura do '+card+' paga! '+fmt(total)+' debitado de '+conta);
 }
 
@@ -2660,7 +2659,7 @@ function reopenFatura(card){
     // Remove the payment transaction from bank account
     D.tx=D.tx.filter(t=>!(t.pgtoFatura&&t.pgtoCard===card&&t.m===cMonth&&t.y===cYear));
     
-    save();rCard();
+    sincronizarFaturasEmAberto();save();rCard();
     toast('🔓 Fatura do '+card+' reaberta!');
 }
 
@@ -3432,9 +3431,68 @@ function openAgendaAdd(dateStr){
     }catch(err){console.error('Agenda error:',err);alert('Erro: '+err.message)}
 }
 
+function sincronizarFaturasEmAberto(){
+    if(!D.ag) D.ag=[];
+    const cartoes=getCartoes();
+    const vencs=getVencs();
+    const hoje=new Date();
+    // Verifica mês atual e próximo
+    const meses=[
+        {m:cMonth,y:cYear},
+        {m:(cMonth+1)%12,y:cMonth===11?cYear+1:cYear}
+    ];
+    meses.forEach(({m,y})=>{
+        cartoes.forEach((card,i)=>{
+            const cpList=(D.cp||[]).filter(c=>c.card===card&&c.m===m&&c.y===y);
+            if(!cpList.length) return; // sem compras, não cria evento
+            const allPaid=cpList.every(c=>c.st==='paga');
+            if(allPaid) return; // fatura já paga, não precisa de lembrete
+            const vencDia=vencs[i]||10;
+            const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(vencDia).padStart(2,'0')}`;
+            const total=cpList.reduce((s,c)=>s+c.v,0);
+            const title=`Fatura ${card}`;
+            const agId=`agfat_${card.replace(/\s+/g,'_')}_${m}_${y}`;
+            // Verificar se já existe
+            const existIdx=D.ag.findIndex(e=>e.id===agId);
+            const ev={
+                id:agId,
+                title,
+                date:dateStr,
+                time:'08:00',
+                type:'pagamento',
+                valor:total,
+                destino:'conta',
+                banco:D.ca[card]||'',
+                cartao:card,
+                cat:'Cartão Crédito',
+                sub:card,
+                color:'#cc2222',
+                repeat:'none',
+                notes:`Vencimento da fatura de ${card} — ${MN[m]}/${y}`,
+                done:false,
+                txId:null,
+                isFaturaEvent:true
+            };
+            if(existIdx>=0){
+                // Atualiza valor e data (mantém done e txId)
+                ev.done=D.ag[existIdx].done;
+                ev.txId=D.ag[existIdx].txId;
+                D.ag[existIdx]=ev;
+            } else {
+                D.ag.push(ev);
+            }
+        });
+    });
+}
+
 function openAgendaEdit(id){
     const ev=(D.ag||[]).find(e=>e.id===id);
     if(!ev)return;
+    // Evento de fatura de cartão — abre modal de pagamento
+    if(ev.isFaturaEvent && ev.cartao){
+        payFatura(ev.cartao);
+        return;
+    }
     agEditId=id;
     openAgendaAdd(ev.date);
     $('agTitle').value=ev.title||'';
