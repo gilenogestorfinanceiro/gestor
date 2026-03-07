@@ -385,3 +385,16 @@ Esta feature foi implementada, perdida após recuperação via `curl` do GitHub,
 
 Se qualquer um desses pontos estiver faltando após uma recuperação, reimplementar antes de qualquer outra coisa.
 
+
+---
+
+## v2.9.24 — Fix: bug "Março ✅ Paga" quando não havia compras
+
+### Problema
+`Array.every()` em JavaScript retorna `true` para arrays vazios. Quando o mês não tinha nenhuma compra no cartão, `cpList.length === 0` mas `cpList.every(c=>c.st==='paga')` retornava `true`, fazendo o mês aparecer como "✅ Paga" e disabled erroneamente.
+
+### Fix
+- Condição corrigida: `cpList.length > 0 && cpList.every(...)` — explícito já estava, mas o select ao tentar pré-selecionar um mês `disabled` (ex: Fevereiro pago), o browser saltava para o próximo — que também aparecia "pago" pelo bug acima.
+- Seleção automática agora busca o **primeiro mês não pago** disponível em vez de forçar o mês da data do evento.
+
+### Versão atual: v2.9.24

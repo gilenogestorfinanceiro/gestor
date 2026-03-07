@@ -878,7 +878,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.23
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.24
 </div>
 
 <!-- BOTTOM NAV -->
@@ -3435,12 +3435,17 @@ function setAgDestino(d,el){
             // Verificar se fatura já paga para o cartão selecionado
             const card=$('agCartao').value;
             const cpList=(D.cp||[]).filter(c=>c.card===card&&c.m===o.m&&c.y===o.y);
+            // ATENÇÃO: every() em array vazio retorna true — checar length>0 obrigatório
             const allPaid=cpList.length>0&&cpList.every(c=>c.st==='paga');
             const paidLabel=allPaid?' ✅ Paga':'';
             return`<option value="${o.m}_${o.y}"${allPaid?' disabled':''}>${lbl}${paidLabel}</option>`;
         }).join('');
-        // Seleciona o mês mais provável (atual por padrão)
-        _fatSel.value=`${_agM}_${_agY}`;
+        // Seleciona o primeiro mês NÃO pago e com compras, ou o atual se nenhum disponível
+        const _firstAvail=_mOpts.find(o=>{
+            const cpList=(D.cp||[]).filter(c=>c.card===$('agCartao').value&&c.m===o.m&&c.y===o.y);
+            return !(cpList.length>0&&cpList.every(c=>c.st==='paga'));
+        });
+        _fatSel.value=_firstAvail?`${_firstAvail.m}_${_firstAvail.y}`:`${_agM}_${_agY}`;
     }
 }
 function setAgColor(color,el){
