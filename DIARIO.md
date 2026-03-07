@@ -186,3 +186,49 @@ async function saveImmediate(){
 ### Verificar no console do browser após deploy:
 - Deve aparecer `[Sync] ag: 4→0 | tx: X→0` (removeu os 4 legados)
 - Em seguida recria 2 (um por mês) para cada cartão com fatura aberta
+
+---
+
+## v2.9.18 — Diagnóstico + Limpeza Manual Forçada
+
+Após 3 tentativas de fix automático falharem, adicionado ferramental de diagnóstico.
+
+### Novo na Zona de Perigo (Configurações):
+- **🔍 Diagnóstico Faturas Agenda** — exibe na tela todos os eventos e tx de fatura com seus IDs, títulos e flags exatos. Também loga no console como `[DIAG]`.
+- **🧹 Limpar Faturas Legadas (FORÇA)** — limpeza manual com `saveImmediate()` duplo, recriação e refresh.
+
+### Para usar:
+1. Sobe v2.9.18
+2. Vai em Configurações → Zona de Perigo
+3. Clica "🔍 Diagnóstico Faturas Agenda"
+4. Me manda o resultado (ou screenshot) — assim saberemos exatamente os IDs e flags dos legados
+5. Clica "🧹 Limpar Faturas Legadas (FORÇA)" para limpar manualmente de vez
+
+---
+
+## v2.9.19 — CAUSA RAIZ REAL das "duplicatas" encontrada via diagnóstico
+
+### O que o diagnóstico revelou
+Não havia duplicatas no banco de dados! Os dados estavam corretos:
+- AG[0..6]: 7 eventos únicos, cada um para um cartão/mês diferente
+- TX[6..12]: 7 tx agendados correspondentes (corretos)
+- TX[0..5]: pagamentos já efetivados de faturas anteriores (st:'efetivado') — normais
+
+### Causa real da duplicata VISUAL
+A agenda tem duas seções:
+1. **Dia selecionado** — mostra eventos do `agSelectedDay`
+2. **Próximos Compromissos** — mostra `e.date >= todayStr`
+
+Quando o dia selecionado é hoje ou futuro, o mesmo evento aparecia nas **duas seções**. Por isso apareciam 4 cards de "Fatura Sicredi Mossoró": 2 no "dia selecionado" (meses 2 e 3) e os mesmos 2 em "Próximos Compromissos".
+
+### Fix (1 linha)
+```js
+// Antes:
+D.ag.filter(e=>!e.done && e.date>=todayStr)
+// Depois:
+D.ag.filter(e=>!e.done && e.date>=todayStr && e.date!==agSelectedDay)
+```
+
+### Bug 2 (conta errada no extrato)
+O tx agendado aparece na conta correta conforme `D.ca[card]` — configuração do usuário.
+Se aparecer na conta "errada", verificar em Configurações → Cartões qual conta está configurada para cada cartão.

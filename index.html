@@ -682,6 +682,9 @@ Entrar com Google
 <div class="card">
 <div class="card-title"><div class="dot" style="background:var(--red)"></div>Zona de Perigo</div>
 <button class="btn btn-red btn-sm" onclick="if(confirm('⚠️ Apagar TODOS os dados? Não pode ser desfeito!')) clearAll()">🗑️ Limpar Todos os Dados</button>
+<button class="btn btn-outline btn-sm" style="margin-top:6px" onclick="diagFaturas()">🔍 Diagnóstico Faturas Agenda</button>
+<pre id="diagOut" style="font-size:10px;color:var(--text3);margin-top:8px;white-space:pre-wrap;max-height:300px;overflow-y:auto;display:none"></pre>
+<button class="btn btn-outline btn-sm" style="margin-top:6px;background:rgba(239,68,68,0.1);color:var(--red);border-color:rgba(239,68,68,0.3)" onclick="limparFaturasLegadas()">🧹 Limpar Faturas Legadas (FORÇA)</button>
 </div>
 <div class="card">
 <div class="card-title"><div class="dot" style="background:var(--text3)"></div>Legal</div>
@@ -875,7 +878,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.17
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.19
 </div>
 
 <!-- BOTTOM NAV -->
@@ -2823,6 +2826,48 @@ function importJSON(e){
 }
 function clearAll(){D={tx:[],cp:[],bs:{...DSALDOS},ca:{...DCARDS},catsD:[...CATS_D_DEFAULT],catsR:[...CATS_R_DEFAULT],subCats:{...SUBCATS_DEFAULT},bancos:[...BANCOS_DEFAULT],cartoes:[...CARTOES_DEFAULT],vencs:[...VENCS_DEFAULT],_migrated:true};save();refresh();toast('🗑️ Dados limpos')}
 
+function diagFaturas(){
+    const el=document.getElementById('diagOut');
+    el.style.display='block';
+    const fatAg=(D.ag||[]).filter(e=>e.isFaturaEvent||(e.title&&e.title.startsWith('Fatura ')));
+    const fatTx=(D.tx||[]).filter(t=>t.pgtoFatura||t.faturaAgendada);
+    let out='=== D.ag com "Fatura" ('+fatAg.length+') ===\n';
+    fatAg.forEach((e,i)=>{
+        out+=`[${i}] id=${e.id}\n     title="${e.title}"\n     isFaturaEvent=${e.isFaturaEvent}\n     done=${e.done}\n     valor=${e.valor}\n     banco=${e.banco}\n\n`;
+    });
+    out+='=== D.tx faturas agendadas ('+fatTx.length+') ===\n';
+    fatTx.forEach((t,i)=>{
+        out+=`[${i}] id=${t.id}\n     desc="${t.desc}"\n     banco=${t.banco}\n     st=${t.st}\n     pgtoFatura=${t.pgtoFatura}\n     faturaAgendada=${t.faturaAgendada}\n\n`;
+    });
+    el.textContent=out;
+    console.log('[DIAG]',{fatAg,fatTx});
+}
+
+async function limparFaturasLegadas(){
+    if(!confirm('Limpar TODAS as faturas não-pagas da agenda e extrato?'))return;
+    if(!D.ag)D.ag=[];
+    if(!D.tx)D.tx=[];
+    const agAntes=D.ag.length, txAntes=D.tx.length;
+    D.ag=D.ag.filter(e=>{
+        if(e.done)return true;
+        if(e.isFaturaEvent)return false;
+        if(e.title&&e.title.startsWith('Fatura '))return false;
+        return true;
+    });
+    D.tx=D.tx.filter(t=>{
+        if(t.pgtoFatura&&t.st==='agendado')return false;
+        if(t.faturaAgendada)return false;
+        return true;
+    });
+    await saveImmediate();
+    toast('🧹 Removidos: '+(agAntes-D.ag.length)+' eventos, '+(txAntes-D.tx.length)+' tx');
+    sincronizarFaturasEmAberto();
+    await saveImmediate();
+    refresh();
+    toast('✅ Faturas ressincronizadas!');
+    diagFaturas();
+}
+
 // -- Suggestions --
 function rSug(){
     const sugs=D.sugs||[];
@@ -3700,7 +3745,8 @@ function rAgenda(){
     }
     
     // === UPCOMING (next 30 days, not done) ===
-    const upcoming=D.ag.filter(e=>!e.done&&e.date>=todayStr).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||'')).slice(0,15);
+    // Exclui eventos do dia selecionado (já mostrados acima) para evitar duplicatas visuais
+    const upcoming=D.ag.filter(e=>!e.done&&e.date>=todayStr&&e.date!==agSelectedDay).sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||'')).slice(0,15);
     if(upcoming.length){
         $('agendaEmpty').style.display='none';
         $('agendaUpcoming').innerHTML=upcoming.map(e=>renderAgEvent(e)).join('');
