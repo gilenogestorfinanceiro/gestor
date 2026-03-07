@@ -875,7 +875,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.15
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.16
 </div>
 
 <!-- BOTTOM NAV -->
@@ -1220,6 +1220,7 @@ async function loadFromCloud(){
         if(doc.exists){
             D=migrateData(doc.data().data||{});
             sincronizarFaturasEmAberto();
+            save(); // persistir limpeza de legados no Firestore
         } else {
             D=migrateData({tx:[],cp:[],bs:{...DSALDOS},ca:{...DCARDS},catsD:[...CATS_D_DEFAULT],catsR:[...CATS_R_DEFAULT],subCats:{...SUBCATS_DEFAULT},bancos:[...BANCOS_DEFAULT],cartoes:[...CARTOES_DEFAULT],vencs:[...VENCS_DEFAULT]});
         }
@@ -3450,36 +3451,24 @@ function sincronizarFaturasEmAberto(){
         {m:(cMonth+1)%12,y:cMonth===11?cYear+1:cYear}
     ];
 
-    // Remover TODOS os eventos de fatura existentes (legados e novos) para recriar limpos
-    // Mantém apenas os que estão done=true (já pagos via agenda)
-    const agIdsGerados=[];
-    meses.forEach(({m,y})=>{
-        cartoes.forEach(card=>{
-            agIdsGerados.push(`agfat_${card.replace(/\s+/g,'_')}_${m}_${y}`);
-        });
-    });
-
-    // Coletar títulos de faturas que serão recriadas (para remover QUALQUER evento com mesmo título)
-    const fatTitulos=[];
-    meses.forEach(({m,y})=>{ cartoes.forEach(card=>{ fatTitulos.push(`Fatura ${card}`); }); });
-
-    // Remover TODOS os eventos de fatura não pagos — por ID OU por título de fatura
-    // Isso garante remoção de legados com IDs em formatos antigos (com espaço, sem _, etc)
+    // === LIMPEZA NUCLEAR — remove QUALQUER rastro de fatura não-paga ===
+    // Critério intencional amplo: título começa com "Fatura " OU tem isFaturaEvent
+    // Não depende de ID exato nem título exato — previne qualquer legado
     D.ag=D.ag.filter(e=>{
-        if(e.done) return true; // preserva pagos
-        if(agIdsGerados.includes(e.id)) return false; // remove por ID exato
-        if(fatTitulos.includes(e.title)) return false; // remove legados com mesmo título
+        if(e.done) return true; // preserva apenas os confirmados/pagos
+        if(e.isFaturaEvent) return false; // remove qualquer evento marcado como fatura
+        if(e.title && e.title.startsWith('Fatura ')) return false; // remove legados sem a flag
         return true;
     });
 
-    // Remover tx agendados de fatura não pagos para recriar
-    // Remove tanto os novos (faturaAgendada) quanto legados (pgtoFatura+agendado sem confirmação)
+    // Remove QUALQUER tx de fatura não-paga — por faturaAgendada OU por pgtoFatura+agendado
     D.tx=D.tx.filter(t=>{
-        if(t.faturaAgendada && !t.pgtoFaturaConfirmado) return false;
-        if(t.pgtoFatura && t.st==='agendado' && !t.pgtoFaturaConfirmado) return false;
+        if(t.pgtoFatura && t.st==='agendado') return false;
+        if(t.faturaAgendada) return false;
         return true;
     });
 
+    // === RECRIAÇÃO com dados frescos ===
     meses.forEach(({m,y})=>{
         cartoes.forEach((card,i)=>{
             const cpList=(D.cp||[]).filter(c=>c.card===card&&c.m===m&&c.y===y);
@@ -3492,10 +3481,9 @@ function sincronizarFaturasEmAberto(){
             const title=`Fatura ${card}`;
             const agId=`agfat_${card.replace(/\s+/g,'_')}_${m}_${y}`;
             const txId=`agfat_tx_${card.replace(/\s+/g,'_')}_${m}_${y}`;
-            const banco=D.ca[card]||getBancos()[0]||'';
-
-            // Criar tx agendado no extrato (banco = conta que paga o cartão, via D.ca)
             const bancoFatura=D.ca[card]||getBancos()[0]||'';
+
+            // Tx agendado no extrato (aparece na conta que paga o cartão)
             D.tx.push({
                 id:txId,dt:dateStr,m,y,
                 desc:title,v:total,
@@ -3506,7 +3494,7 @@ function sincronizarFaturasEmAberto(){
                 faturaAgendada:true
             });
 
-            // Criar evento na agenda
+            // Evento na agenda
             D.ag.push({
                 id:agId,title,date:dateStr,
                 time:'08:00',type:'pagamento',

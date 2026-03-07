@@ -125,3 +125,35 @@ if (window.location.pathname.indexOf('/__/') === 0) {
 - `sincronizarFaturasEmAberto()` remove TODOS eventos fatura não-pagos (por ID E por título)
 - Remove TODOS tx agendados de fatura não-confirmados (por faturaAgendada E por pgtoFatura+agendado)
 - Recria com `bancoFatura = D.ca[card]` — sempre a conta correta configurada pelo usuário
+
+---
+
+## v2.9.16 — FIX DEFINITIVO: legados persistidos no Firestore
+
+### Causa raiz real descoberta
+A função `sincronizarFaturasEmAberto()` rodava no `loadFromCloud()` mas **sem `save()` depois**.
+Resultado: a limpeza acontecia apenas em memória. Na próxima carga, o Firestore devolvia os dados legados intactos. O problema se repetia infinitamente.
+
+### Correção 1 — save() no loadFromCloud
+```js
+D=migrateData(doc.data().data||{});
+sincronizarFaturasEmAberto();
+save(); // ← ADICIONADO — persiste limpeza no Firestore
+```
+
+### Correção 2 — Limpeza nuclear na sincronização
+Critérios anteriores dependiam de ID exato ou título exato — falhavam com encodings diferentes (espaço, acento, formato legado).
+
+Nova lógica remove **qualquer** fatura não-paga por dois critérios amplos:
+- `e.isFaturaEvent === true` (flag nova)
+- `e.title.startsWith('Fatura ')` (qualquer evento com esse prefixo)
+- `t.pgtoFatura && t.st === 'agendado'` (qualquer tx de pagamento agendado)
+- `t.faturaAgendada === true` (flag nova)
+
+Isso elimina absolutamente qualquer legado independente de formato de ID ou encoding do nome.
+
+### Na primeira carga após este deploy:
+1. App carrega dados do Firestore (com legados)
+2. `sincronizarFaturasEmAberto()` faz limpeza nuclear
+3. `save()` persiste os dados limpos no Firestore
+4. Nas próximas cargas, nenhum legado sobrevive
