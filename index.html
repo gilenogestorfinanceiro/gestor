@@ -875,7 +875,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.14
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.15
 </div>
 
 <!-- BOTTOM NAV -->
@@ -3459,16 +3459,26 @@ function sincronizarFaturasEmAberto(){
         });
     });
 
-    // Remover eventos de fatura NÃO pagos (done=false) para recriar com valores corretos
+    // Coletar títulos de faturas que serão recriadas (para remover QUALQUER evento com mesmo título)
+    const fatTitulos=[];
+    meses.forEach(({m,y})=>{ cartoes.forEach(card=>{ fatTitulos.push(`Fatura ${card}`); }); });
+
+    // Remover TODOS os eventos de fatura não pagos — por ID OU por título de fatura
+    // Isso garante remoção de legados com IDs em formatos antigos (com espaço, sem _, etc)
     D.ag=D.ag.filter(e=>{
-        if(agIdsGerados.includes(e.id) && !e.done) return false;
-        // Remover também eventos legados sem isFaturaEvent
-        if(!e.isFaturaEvent && e.title && e.title.startsWith('Fatura ') && e.notes && e.notes.includes('Vencimento da fatura') && !e.done) return false;
+        if(e.done) return true; // preserva pagos
+        if(agIdsGerados.includes(e.id)) return false; // remove por ID exato
+        if(fatTitulos.includes(e.title)) return false; // remove legados com mesmo título
         return true;
     });
 
     // Remover tx agendados de fatura não pagos para recriar
-    D.tx=D.tx.filter(t=>!(t.faturaAgendada && !t.pgtoFaturaConfirmado));
+    // Remove tanto os novos (faturaAgendada) quanto legados (pgtoFatura+agendado sem confirmação)
+    D.tx=D.tx.filter(t=>{
+        if(t.faturaAgendada && !t.pgtoFaturaConfirmado) return false;
+        if(t.pgtoFatura && t.st==='agendado' && !t.pgtoFaturaConfirmado) return false;
+        return true;
+    });
 
     meses.forEach(({m,y})=>{
         cartoes.forEach((card,i)=>{
@@ -3484,11 +3494,12 @@ function sincronizarFaturasEmAberto(){
             const txId=`agfat_tx_${card.replace(/\s+/g,'_')}_${m}_${y}`;
             const banco=D.ca[card]||getBancos()[0]||'';
 
-            // Criar tx agendado no extrato
+            // Criar tx agendado no extrato (banco = conta que paga o cartão, via D.ca)
+            const bancoFatura=D.ca[card]||getBancos()[0]||'';
             D.tx.push({
                 id:txId,dt:dateStr,m,y,
                 desc:title,v:total,
-                tp:'Despesa',banco,
+                tp:'Despesa',banco:bancoFatura,
                 cat:'Cartão Crédito',sub:card,
                 st:'agendado',
                 pgtoFatura:true,pgtoCard:card,
@@ -3500,7 +3511,7 @@ function sincronizarFaturasEmAberto(){
                 id:agId,title,date:dateStr,
                 time:'08:00',type:'pagamento',
                 valor:total,destino:'conta',
-                banco,cartao:card,
+                banco:bancoFatura,cartao:card,
                 cat:'Cartão Crédito',sub:card,
                 color:'#cc2222',repeat:'none',
                 notes:`Vencimento da fatura de ${card} — ${MN[m]}/${y}`,

@@ -104,3 +104,24 @@ if (window.location.pathname.indexOf('/__/') === 0) {
 - [ ] Testar edição de recorrentes/parcelados em produção (v2.9.5)
 - [ ] Posts Instagram — POST01 Feed/Stories criados, faltam POST02 a POST06
 - [ ] Gestão Saúde — app companheiro planejado, mesma arquitetura
+
+---
+
+## v2.9.15 — Correção duplicatas agenda + conta errada no extrato
+
+**Problemas corrigidos:**
+
+### Duplicatas na agenda (Bug 1)
+- Causa raiz: eventos legados tinham IDs com formato diferente (ex: espaços no nome do cartão)  
+- Fix: filtro agora remove por **título** também (`fatTitulos.includes(e.title)`) além do ID exato
+- Isso garante remoção de qualquer versão legada do evento de fatura
+
+### Conta errada no extrato (Bug 2)  
+- Causa raiz: tx legados (versão anterior) criados com `pgtoFatura:true, st:'agendado'` mas sem `faturaAgendada:true` não eram removidos na ressincronização
+- Fix: filtro de tx ampliado para também remover `pgtoFatura && st==='agendado' && !pgtoFaturaConfirmado`
+- Também garantido que `banco` do tx e do evento agenda usa explicitamente `D.ca[card]` (conta que paga o cartão)
+
+### Resumo do fluxo correto após v2.9.15:
+- `sincronizarFaturasEmAberto()` remove TODOS eventos fatura não-pagos (por ID E por título)
+- Remove TODOS tx agendados de fatura não-confirmados (por faturaAgendada E por pgtoFatura+agendado)
+- Recria com `bancoFatura = D.ca[card]` — sempre a conta correta configurada pelo usuário
