@@ -487,3 +487,26 @@ As 3 formas de lançamento agora recalculam o total da fatura imediatamente:
 - Mantida correspondência 1:1 entre fatia do pizza e cor da categoria na lista (mesmo índice i)
 
 ### Versão atual: v2.9.29
+
+---
+
+## v2.9.30 — Fix: cores pizza + lançamentos agendados não apareciam na agenda
+
+### Problema 1: Cores do gráfico pizza dessincronizadas
+- **Causa raiz**: `drawPie` não chamava `clearRect` no início — ao trocar de mês, o canvas
+  mantinha o desenho anterior por baixo, criando sobreposição visual
+- **Fix**: adicionado `ctx.clearRect(0,0,220,220)` no início do `drawPie`, antes do `scale`
+
+### Problema 2: Lançamentos agendados pelo botão + não apareciam na agenda
+- **Causa raiz**: `saveTx` salvava `D.tx` com `st:'agendado'` mas nunca criava evento em `D.ag`.
+  A agenda só exibe eventos de `D.ag`
+- **Fix em saveTx**: ao salvar lançamento único ou recorrente com `addStatus='agendado'`,
+  cria automaticamente evento em `D.ag` com `txId` vinculado ao tx
+- **Fix em confirmarEfetivar**: ao efetivar um tx, marca o `D.ag` vinculado como `done:true`
+- **Fix em toggleTxStatus**: ao reverter para agendado, reativa o evento de agenda (`done:false`)
+
+### Fluxo completo agora:
+Botão + (agendado) → D.tx agendado + D.ag evento → Efetivar → D.tx efetivado + D.ag done:true
+Agenda → saveAgenda → D.ag evento + D.tx vinculado → Efetivar pela agenda → ambos atualizados
+
+### Versão atual: v2.9.30

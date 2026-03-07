@@ -880,7 +880,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.29
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.30
 </div>
 
 <!-- BOTTOM NAV -->
@@ -1345,9 +1345,10 @@ function drawPie(canvasId,data,colors){
     cv.width=220*dpr;cv.height=220*dpr;
     cv.style.width='220px';cv.style.height='220px';
     ctx.scale(dpr,dpr);
+    ctx.clearRect(0,0,220,220);
     const cx=110,cy=110,r=90;
     const total=data.reduce((s,d)=>s+d[1],0);
-    if(!total){ctx.clearRect(0,0,220,220);return}
+    if(!total){return}
     let startAngle=-Math.PI/2;
     data.forEach((d,i)=>{
         const slice=(d[1]/total)*Math.PI*2;
@@ -2240,12 +2241,53 @@ function saveTx(){
             const dates=recDatesCalc(startDt,unidade,intervalo,qtd);
             const recGroupId=uid();
             const freqLabel=recFreqLabel(unidade,intervalo);
+            if(!D.ag)D.ag=[];
             dates.forEach((d,r)=>{
-                D.tx.push({id:uid(),dt:d.dt,m:d.m,y:d.y,desc:desc+' ♻️',v:val,tp:addTp,banco,cat,sub:subCatClean,st:r===0?addStatus:'agendado',rec:true,recGroup:recGroupId,recDur:qtd,recIdx:r+1,recFreq:freqLabel});
+                const _rId=uid();
+                const _st=r===0?addStatus:'agendado';
+                D.tx.push({id:_rId,dt:d.dt,m:d.m,y:d.y,desc:desc+' ♻️',v:val,tp:addTp,banco,cat,sub:subCatClean,st:_st,rec:true,recGroup:recGroupId,recDur:qtd,recIdx:r+1,recFreq:freqLabel});
+                // Criar evento na agenda para cada parcela agendada
+                if(_st==='agendado'){
+                    D.ag.push({
+                        id:'ag_tx_'+_rId,
+                        title:desc+' ♻️ ('+( r+1)+'/'+qtd+')',
+                        date:d.dt,
+                        time:'08:00',
+                        type:addTp==='Receita'?'recebimento':'pagamento',
+                        valor:val,
+                        destino:'conta',
+                        banco,cat,sub:subCatClean,
+                        color:addTp==='Receita'?'#10b981':'#ef4444',
+                        repeat:'none',
+                        notes:'Lançamento recorrente agendado via botão +',
+                        done:false,
+                        txId:_rId
+                    });
+                }
             });
             toast('✅ '+addTp+' recorrente: '+freqLabel+' × '+qtd+'x');
         } else {
-            D.tx.push({id:uid(),dt:$('fDate').value,m:my.m,y:my.y,desc,v:val,tp:addTp,banco,cat,sub:subCatClean,st:addStatus});
+            const _txId=uid();
+            D.tx.push({id:_txId,dt:$('fDate').value,m:my.m,y:my.y,desc,v:val,tp:addTp,banco,cat,sub:subCatClean,st:addStatus});
+            // Se agendado, criar evento na agenda automaticamente
+            if(addStatus==='agendado'){
+                if(!D.ag)D.ag=[];
+                D.ag.push({
+                    id:'ag_tx_'+_txId,
+                    title:desc,
+                    date:$('fDate').value||new Date().toISOString().split('T')[0],
+                    time:'08:00',
+                    type:addTp==='Receita'?'recebimento':'pagamento',
+                    valor:val,
+                    destino:'conta',
+                    banco,cat,sub:subCatClean,
+                    color:addTp==='Receita'?'#10b981':'#ef4444',
+                    repeat:'none',
+                    notes:'Lançamento agendado via botão +',
+                    done:false,
+                    txId:_txId
+                });
+            }
             toast(addTp==='Receita'?'✅ Receita salva!':'✅ Despesa salva!');
         }
         save();
@@ -2300,6 +2342,11 @@ function toggleTxStatus(id){
         showEfetivarModal(id);
     } else {
         tx.st='agendado';
+        // Reativar evento de agenda vinculado
+        if(D.ag){
+            const agEv=D.ag.find(e=>e.txId===id);
+            if(agEv) agEv.done=false;
+        }
         save();rExt();
         toast('🕐 Marcado como agendado');
     }
@@ -2348,6 +2395,11 @@ function confirmarEfetivar(id){
     const novaData=document.getElementById('efetivarData').value;
     if(novaData)tx.dt=novaData;
     tx.st='efetivado';
+    // Marcar evento de agenda vinculado como done
+    if(D.ag){
+        const agEv=D.ag.find(e=>e.txId===id);
+        if(agEv){agEv.done=true;agEv.date=novaData||agEv.date;}
+    }
     save();rExt();
     cancelEfetivar();
     const isR=tx.tp==='Receita';
