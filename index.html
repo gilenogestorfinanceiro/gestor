@@ -878,7 +878,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.25
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.27
 </div>
 
 <!-- BOTTOM NAV -->
@@ -3415,8 +3415,7 @@ function setAgType(t,el){
 }
 function setAgDestino(d,el){
     agDestino=d;
-    document.querySelectorAll('#agDestinoTabs .toggle-tab').forEach(b=>b.classList.remove('active'));
-    if(el)el.classList.add('active');
+    if(el){document.querySelectorAll('#agDestinoTabs .toggle-tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
     $('agContaField').style.display=(d==='conta')?'block':'none';
     $('agCartaoField').style.display=(d==='cartao')?'block':'none';
     if(d==='cartao'){
@@ -3667,6 +3666,19 @@ function saveAgenda(){
     if(!title){toast('Preencha o título');return}
     const date=$('agDate').value;
     if(!date){toast('Preencha a data');return}
+    // Validação: não permitir lançar em fatura já paga
+    if(agType!=='lembrete' && agDestino==='cartao'){
+        const _fatVal=$('agFaturaMes').value;
+        if(_fatVal){
+            const [_fm,_fy]=_fatVal.split('_').map(Number);
+            const _card=$('agCartao').value;
+            const _cpFat=(D.cp||[]).filter(c=>c.card===_card&&c.m===_fm&&c.y===_fy);
+            if(_cpFat.length>0&&_cpFat.every(c=>c.st==='paga')){
+                toast('⚠️ A fatura de '+MN[_fm]+'/'+_fy+' já está paga. Escolha outro mês.',true);
+                return;
+            }
+        }
+    }
     if(!D.ag)D.ag=[];
     const ev={
         id:agEditId||'ag_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
@@ -4039,7 +4051,7 @@ Copiar link
 <div class="form-group"><label class="form-label">Título</label><input type="text" class="form-input" id="agTitle" placeholder="Ex: Pagar conta de luz, Reunião..."></div>
 
 <div class="form-row">
-<div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input" id="agDate"></div>
+<div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input" id="agDate" onchange="if(agDestino==='cartao')setAgDestino('cartao',null)"></div>
 <div class="form-group"><label class="form-label">Hora (opcional)</label><input type="time" class="form-input" id="agTime"></div>
 </div>
 
@@ -4063,7 +4075,7 @@ Copiar link
 
 <div id="agContaField"><div class="form-group"><label class="form-label">Banco/Conta</label><select class="form-input" id="agBanco"></select></div></div>
 <div id="agCartaoField" style="display:none">
-<div class="form-group"><label class="form-label">Cartão</label><select class="form-input" id="agCartao"></select></div>
+<div class="form-group"><label class="form-label">Cartão</label><select class="form-input" id="agCartao" onchange="setAgDestino('cartao',null)"></select></div>
 <div class="form-group"><label class="form-label">Mês da fatura</label><select class="form-input" id="agFaturaMes"></select></div>
 </div>
 

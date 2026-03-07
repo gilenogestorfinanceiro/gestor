@@ -413,3 +413,36 @@ v2.9.24 selecionava o "primeiro mês não pago", que resultava em Janeiro para u
 - Se o mês calculado estiver pago, tenta o próximo disponível automaticamente.
 
 ### Versão atual: v2.9.25
+
+---
+
+## v2.9.26 — Validação no saveAgenda: bloquear lançamento em fatura paga
+
+### Correções
+1. **Março aparecia como pago sem compras**: confirmado que era cache do browser — código já estava correto com `length>0 &&` desde v2.9.25. **Solução: forçar cache-bust acessando `?v=2926`**
+
+2. **Validação no saveAgenda**: ao tentar salvar um compromisso de cartão, verifica se a fatura do mês selecionado já está paga. Se sim, exibe toast de erro e bloqueia o salvamento.
+
+### Versão atual: v2.9.26
+
+---
+
+## v2.9.27 — Fix raiz: meses da fatura não recalculavam ao trocar cartão ou data
+
+### Problema real
+O select "Mês da fatura" era populado apenas uma vez ao clicar em "Cartão".
+Se o usuário trocava o cartão ou a data depois, os meses não eram recalculados
+— mostrando status de pago/aberto do cartão anterior.
+
+### Fix
+- `#agCartao` ganhou `onchange="setAgDestino('cartao',null)"` — ao trocar cartão, recalcula os meses
+- `#agDate` ganhou `onchange` condicional — ao trocar data (quando destino=cartão), recalcula os meses
+- `setAgDestino(d, null)` — quando chamado com `el=null` (por onchange), não mexe nas tabs visuais
+
+### Sincronização das 3 formas (análise)
+- **Botão + / Nova Compra**: usa `fMonth` (select explícito) → vai direto para `D.cp` ✅
+- **Agenda**: usa `faturaMes` (calculado) → vai para `D.cp` via `launchAgendaTxPending` ✅
+- **Todas** inserem em `D.cp` com `{card, m, y, st:'aberta'}` — mesma estrutura ✅
+- Validação de fatura paga: só bloqueia se `cpList.length>0 && every(paga)` — compras em aberto permitem juntar ✅
+
+### Versão atual: v2.9.27
