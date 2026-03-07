@@ -875,7 +875,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.10
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.11
 </div>
 
 <!-- BOTTOM NAV -->
@@ -1065,17 +1065,10 @@ function fireAuthError(code){
 }
 
 async function doGoogleLogin(){
-    const provider=new firebase.auth.GoogleAuthProvider();
-    const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(/Macintosh/.test(navigator.userAgent)&&'ontouchend' in document);
-    if(isIOS){
-        // iOS Safari: usa redirect — ao voltar o onAuthStateChanged detecta o login
-        sessionStorage.setItem('pendingGoogleLogin','1');
-        try{ await auth.signInWithRedirect(provider); }
-        catch(e){ loginMsg(fireAuthError(e.code),true); }
-    } else {
-        try{ await auth.signInWithPopup(provider); }
-        catch(e){ loginMsg(fireAuthError(e.code),true); }
-    }
+    try{
+        const provider=new firebase.auth.GoogleAuthProvider();
+        await auth.signInWithPopup(provider);
+    }catch(e){loginMsg(fireAuthError(e.code),true)}
 }
 
 async function doEmailLogin(){
@@ -1180,12 +1173,6 @@ function doLogout(){
 }
 
 // Auth state listener
-// Capturar retorno do redirect iOS
-if(sessionStorage.getItem('pendingGoogleLogin')){
-    sessionStorage.removeItem('pendingGoogleLogin');
-    auth.getRedirectResult().catch(e=>{ if(e&&e.code) loginMsg(fireAuthError(e.code),true); });
-}
-
 auth.onAuthStateChanged(async function(user){
     if(user){
         currentUid=user.uid;
