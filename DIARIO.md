@@ -276,3 +276,45 @@ Isso garante remoção de qualquer evento de fatura independente de título ou f
 ### Padrões de ID históricos identificados:
 - `venc_NomeCartao_mes_ano` — formato muito antigo (pré-isFaturaEvent)
 - `agfat_NomeCartao_mes_ano` — formato atual
+
+---
+
+## STATUS ATUAL — 07/03/2026 (14h)
+
+### ✅ RESOLVIDO em v2.9.21
+- **Duplicatas na agenda** — IDs legados `venc_*` removidos definitivamente
+- **Versão no header** — aparecendo corretamente
+- **Próximos Compromissos** — não mostra mais eventos do dia selecionado
+
+### 🔍 Em teste pelo usuário
+- Extrato conta: fatura aparecendo na conta correta (verificar configuração Cartões → "Paga com...")
+
+### 📋 Pendências técnicas
+- [ ] Testar edição de recorrentes/parcelados em produção (feature v2.9.5)
+- [ ] Remover botões de diagnóstico da Zona de Perigo em versão futura (ou manter como ferramenta)
+- [ ] Posts Instagram POST02-POST06
+
+---
+
+## ONBOARDING PARA NOVA SESSÃO
+
+### Stack
+- HTML/CSS/JS puro (sem frameworks), Firebase Firestore, GitHub Pages
+- 1 arquivo: `index.html` + `sw.js` + `404.html`
+- Dados em objeto global `D`, persistido no Firestore via `save()` / `saveImmediate()`
+
+### Regras críticas
+1. **NUNCA manipular `D.bs` diretamente** — saldo calculado por `bankBal()`
+2. **Sempre usar `str_replace`** para editar — nunca Python com write completo
+3. **Toda entrega** inclui: `index.html` + `sw.js` (CACHE_VERSION atualizada) + `DIARIO.md`
+4. **`saveImmediate()`** para saves críticos (sem debounce) — `save()` tem debounce 1s que pode ser cancelado
+5. **authDomain NUNCA alterar**: `gestor-financeiro-pessoa-90a13.firebaseapp.com`
+6. **404.html** deve sempre ter redirect `/__/` para Firebase Auth
+
+### Padrões de ID (agenda)
+- `venc_*` — formato legado muito antigo (remover sempre)
+- `agfat_NomeCartao_mes_ano` — formato atual para faturas
+- `agfat_tx_NomeCartao_mes_ano` — tx agendado correspondente no extrato
+
+### Versão atual: v2.9.21
+### Repositório: gilenogestorfinanceiro.github.io
