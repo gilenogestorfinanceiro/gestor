@@ -875,7 +875,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.6
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.7
 </div>
 
 <!-- BOTTOM NAV -->
@@ -1066,14 +1066,16 @@ function fireAuthError(code){
 
 async function doGoogleLogin(){
     const provider=new firebase.auth.GoogleAuthProvider();
-    const isSafari=/^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-    const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent);
-    if(isSafari||isIOS){
-        try{ await auth.signInWithRedirect(provider); }
-        catch(e){ loginMsg(fireAuthError(e.code),true); }
-    } else {
-        try{ await auth.signInWithPopup(provider); }
-        catch(e){ loginMsg(fireAuthError(e.code),true); }
+    try{
+        await auth.signInWithPopup(provider);
+    }catch(e){
+        // Safari bloqueia popup em alguns contextos — tenta redirect como fallback
+        if(e.code==='auth/popup-blocked'||e.code==='auth/popup-closed-by-user'){
+            try{ await auth.signInWithRedirect(provider); }
+            catch(e2){ loginMsg(fireAuthError(e2.code),true); }
+        } else {
+            loginMsg(fireAuthError(e.code),true);
+        }
     }
 }
 
@@ -1177,9 +1179,6 @@ function doLogout(){
     if(!confirm('Sair da conta?'))return;
     auth.signOut();
 }
-
-// Capturar retorno do redirect (Safari/iOS)
-auth.getRedirectResult().catch(e=>{ if(e&&e.code) loginMsg(fireAuthError(e.code),true); });
 
 // Auth state listener
 auth.onAuthStateChanged(async function(user){
