@@ -398,3 +398,18 @@ Se qualquer um desses pontos estiver faltando após uma recuperação, reimpleme
 - Seleção automática agora busca o **primeiro mês não pago** disponível em vez de forçar o mês da data do evento.
 
 ### Versão atual: v2.9.24
+
+---
+
+## v2.9.25 — Fix: seleção inteligente do mês da fatura baseada no vencimento do cartão
+
+### Problema
+v2.9.24 selecionava o "primeiro mês não pago", que resultava em Janeiro para uma compra de fevereiro — incorreto.
+
+### Lógica correta implementada
+- Se dia da compra < dia do vencimento do cartão → fatura = mesmo mês da compra
+- Se dia da compra >= dia do vencimento do cartão → fatura = mês seguinte
+- Exemplo: C6 Bank vence dia 10. Compra em 09/02 (antes do dia 10) → fatura Fevereiro. Compra em 15/02 (depois do dia 10) → fatura Março.
+- Se o mês calculado estiver pago, tenta o próximo disponível automaticamente.
+
+### Versão atual: v2.9.25

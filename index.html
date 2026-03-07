@@ -878,7 +878,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.24
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.25
 </div>
 
 <!-- BOTTOM NAV -->
@@ -3440,12 +3440,31 @@ function setAgDestino(d,el){
             const paidLabel=allPaid?' ✅ Paga':'';
             return`<option value="${o.m}_${o.y}"${allPaid?' disabled':''}>${lbl}${paidLabel}</option>`;
         }).join('');
-        // Seleciona o primeiro mês NÃO pago e com compras, ou o atual se nenhum disponível
-        const _firstAvail=_mOpts.find(o=>{
-            const cpList=(D.cp||[]).filter(c=>c.card===$('agCartao').value&&c.m===o.m&&c.y===o.y);
-            return !(cpList.length>0&&cpList.every(c=>c.st==='paga'));
-        });
-        _fatSel.value=_firstAvail?`${_firstAvail.m}_${_firstAvail.y}`:`${_agM}_${_agY}`;
+        // Seleciona o mês correto baseado na data da compra + vencimento do cartão
+        // Lógica: se o dia da compra é ANTES do vencimento do cartão, fatura = mesmo mês
+        //         se o dia da compra é DEPOIS do vencimento, fatura = mês seguinte
+        const _card=$('agCartao').value;
+        const _cardIdx=getCartoes().indexOf(_card);
+        const _vencDia=getVencs()[_cardIdx]||10;
+        const _compraDay=parseInt(_agDate.split('-')[2]);
+        let _fatM=_agM,_fatY=_agY;
+        if(_compraDay>=_vencDia){_fatM++;if(_fatM>11){_fatM=0;_fatY++;}}
+        // Se o mês calculado estiver pago, tentar o próximo disponível
+        const _isPago=(mm,yy)=>{const cp=(D.cp||[]).filter(c=>c.card===_card&&c.m===mm&&c.y===yy);return cp.length>0&&cp.every(c=>c.st==='paga');};
+        if(_isPago(_fatM,_fatY)){
+            // Tentar mês seguinte
+            let nm=_fatM+1,ny=_fatY;if(nm>11){nm=0;ny++;}
+            if(!_isPago(nm,ny)){_fatM=nm;_fatY=ny;}
+        }
+        // Verificar se o valor calculado existe nas opções, senão pegar o primeiro disponível
+        const _targetVal=`${_fatM}_${_fatY}`;
+        const _optExists=_mOpts.some(o=>`${o.m}_${o.y}`===_targetVal&&!_isPago(o.m,o.y));
+        if(_optExists){
+            _fatSel.value=_targetVal;
+        } else {
+            const _avail=_mOpts.find(o=>!_isPago(o.m,o.y));
+            _fatSel.value=_avail?`${_avail.m}_${_avail.y}`:_targetVal;
+        }
     }
 }
 function setAgColor(color,el){
