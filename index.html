@@ -3,9 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
 <title>Gileno - Gestão Financeira</title>
 <meta name="description" content="Gileno - Gestão Financeira. Controle suas finanças pessoais com segurança na nuvem.">
 <meta property="og:title" content="Gileno - Gestão Financeira">
@@ -177,7 +174,6 @@ input,select{font-family:var(--font);outline:none}
 
 .page{display:none;animation:fadeIn .3s ease}.page.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-@keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
 .card-title{font-size:12px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
@@ -347,41 +343,6 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
-<script>
-// Cache-busting automático — força reload se versão mudou
-(function(){
-    const APP_VERSION='2.9.3';
-
-    // Registrar Service Worker para atualizações automáticas
-    if('serviceWorker' in navigator){
-        navigator.serviceWorker.register('./sw.js').then(reg=>{
-            console.log('[App] Service Worker registrado');
-        }).catch(err=>console.log('[App] SW erro:', err));
-
-        // Ouvir notificação de nova versão do SW
-        navigator.serviceWorker.addEventListener('message', event=>{
-            if(event.data && event.data.type==='NEW_VERSION'){
-                const v=event.data.version;
-                if(v!==APP_VERSION){
-                    // Recarrega silenciosamente para pegar a versão nova
-                    window.location.reload();
-                }
-            }
-        });
-    }
-    document.addEventListener('DOMContentLoaded',()=>{const fv=document.getElementById('footerVersion');if(fv)fv.textContent='v'+APP_VERSION;const hv=document.getElementById('headerVersion');if(hv)hv.textContent='v'+APP_VERSION;});
-    const stored=localStorage.getItem('app_version');
-    if(stored && stored!==APP_VERSION){
-        localStorage.setItem('app_version',APP_VERSION);
-        // Recarrega com timestamp para forçar novo download
-        const sep=location.href.includes('?')?'&':'?';
-        location.replace(location.href.split('?')[0]+sep+'v='+APP_VERSION.replace(/\./g,''));
-    } else {
-        localStorage.setItem('app_version',APP_VERSION);
-    }
-})();
-</script>
 </head>
 <body>
 <!-- LOGIN SCREEN -->
@@ -421,7 +382,7 @@ Entrar com Google
 <span>Gileno - Gestão Financeira</span>
 </div>
 <div class="header-actions">
-<span id="headerUser" style="font-size:11px;color:var(--text3);margin-right:4px"></span><span id="headerVersion" style="font-size:10px;color:var(--text3);margin-right:8px;opacity:0.5"></span>
+<span id="headerUser" style="font-size:11px;color:var(--text3);margin-right:4px"></span>
 <button class="btn-icon" onclick="openShareModal()" title="Compartilhar com amigos" style="color:var(--green);position:relative"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
 <button class="btn-icon" onclick="toggleTheme()" id="themeToggleBtn" title="Alternar tema claro/escuro"><span id="themeIcon">☀️</span></button>
 <button class="btn-icon" onclick="exportCSV()" title="Exportar CSV"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
@@ -623,11 +584,6 @@ Entrar com Google
 <div class="page" id="page-agenda">
 <h2 style="font-size:20px;font-weight:700;margin-bottom:16px">📅 Agenda</h2>
 
-<div style="display:flex;justify-content:flex-end;padding:0 16px 8px">
-<button onclick="publicarWebCal()" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--card);border:1px solid var(--border);border-radius:20px;font-size:12px;color:var(--text2);cursor:pointer">
-📅 Sincronizar Calendário
-</button>
-</div>
 <!-- Month selector -->
 <div class="month-selector">
 <button class="month-btn" onclick="chgMonth(-1)">‹</button>
@@ -674,7 +630,10 @@ Entrar com Google
 <div class="kpi red"><div class="kpi-label">Total Faturas do Mês</div><div class="kpi-value" id="kCard">-</div></div>
 </div>
 <div class="card-summary" id="cardSum"></div>
-<button class="btn btn-primary" style="margin-top:16px" onclick="addFromCard=true;goPage('add');setAddType('Despesa',document.querySelector('#addTabs .t-red'));setTimeout(()=>setDestino('cartao',document.querySelector('#destinoTabs .toggle-tab:last-child')),100)">+ Nova Compra no Cartão</button>
+<div style="display:flex;gap:8px;margin-top:16px">
+<button class="btn btn-primary" style="flex:2" onclick="addFromCard=true;goPage('add');setAddType('Despesa',document.querySelector('#addTabs .t-red'));setTimeout(()=>setDestino('cartao',document.querySelector('#destinoTabs .toggle-tab:last-child')),100)">+ Nova Compra</button>
+<button class="btn btn-outline" style="flex:1;color:var(--green);border-color:var(--green)" onclick="openEstornoModal()">↩ Estorno</button>
+</div>
 </div>
 
 <!-- CONFIG -->
@@ -919,7 +878,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · <span id="footerVersion">v2.7.2</span>
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.4
 </div>
 
 <!-- BOTTOM NAV -->
@@ -946,48 +905,11 @@ Agenda
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
 Cartões
 </button>
-<button class="nav-item" id="navZap" onclick="toggleZapMenu(event)" style="color:#25D366">
-<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.558 4.126 1.534 5.862L.057 23.521a.75.75 0 00.921.921l5.656-1.477A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75a9.697 9.697 0 01-4.95-1.356l-.355-.21-3.676.96.975-3.564-.23-.368A9.698 9.698 0 012.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z"/></svg>
-<span style="color:#25D366;font-size:9px">Gestor</span>
-</button>
 <button class="nav-item" data-page="cfg" onclick="toggleMaisMenu(event,this)">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
 Mais
 </button>
 </nav>
-<!-- Modal Fale com Gestor (WhatsApp) -->
-<div id="zapMenuOverlay" onclick="closeZapMenu()" style="display:none;position:fixed;inset:0;z-index:998;background:rgba(0,0,0,0.5);backdrop-filter:blur(2px)"></div>
-<div id="zapMenu" style="display:none;position:fixed;bottom:75px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid #25D366;border-radius:20px;box-shadow:0 8px 40px rgba(37,211,102,0.25);z-index:999;min-width:300px;max-width:92vw;overflow:hidden;animation:slideUp .25s ease">
-  <div style="background:linear-gradient(135deg,#25D366,#128C7E);padding:16px 20px;text-align:center">
-    <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:4px">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.558 4.126 1.534 5.862L.057 23.521a.75.75 0 00.921.921l5.656-1.477A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75a9.697 9.697 0 01-4.95-1.356l-.355-.21-3.676.96.975-3.564-.23-.368A9.698 9.698 0 012.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z"/></svg>
-      <span style="color:white;font-size:16px;font-weight:700">Fale com o Gestor</span>
-    </div>
-    <p style="color:rgba(255,255,255,0.85);font-size:12px;margin:0">Canal direto via WhatsApp — escolha o assunto 👇</p>
-  </div>
-  <div style="padding:12px">
-    <button onclick="openZap('suporte')" style="width:100%;padding:14px 16px;background:none;border:none;border-radius:12px;color:var(--text);font-size:14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;font-family:var(--font);border-bottom:1px solid var(--border);transition:background .15s" onmouseover="this.style.background='rgba(37,211,102,0.08)'" onmouseout="this.style.background='none'">
-      <span style="font-size:22px">🛠️</span>
-      <div><div style="font-weight:600">Suporte técnico / Dúvidas do app</div><div style="font-size:11px;color:var(--text3)">Problemas ou dúvidas sobre como usar</div></div>
-    </button>
-    <button onclick="openZap('dicas')" style="width:100%;padding:14px 16px;background:none;border:none;border-radius:12px;color:var(--text);font-size:14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;font-family:var(--font);border-bottom:1px solid var(--border);transition:background .15s" onmouseover="this.style.background='rgba(37,211,102,0.08)'" onmouseout="this.style.background='none'">
-      <span style="font-size:22px">💡</span>
-      <div><div style="font-weight:600">Dicas financeiras</div><div style="font-size:11px;color:var(--text3)">Orientações para organizar melhor seu dinheiro</div></div>
-    </button>
-    <button onclick="openZap('novidades')" style="width:100%;padding:14px 16px;background:none;border:none;border-radius:12px;color:var(--text);font-size:14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;font-family:var(--font);border-bottom:1px solid var(--border);transition:background .15s" onmouseover="this.style.background='rgba(37,211,102,0.08)'" onmouseout="this.style.background='none'">
-      <span style="font-size:22px">🚀</span>
-      <div><div style="font-weight:600">Novidades e atualizações</div><div style="font-size:11px;color:var(--text3)">Fique por dentro das novas funcionalidades</div></div>
-    </button>
-    <button onclick="openZap('feedback')" style="width:100%;padding:14px 16px;background:none;border:none;border-radius:12px;color:var(--text);font-size:14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;font-family:var(--font);transition:background .15s" onmouseover="this.style.background='rgba(37,211,102,0.08)'" onmouseout="this.style.background='none'">
-      <span style="font-size:22px">💬</span>
-      <div><div style="font-weight:600">Feedback e sugestões</div><div style="font-size:11px;color:var(--text3)">Sua opinião nos ajuda a melhorar!</div></div>
-    </button>
-  </div>
-  <div style="padding:0 12px 12px;text-align:center">
-    <button onclick="closeZapMenu()" style="background:none;border:1px solid var(--border);border-radius:10px;padding:8px 24px;color:var(--text3);font-size:13px;cursor:pointer;font-family:var(--font)">Fechar</button>
-  </div>
-</div>
-
 <div id="maisMenu" style="display:none;position:fixed;bottom:70px;right:8px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 8px 32px rgba(0,0,0,0.5);z-index:999;min-width:180px;overflow:hidden">
 <button onclick="closeMaisMenu();goPage('cfg')" style="width:100%;padding:14px 16px;background:none;border:none;color:var(--text);font-size:14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;font-family:var(--font);border-bottom:1px solid var(--border)">⚙️ Configurações</button>
 <button onclick="closeMaisMenu();goPage('sug')" style="width:100%;padding:14px 16px;background:none;border:none;color:var(--text);font-size:14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;font-family:var(--font)">💬 Sugestões</button>
@@ -1017,27 +939,22 @@ Mais
 </div>
 </div>
 
-<!-- CONFIRMAR COMPROMISSO MODAL -->
-<div class="modal-overlay" id="confirmAgModal" onclick="if(event.target===this)closeConfirmAgModal()">
+<!-- ESTORNO MODAL -->
+<div class="modal-overlay" id="estornoModal" onclick="if(event.target===this)closeEstornoModal()">
 <div class="modal">
 <div class="modal-handle"></div>
-<div class="modal-title" id="confirmAgTitle">✅ Confirmar Compromisso</div>
-<div style="padding:0 0 12px">
-<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--text2);font-size:13px">Compromisso</span><span id="confirmAgDesc" style="font-weight:600;font-size:13px;text-align:right;max-width:60%"></span></div>
-<div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="color:var(--text2);font-size:13px">Tipo</span><span id="confirmAgTipo" style="font-weight:600;font-size:13px"></span></div>
-<div style="display:flex;justify-content:space-between"><span style="color:var(--text2);font-size:13px">Valor</span><span id="confirmAgValor" style="font-family:var(--mono);font-weight:700;color:var(--green);font-size:18px"></span></div>
+<div class="modal-title">↩ Lançar Estorno</div>
+<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px;margin-bottom:14px;font-size:13px;color:var(--text2)">
+O estorno será lançado como crédito na fatura abatendo o valor total.
 </div>
-<div class="form-group" id="confirmAgBancoGroup">
-  <label class="form-label">Conta</label>
-  <select class="form-input" id="confirmAgBanco"></select>
-</div>
-<div class="form-group">
-  <label class="form-label">Data de efetivação</label>
-  <input type="date" class="form-input" id="confirmAgData">
-</div>
+<div class="form-group"><label class="form-label">Cartão</label><select class="form-input" id="estornoCard"></select></div>
+<div class="form-group"><label class="form-label">Descrição</label><input type="text" class="form-input" id="estornoDesc" placeholder="Ex: Estorno Shopee — pedido cancelado"></div>
+<div class="form-group"><label class="form-label">Valor (R$)</label><input type="number" class="form-input" id="estornoVal" placeholder="0,00" min="0.01" step="0.01"></div>
+<div class="form-group"><label class="form-label">Data do estorno</label><input type="date" class="form-input" id="estornoDt"></div>
+<div class="form-group"><label class="form-label">Mês da fatura</label><select class="form-input" id="estornoMes"></select></div>
 <div style="display:flex;gap:8px;margin-top:16px">
-<button class="btn btn-outline" onclick="closeConfirmAgModal()" style="flex:1">Cancelar</button>
-<button class="btn btn-green" onclick="efetivarAgCompromisso()" style="flex:2" id="confirmAgBtn">✅ Confirmar</button>
+<button class="btn btn-outline" onclick="closeEstornoModal()" style="flex:1">Cancelar</button>
+<button class="btn btn-green" onclick="confirmEstorno()" style="flex:2">↩ Confirmar Estorno</button>
 </div>
 </div>
 </div>
@@ -1051,15 +968,6 @@ Mais
 <div class="form-group"><label class="form-label">Valor (R$)</label><div class="valor-input-wrap"><span class="valor-prefix">R$</span><input type="number" step="0.01" min="0" class="form-input" id="edValor" inputmode="decimal"></div></div>
 <div class="form-group"><label class="form-label">Categoria</label><select class="form-input" id="edCat" onchange="onEdCatChange()"></select></div>
 <div class="form-group"><label class="form-label">Subcategoria</label><select class="form-input" id="edSub"></select></div>
-<div class="form-group" id="edBancoGroup" style="display:none">
-  <label class="form-label">Conta</label>
-  <select class="form-input" id="edBanco"></select>
-</div>
-<div class="form-group" id="edMesRefGroup" style="display:none">
-  <label class="form-label">Mês de referência da fatura</label>
-  <select class="form-input" id="edMesRef"></select>
-</div>
-<div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input" id="edData"></div>
 <div style="display:flex;gap:8px;margin-top:16px">
 <button class="btn btn-outline" onclick="closeEditModal()" style="flex:1">Cancelar</button>
 <button class="btn btn-primary" onclick="saveEdit()" style="flex:2">✓ Salvar</button>
@@ -1135,7 +1043,6 @@ let D={}, cMonth=new Date().getMonth(), cYear=new Date().getFullYear(), cPage='d
 const BRAPI_TOKEN_DEFAULT='7tfCGLuGgjUvx8wPC3WzHu';
 let currentUser='';
 let currentUid='';
-let currentEmail='';
 let db=null;
 let saveTimeout=null;
 let valHidden=false;
@@ -1165,7 +1072,6 @@ const firebaseConfig={
 };
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth();
-const storage=firebase.storage();
 db=firebase.firestore();
 
 function loginMsg(msg,err){
@@ -1294,7 +1200,6 @@ auth.onAuthStateChanged(async function(user){
     if(user){
         currentUid=user.uid;
         currentUser=user.displayName||user.email.split('@')[0];
-        currentEmail=user.email||'';
         const isAdmin=user.email&&user.email.toLowerCase()==='gilenopaivalima@gmail.com';
         if(isAdmin&&document.getElementById('cfgBrapiCard'))document.getElementById('cfgBrapiCard').style.display='block';
         document.getElementById('loginScreen').style.display='none';
@@ -1303,7 +1208,6 @@ auth.onAuthStateChanged(async function(user){
         await loadFromCloud();
         applyTheme();
         if(!D.userName){D.userName=currentUser;save()}
-        sincronizarFaturasEmAberto();
         refresh();
         // Track user activity for admin panel
         try{
@@ -1323,7 +1227,7 @@ auth.onAuthStateChanged(async function(user){
             setInterval(runAutoBackup,7200000); // 2 hours
         }
     } else {
-        currentUid='';currentUser='';currentEmail='';
+        currentUid='';currentUser='';
         document.getElementById('appContainer').style.display='none';
         document.getElementById('loginScreen').style.display='flex';
         document.getElementById('loginPass').value='';
@@ -1364,8 +1268,6 @@ function fmt(v){if(!v&&v!==0)return'R$ 0,00';const a=Math.abs(v);return(v<0?'-R$
 function toast(msg,err){const t=$('toast');t.textContent=msg;t.className='toast'+(err?' error':'')+' show';setTimeout(()=>t.className='toast',2500)}
 
 function goPage(p,el){
-    // Resetar addFromCard ao sair da página de lançamento
-    if(p!=='add') addFromCard=false;
     cPage=p;
     document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
     $('page-'+p).classList.add('active');
@@ -1383,33 +1285,6 @@ function toggleMaisMenu(e,el){
     else m.style.display='none';
 }
 function closeMaisMenu(){$('maisMenu').style.display='none'}
-
-// === Fale com o Gestor (WhatsApp) ===
-function toggleZapMenu(e){
-  e.stopPropagation();
-  const m=$('zapMenu'), ov=$('zapMenuOverlay');
-  if(m.style.display==='none'||!m.style.display){
-    m.style.display='block'; ov.style.display='block';
-    closeMaisMenu();
-  } else {
-    closeZapMenu();
-  }
-}
-function closeZapMenu(){
-  $('zapMenu').style.display='none';
-  $('zapMenuOverlay').style.display='none';
-}
-function openZap(tipo){
-  const num='5584988964231';
-  const msgs={
-    suporte:'Olá! Preciso de ajuda com o *Gileno - Gestão Financeira* 🛠️%0A%0AMinh@ dúvida é:',
-    dicas:'Olá! Gostaria de receber *dicas financeiras* para organizar melhor meu dinheiro 💡',
-    novidades:'Olá! Quero saber sobre as *novidades e atualizações* do Gileno - Gestão Financeira 🚀',
-    feedback:'Olá! Tenho um *feedback e sugestões* para o Gileno - Gestão Financeira 💬%0A%0AMinha sugestão:'
-  };
-  closeZapMenu();
-  window.open('https://wa.me/'+num+'?text='+msgs[tipo],'_blank');
-}
 
 function chgMonth(d){
     cMonth+=d;
@@ -1594,12 +1469,10 @@ function rDash(){
         renderCatSection('catBreakRec',catsRec,PIECOLORS_REC,totalRec2);
     }
     // Banks
-    const bancosAtuais=getBancos();
-    const saldoTotal=bancosAtuais.reduce((sum,b)=>sum+bankBal(b,cMonth,cYear),0);
-    $('bankList').innerHTML=bancosAtuais.map(b=>{
+    $('bankList').innerHTML=getBancos().map(b=>{
         const bal=bankBal(b,cMonth,cYear);
-        return`<div class="bank-item"><span class="bank-name">${b}</span><span class="bank-balance kpi-val-hide${bal<0?' neg':''}">${fmt(bal)}</span></div>`;
-    }).join('')+`<div class="bank-item" style="border-top:2px solid var(--border);margin-top:6px;padding-top:8px"><span class="bank-name" style="font-weight:700;color:var(--text)">💰 Total em Contas</span><span class="bank-balance kpi-val-hide${saldoTotal<0?' neg':''}" style="font-weight:700;font-size:16px">${fmt(saldoTotal)}</span></div>`;
+        return`<div class="bank-item"><span class="bank-name">${b}</span><span class="bank-balance${bal<0?' neg':''}">${fmt(bal)}</span></div>`;
+    }).join('');
     // Dashboard Agenda Widget
     const todayStr2=new Date().toISOString().split('T')[0];
     const agUpcoming=(D.ag||[]).filter(e=>!e.done&&e.date>=todayStr2).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
@@ -1809,9 +1682,10 @@ function renderExtItem(t){
         return`<div class="tx-item" style="opacity:${opacity}"><div class="tx-icon ${iconClass}" style="cursor:pointer" onclick="${isTransf?'':`toggleTxStatus('${t.id}')`}" title="${isTransf?'Transferência':'Toque para alternar status'}">${iconChar}</div><div class="tx-info" style="cursor:pointer" onclick="editItem('tx','${t.id}')"><div class="tx-desc">${t.desc}${stBadge}</div><div class="tx-meta">${metaInfo} <span style="font-size:9px;color:var(--primary)">✏️</span></div></div><div class="tx-amount ${amtClass}" style="${isTransf?'color:var(--primary)':''}">${amtSign}${fmt(t.v).replace('R$ ','').replace('-R$ ','')}</div><button class="tx-del" onclick="delTx('${t.id}')">&times;</button></div>`;
     } else {
         const isPaga=t.st==='paga';
-        const stBadge=isPaga?`<span style="font-size:10px;background:var(--green-bg);color:var(--green);padding:2px 6px;border-radius:4px;margin-left:4px">✅ Paga</span>`:`<span style="font-size:10px;background:var(--red-bg);color:var(--red);padding:2px 6px;border-radius:4px;margin-left:4px">🔴 Aberta</span>`;
-        const opacity=isPaga?'0.6':'1';
-        return`<div class="tx-item" style="opacity:${opacity}"><div class="tx-icon card-icon">💳</div><div class="tx-info" style="cursor:pointer" onclick="editItem('cp','${t.id}')"><div class="tx-desc">${t.desc}${stBadge}</div><div class="tx-meta">${dt} · ${t.card}${t.parc?' · '+t.parc:''} · ${t.cat}${subLabel} <span style="font-size:9px;color:var(--primary)">✏️</span></div></div><div class="tx-amount negative">−${fmt(t.v).replace('R$ ','').replace('-R$ ','')}</div><button class="tx-del" onclick="delCardExt('${t.id}')">✕</button></div>`;
+        const isEst=t.estorno===true;
+        const stBadge=isEst?`<span style="font-size:10px;background:var(--green-bg);color:var(--green);padding:2px 6px;border-radius:4px;margin-left:4px">↩ Estorno</span>`:isPaga?`<span style="font-size:10px;background:var(--green-bg);color:var(--green);padding:2px 6px;border-radius:4px;margin-left:4px">✅ Paga</span>`:`<span style="font-size:10px;background:var(--red-bg);color:var(--red);padding:2px 6px;border-radius:4px;margin-left:4px">🔴 Aberta</span>`;
+        const opacity=(isPaga&&!isEst)?'0.6':'1';
+        return`<div class="tx-item" style="opacity:${opacity}"><div class="tx-icon card-icon">${isEst?'↩':'💳'}</div><div class="tx-info" style="cursor:pointer" onclick="editItem('cp','${t.id}')"><div class="tx-desc">${t.desc}${stBadge}</div><div class="tx-meta">${dt} · ${t.card}${t.parc?' · '+t.parc:''} · ${t.cat}${subLabel} <span style="font-size:9px;color:var(--primary)">✏️</span></div></div><div class="tx-amount ${isEst?'positive':'negative'}">${isEst?'+'+fmt(Math.abs(t.v)):'-'+fmt(t.v).replace('R$ ','')}</div><button class="tx-del" onclick="delCardExt('${t.id}')">✕</button></div>`;
     }
 }
 
@@ -1936,23 +1810,8 @@ ${txsAg.length?`<div style="background:rgba(245,158,11,0.1);border:1px solid rgb
 let addDestino='conta'; // 'conta' or 'cartao'
 let addStatus='efetivado'; // 'efetivado' or 'agendado'
 let contaFreq='unico'; // 'unico' or 'recorrente'
-let addFromCard=false; // true quando vem de "Nova Compra no Cartão"
 
 function setStatus(st,el){
-    // Validar data passada ao agendar
-    if(st==='agendado'){
-        const dataLanc=$('fDate').value;
-        const hoje=new Date().toISOString().split('T')[0];
-        if(dataLanc && dataLanc<hoje){
-            toast('⚠️ Não é possível agendar para uma data passada!',true);
-            // Garante que o botão Efetivado continue ativo
-            document.querySelectorAll('#statusTabs .toggle-tab').forEach(t=>t.classList.remove('active'));
-            const btnEf=document.querySelector('#statusTabs .toggle-tab');
-            if(btnEf)btnEf.classList.add('active');
-            addStatus='efetivado';
-            return;
-        }
-    }
     addStatus=st;
     document.querySelectorAll('#statusTabs .toggle-tab').forEach(t=>t.classList.remove('active'));
     if(el)el.classList.add('active');
@@ -2015,16 +1874,6 @@ function calcContaRec(){
 }
 
 function rAdd(){
-    // Mostrar/ocultar abas conforme contexto
-    const addTabs=$('addTabs');
-    if(addTabs){
-        if(addFromCard){
-            // Compra no cartão — esconder Receita e Transferência
-            addTabs.style.display='none';
-        } else {
-            addTabs.style.display='';
-        }
-    }
     const sel=$('fMonth');
     sel.innerHTML='';
     for(let y=BASE_YEAR;y<=cYear+2;y++){
@@ -2047,12 +1896,6 @@ function rAdd(){
     updateCatOptions();
     updateDestinoUI();
     if(!$('fDate').value){$('fDate').value=new Date().toISOString().split('T')[0]}
-    // Resetar status para Efetivado sempre que o formulário é aberto
-    addStatus='efetivado';
-    document.querySelectorAll('#statusTabs .toggle-tab').forEach((t,i)=>{
-        t.classList.remove('active');
-        if(i===0) t.classList.add('active'); // Primeiro botão = Efetivado
-    });
 }
 
 function updateCatOptions(){
@@ -2365,39 +2208,6 @@ function saveTx(){
     if(!val||val<=0){toast('Preencha o valor',true);return}
     const my=parseMonthSel($('fMonth').value);
     
-    // Validações de data/mês/status
-    const dataLanc=$('fDate').value;
-    const hoje=new Date().toISOString().split('T')[0];
-
-    if(dataLanc){
-        // 1. Data futura não pode ser Efetivado
-        if(dataLanc>hoje && addStatus==='efetivado'){
-            toast('⚠️ Data futura não pode ser Efetivada! Use Agendado.',true);
-            // Forçar botão para Agendado
-            addStatus='agendado';
-            document.querySelectorAll('#statusTabs .toggle-tab').forEach((t,i)=>{
-                t.classList.remove('active');
-                if(i===1) t.classList.add('active');
-            });
-            return;
-        }
-        // 2. Data passada não pode ser Agendado
-        if(dataLanc<hoje && addStatus==='agendado'){
-            toast('⚠️ Não é possível agendar para uma data passada!',true);
-            return;
-        }
-        // 3. Data e mês referência devem ser compatíveis (só para conta, não cartão)
-        if(addDestino!=='cartao'){
-            const dtParts=dataLanc.split('-');
-            const dtM=parseInt(dtParts[1])-1; // 0-based
-            const dtY=parseInt(dtParts[0]);
-            if(dtM!==my.m || dtY!==my.y){
-                toast('⚠️ A data ('+dataLanc.split('-').reverse().join('/')+') não corresponde ao mês de referência selecionado!',true);
-                return;
-            }
-        }
-    }
-    
     // TRANSFERÊNCIA
     if(addTp==='Transf'){
         const origem=$('fTransfOrigem').value;
@@ -2431,65 +2241,13 @@ function saveTx(){
             const dates=recDatesCalc(startDt,unidade,intervalo,qtd);
             const recGroupId=uid();
             const freqLabel=recFreqLabel(unidade,intervalo);
-            const recGroupAgId=uid();
-            if(!D.ag) D.ag=[];
             dates.forEach((d,r)=>{
-                const txId=uid();
-                const stTx=r===0?addStatus:'agendado';
-                D.tx.push({id:txId,dt:d.dt,m:d.m,y:d.y,desc:desc+' ♻️',v:val,tp:addTp,banco,cat,sub:subCatClean,st:stTx,rec:true,recGroup:recGroupId,recDur:qtd,recIdx:r+1,recFreq:freqLabel});
-                // Criar evento na agenda para cada parcela agendada
-                if(stTx==='agendado'){
-                    const agId='ag_'+Date.now()+'_'+r+'_'+Math.random().toString(36).slice(2,6);
-                    D.ag.push({
-                        id:agId,
-                        title:desc+' ♻️ ('+(r+1)+'/'+qtd+')',
-                        date:d.dt,
-                        time:'',
-                        type:addTp==='Receita'?'recebimento':'pagamento',
-                        valor:val,
-                        destino:'conta',
-                        banco:banco,
-                        cartao:'',
-                        cat:cat,
-                        sub:subCatClean,
-                        repeat:'none',
-                        notes:'Recorrente: '+freqLabel,
-                        color:addTp==='Receita'?'#10b981':'#ef4444',
-                        done:false,
-                        txId:txId
-                    });
-                }
+                D.tx.push({id:uid(),dt:d.dt,m:d.m,y:d.y,desc:desc+' ♻️',v:val,tp:addTp,banco,cat,sub:subCatClean,st:r===0?addStatus:'agendado',rec:true,recGroup:recGroupId,recDur:qtd,recIdx:r+1,recFreq:freqLabel});
             });
             toast('✅ '+addTp+' recorrente: '+freqLabel+' × '+qtd+'x');
         } else {
-            const txId=uid();
-            D.tx.push({id:txId,dt:$('fDate').value,m:my.m,y:my.y,desc,v:val,tp:addTp,banco,cat,sub:subCatClean,st:addStatus});
-            // Se agendado, criar evento na agenda automaticamente
-            if(addStatus==='agendado'){
-                if(!D.ag) D.ag=[];
-                const agId='ag_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
-                D.ag.push({
-                    id:agId,
-                    title:desc,
-                    date:$('fDate').value,
-                    time:'',
-                    type:addTp==='Receita'?'recebimento':'pagamento',
-                    valor:val,
-                    destino:'conta',
-                    banco:banco,
-                    cartao:'',
-                    cat:cat,
-                    sub:subCatClean,
-                    repeat:'none',
-                    notes:'',
-                    color:addTp==='Receita'?'#10b981':'#ef4444',
-                    done:false,
-                    txId:txId
-                });
-                toast(addTp==='Receita'?'✅ Receita agendada e adicionada à agenda!':'✅ Despesa agendada e adicionada à agenda!');
-            } else {
-                toast(addTp==='Receita'?'✅ Receita salva!':'✅ Despesa salva!');
-            }
+            D.tx.push({id:uid(),dt:$('fDate').value,m:my.m,y:my.y,desc,v:val,tp:addTp,banco,cat,sub:subCatClean,st:addStatus});
+            toast(addTp==='Receita'?'✅ Receita salva!':'✅ Despesa salva!');
         }
         save();
         $('fDesc').value='';$('fValor').value='';
@@ -2524,158 +2282,14 @@ function saveTx(){
             D.cp.push({id:uid(),dt:$('fDate').value,m:my.m,y:my.y,card,desc,v:val,tipo:'À Vista',parc:'',cat,sub:subCatClean,st:addStatus});
         }
         save();
-        // Criar/atualizar lembrete de vencimento da fatura na agenda
-        criarLembreteVencimento(card, my.m, my.y);
         $('fDesc').value='';$('fValor').value='';
         toast('✅ Compra registrada no cartão!');
     }
 }
 
-function sincronizarFaturasEmAberto(){
-    // Varre todos os cartões e cria/atualiza lembretes das faturas não pagas
-    const cartoes=D.cartoes||[];
-    if(!cartoes.length) return;
-    const hoje=new Date().toISOString().split('T')[0];
-    // Agrupar compras não pagas por cartão+mês+ano
-    const grupos={};
-    (D.cp||[]).forEach(c=>{
-        if(c.st==='paga') return; // ignorar faturas já pagas
-        const key=c.card+'_'+c.m+'_'+c.y;
-        if(!grupos[key]) grupos[key]={card:c.card, m:c.m, y:c.y, total:0};
-        grupos[key].total+=c.v;
-    });
-    if(!D.ag) D.ag=[];
-    let alterou=false;
-    Object.values(grupos).forEach(({card, m, y, total})=>{
-        const ci=cartoes.indexOf(card);
-        if(ci<0) return;
-        const vencDia=getVencs()[ci]||10;
-        const vencDate=new Date(y, m, vencDia);
-        const vencStr=vencDate.toISOString().split('T')[0];
-        const agUid='venc_'+card.replace(/\s+/g,'_')+'_'+m+'_'+y;
-        const evVenc={
-            id: agUid,
-            title: '💳 Fatura '+card,
-            date: vencStr,
-            time: '08:00',
-            type: 'pagamento',
-            valor: total,
-            destino: 'nenhum',
-            banco: '',
-            cartao: card,
-            cat: 'Cartão Crédito',
-            sub: '',
-            repeat: 'none',
-            notes: 'Vencimento da fatura de '+card+' — '+['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][m]+'/'+y,
-            color: '#ef4444',
-            done: false,
-            txId: null,
-            isVencFatura: true
-        };
-        const existIdx=D.ag.findIndex(e=>e.id===agUid);
-        if(existIdx>=0){
-            D.ag[existIdx]=evVenc; // atualizar valor
-        } else {
-            D.ag.push(evVenc); // criar novo
-        }
-        alterou=true;
-    });
-    // Remover lembretes de faturas que foram pagas
-    if(D.ag){
-        const antes=D.ag.length;
-        D.ag=D.ag.filter(e=>{
-            if(!e.isVencFatura) return true; // manter eventos normais
-            // Se existe compra não paga para esse vencimento, manter
-            const parts=e.id.replace('venc_','').split('_');
-            const ano=parseInt(parts[parts.length-1]);
-            const mes=parseInt(parts[parts.length-2]);
-            const cardNome=parts.slice(0,parts.length-2).join(' ');
-            const temAberto=(D.cp||[]).some(c=>c.card===cardNome&&c.m===mes&&c.y===ano&&c.st!=='paga');
-            return temAberto;
-        });
-        if(D.ag.length!==antes) alterou=true;
-    }
-    if(alterou){ save(); webcalAutoSync(); }
-}
-
-function criarLembreteVencimento(card, mes, ano){
-    const cartoes=D.cartoes||[];
-    const ci=cartoes.indexOf(card);
-    if(ci<0) return;
-    const vencDia=getVencs()[ci]||10;
-    if(!vencDia) return;
-    // Calcular data de vencimento: dia do venc no mês da fatura
-    const vencDate=new Date(ano, mes, vencDia);
-    const vencStr=vencDate.toISOString().split('T')[0]; // YYYY-MM-DD
-    const hoje=new Date().toISOString().split('T')[0];
-    // UID único por cartão + mês + ano (evita duplicar)
-    const agUid='venc_'+card.replace(/\s+/g,'_')+'_'+mes+'_'+ano;
-    if(!D.ag) D.ag=[];
-    // Verificar se já existe lembrete para esse vencimento
-    const existIdx=D.ag.findIndex(e=>e.id===agUid);
-    const totalFatura=(D.cp||[]).filter(c=>c.card===card&&c.m===mes&&c.y===ano).reduce((s,c)=>s+c.v,0);
-    const evVenc={
-        id: agUid,
-        title: '💳 Fatura '+card,
-        date: vencStr,
-        time: '08:00',
-        type: 'pagamento',
-        valor: totalFatura,
-        destino: 'nenhum',
-        banco: '',
-        cartao: card,
-        cat: 'Cartão Crédito',
-        sub: '',
-        repeat: 'none',
-        notes: 'Vencimento da fatura de '+card+' — '+['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][mes]+'/'+ano,
-        color: '#ef4444',
-        done: false,
-        txId: null,
-        isVencFatura: true
-    };
-    if(existIdx>=0){
-        // Atualizar valor da fatura
-        D.ag[existIdx]=evVenc;
-    } else {
-        // Só criar se a data de vencimento não passou
-        if(vencStr>=hoje){
-            D.ag.push(evVenc);
-        }
-    }
-    save();
-    webcalAutoSync();
-}
-
 function delTx(id){
-    const tx=D.tx.find(t=>t.id===id);
-    if(!tx)return;
-    
-    // Se é recorrente, oferecer opções
-    if(tx.rec && tx.recGroup){
-        const grupo=D.tx.filter(t=>t.recGroup===tx.recGroup);
-        const proximos=D.tx.filter(t=>t.recGroup===tx.recGroup&&t.recIdx>=tx.recIdx);
-        const opcao=confirm('♻️ Lançamento recorrente ('+tx.recIdx+'/'+tx.recDur+').\n\nOK = Excluir ESTE e os PRÓXIMOS ('+proximos.length+' lançamentos)\nCancelar = Excluir SÓ ESTE');
-        if(opcao===true){
-            // Excluir este e todos os próximos da série
-            const idsRemover=proximos.map(t=>t.id);
-            D.tx=D.tx.filter(t=>!idsRemover.includes(t.id));
-            // Remover eventos vinculados na agenda
-            if(D.ag) D.ag=D.ag.filter(e=>!idsRemover.includes(e.txId));
-            save();rExt();toast('🗑️ '+idsRemover.length+' lançamento(s) excluído(s)');
-        } else {
-            // Excluir só este
-            D.tx=D.tx.filter(t=>t.id!==id);
-            if(D.ag) D.ag=D.ag.filter(e=>e.txId!==id);
-            save();rExt();toast('Lançamento excluído');
-        }
-        return;
-    }
-    
     if(!confirm('Excluir este lançamento?'))return;
-    D.tx=D.tx.filter(t=>t.id!==id);
-    // Remover evento vinculado na agenda
-    if(D.ag) D.ag=D.ag.filter(e=>e.txId!==id);
-    save();rExt();toast('Lançamento excluído');
+    D.tx=D.tx.filter(t=>t.id!==id);save();rExt();toast('Lançamento excluído');
 }
 
 function toggleTxStatus(id){
@@ -2732,23 +2346,8 @@ function confirmarEfetivar(id){
     const tx=D.tx.find(t=>t.id===id);
     if(!tx)return;
     const novaData=document.getElementById('efetivarData').value;
-    if(novaData){
-        tx.dt=normalizeDt(novaData);
-        tx.data=normalizeDt(novaData);
-        tx.m=parseInt(novaData.split('-')[1])-1;
-        tx.y=parseInt(novaData.split('-')[0]);
-    }
+    if(novaData)tx.dt=novaData;
     tx.st='efetivado';
-    
-    // Sincronizar agenda vinculada — marcar como feito (done)
-    if(D.ag){
-        const agEv=D.ag.find(e=>e.txId===id);
-        if(agEv){
-            agEv.done=true;
-            if(novaData) agEv.date=normalizeDt(novaData);
-        }
-    }
-    
     save();rExt();
     cancelEfetivar();
     const isR=tx.tp==='Receita';
@@ -2788,48 +2387,6 @@ function editItem(type,id){
     if(item.cat) sel.value=item.cat;
     
     onEdCatChange(item.sub||'');
-    
-    // Preencher data da compra (normaliza qualquer formato para YYYY-MM-DD)
-    const dtParaExibir=normalizeDt(item.data||item.dt||'');
-    $('edData').value=dtParaExibir;
-    
-    // Campo Conta (só para transações de conta, não cartão)
-    const bancoGroup=$('edBancoGroup');
-    const bancoSel=$('edBanco');
-    if(type==='tx'){
-        bancoGroup.style.display='block';
-        bancoSel.innerHTML='';
-        getBancos().forEach(b=>{
-            const o=document.createElement('option');
-            o.value=b; o.textContent=b;
-            if(b===item.banco) o.selected=true;
-            bancoSel.appendChild(o);
-        });
-    } else {
-        bancoGroup.style.display='none';
-    }
-
-    // Mês de referência da fatura (só para cartão)
-    const mesRefGroup=$('edMesRefGroup');
-    const mesRefSel=$('edMesRef');
-    if(type==='cp'){
-        mesRefGroup.style.display='block';
-        mesRefSel.innerHTML='';
-        const MN=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-        // Mostrar 6 meses passados + mês atual + 3 futuros
-        const hoje=new Date();
-        for(let d=-6;d<=3;d++){
-            const dt=new Date(hoje.getFullYear(),hoje.getMonth()+d,1);
-            const m=dt.getMonth(),y=dt.getFullYear();
-            const o=document.createElement('option');
-            o.value=m+'_'+y;
-            o.textContent=MN[m]+' '+y;
-            if(m===(item.m!==undefined?item.m:cMonth)&&y===(item.y!==undefined?item.y:cYear)) o.selected=true;
-            mesRefSel.appendChild(o);
-        }
-    } else {
-        mesRefGroup.style.display='none';
-    }
     
     $('editModal').classList.add('show');
 }
@@ -2900,73 +2457,17 @@ function saveEdit(){
     const val=parseFloat($('edValor').value);
     const cat=$('edCat').value;
     const sub=$('edSub').value;
-    const dataVal=$('edData').value; // YYYY-MM-DD
     
     if(desc) item.desc=desc;
+    if(val&&val>0) item.v=val;
     if(cat&&cat!=='__nova__') item.cat=cat;
     item.sub=(sub==='__nova_sub__'||!sub)?'':sub;
-
-    // Trocar conta — o saldo é calculado dinamicamente pelo bankBal,
-    // então basta atualizar item.banco e item.v que tudo se recalcula sozinho
-    if(editingType==='tx'){
-        const novaBanco=$('edBanco').value;
-        if(novaBanco) item.banco=novaBanco;
-    }
-    if(val&&val>0) item.v=val;
     
-    // Salvar data e atualizar m/y (mês de referência para transações de conta)
-    if(dataVal){
-        item.data=dataVal;
-        item.dt=normalizeDt(dataVal);
-        // Atualizar mês/ano de referência para transações de conta
-        if(editingType==='tx'){
-            item.m=parseInt(dataVal.split('-')[1])-1;
-            item.y=parseInt(dataVal.split('-')[0]);
-        }
-    }
-    
-    // Salvar mês de referência da fatura (só cartão)
-    if(editingType==='cp'){
-        const mesRefVal=$('edMesRef').value;
-        if(mesRefVal){
-            const [nm,ny]=mesRefVal.split('_');
-            item.m=parseInt(nm);
-            item.y=parseInt(ny);
-        }
-    }
-    
-    // Sincronizar agenda vinculada (busca pelo txId)
-    if(D.ag){
-        const agEv=D.ag.find(e=>e.txId===item.id);
-        if(agEv){
-            if(desc) agEv.title=desc;
-            if(val&&val>0) agEv.valor=val;
-            if(cat&&cat!=='__nova__') agEv.cat=cat;
-            agEv.sub=item.sub||'';
-            if(dataVal){
-                agEv.date=dataVal;
-            }
-        }
-    }
-
     save();closeEditModal();rExt();
     toast('✅ Lançamento atualizado!');
 }
 
 function closeEditModal(){$('editModal').classList.remove('show')}
-
-// Normaliza qualquer formato de data para YYYY-MM-DD
-function normalizeDt(dt){
-    if(!dt) return '';
-    // Já está em YYYY-MM-DD
-    if(/^\d{4}-\d{2}-\d{2}$/.test(dt)) return dt;
-    // Está em DD/MM/YYYY
-    if(/^\d{2}\/\d{2}\/\d{4}$/.test(dt)){
-        const p=dt.split('/');
-        return p[2]+'-'+p[1]+'-'+p[0];
-    }
-    return dt;
-}
 
 function rCfg(){
     // Brapi token
@@ -3130,6 +2631,38 @@ function payFatura(card){
 
 function closePayModal(){$('payModal').classList.remove('show')}
 
+// -- ESTORNO --
+function openEstornoModal(){
+    const sel=$('estornoCard');sel.innerHTML='';
+    getCartoes().forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
+    const mSel=$('estornoMes');mSel.innerHTML='';
+    for(let d=-2;d<=2;d++){
+        let m=cMonth+d,y=cYear;
+        while(m<0){m+=12;y--;}while(m>11){m-=12;y++;}
+        const o=document.createElement('option');
+        o.value=m+'|'+y;o.textContent=MN[m]+' '+y;
+        if(d===0)o.selected=true;
+        mSel.appendChild(o);
+    }
+    $('estornoDt').value=new Date().toISOString().split('T')[0];
+    $('estornoDesc').value='';$('estornoVal').value='';
+    $('estornoModal').classList.add('show');
+}
+function closeEstornoModal(){$('estornoModal').classList.remove('show')}
+function confirmEstorno(){
+    const card=$('estornoCard').value;
+    const desc=$('estornoDesc').value.trim();
+    const val=parseFloat($('estornoVal').value);
+    const dt=$('estornoDt').value;
+    const [m,y]=$('estornoMes').value.split('|').map(Number);
+    if(!desc){toast('Informe a descrição do estorno',true);return;}
+    if(!val||val<=0){toast('Informe um valor válido',true);return;}
+    if(!dt){toast('Informe a data do estorno',true);return;}
+    D.cp.push({id:uid(),dt,m,y,card,desc:'↩ '+desc,v:-val,tipo:'Estorno',parc:'',cat:'Estorno',sub:'',st:'aberta',estorno:true});
+    save();closeEstornoModal();rCard();
+    toast('↩ Estorno de '+fmt(val)+' lançado em '+MN[m]+' '+y);
+}
+
 function confirmPayFatura(){
     const card=payingCard;
     const conta=$('payConta').value;
@@ -3162,24 +2695,7 @@ function confirmPayFatura(){
         pgtoCard:card
     });
     
-    // Marcar lembrete de vencimento como concluído na agenda
-    const agUid='venc_'+card.replace(/\s+/g,'_')+'_'+cMonth+'_'+cYear;
-    if(D.ag){
-        const evIdx=D.ag.findIndex(e=>e.id===agUid);
-        if(evIdx>=0) D.ag[evIdx].done=true;
-    }
-    // Restaurar mês/ano se veio da agenda
-    if(window._agVencId){
-        cMonth=window._prevM;
-        cYear=window._prevY;
-        window._agVencId=null;
-        save();closePayModal();
-        toast('✅ Fatura paga! Evento concluído na agenda.');
-        refresh();
-        showPage('agenda');
-    } else {
-        save();closePayModal();rCard();
-    }
+    save();closePayModal();rCard();
     toast('✅ Fatura do '+card+' paga! '+fmt(total)+' debitado de '+conta);
 }
 
@@ -3217,8 +2733,9 @@ function showCardDetail(card){
             const dt=c.dt?new Date(c.dt+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'}):'';
             const catLabel=c.cat?` · ${c.cat}`:'';
             const subLabel=c.sub?' › '+c.sub:'';
-            const stBadge=c.st==='paga'?'<span style="font-size:9px;background:var(--green-bg);color:var(--green);padding:1px 5px;border-radius:3px;margin-left:4px">✅</span>':'';
-            return`<div class="tx-item"><div class="tx-icon card-icon">💳</div><div class="tx-info" style="cursor:pointer" onclick="closeDetailModal();editItem('cp','${c.id}')"><div class="tx-desc">${c.desc}${stBadge}</div><div class="tx-meta">${dt} · ${c.tipo}${c.parc?' · '+c.parc:''}${catLabel}${subLabel} <span style="font-size:9px;color:var(--primary)">✏️</span></div></div><div class="tx-amount negative">${fmt(c.v)}</div><button class="tx-del" onclick="delCard('${c.id}');showCardDetail('${card}')">✕</button></div>`;
+            const isEst=c.estorno===true;
+            const stBadge=isEst?'<span style="font-size:9px;background:var(--green-bg);color:var(--green);padding:1px 5px;border-radius:3px;margin-left:4px">↩ Estorno</span>':c.st==='paga'?'<span style="font-size:9px;background:var(--green-bg);color:var(--green);padding:1px 5px;border-radius:3px;margin-left:4px">✅</span>':'';
+            return`<div class="tx-item"><div class="tx-icon card-icon">${isEst?'↩':'💳'}</div><div class="tx-info" style="cursor:pointer" onclick="closeDetailModal();editItem('cp','${c.id}')"><div class="tx-desc">${c.desc}${stBadge}</div><div class="tx-meta">${dt} · ${c.tipo}${c.parc?' · '+c.parc:''}${catLabel}${subLabel} <span style="font-size:9px;color:var(--primary)">✏️</span></div></div><div class="tx-amount ${isEst?'positive':'negative'}">${isEst?'+'+fmt(Math.abs(c.v)):fmt(c.v)}</div><button class="tx-del" onclick="delCard('${c.id}');showCardDetail('${card}')">✕</button></div>`;
         }).join('')+`<div style="text-align:right;margin-top:12px;font-family:var(--mono);font-size:16px;font-weight:700;color:var(--red)">Total: ${fmt(total)}</div>`;
     }
     $('detailModal').classList.add('show');
@@ -3815,7 +3332,7 @@ function saveSug(){
     try{
         db.collection('sugestoes').add({
             tipo,texto,user,
-            email:currentEmail||'',
+            email:currentUser||'',
             uid:currentUid||'',
             createdAt:firebase.firestore.FieldValue.serverTimestamp(),
             lida:false,
@@ -3824,7 +3341,7 @@ function saveSug(){
     }catch(e){console.log('Sug save:',e)}
     
     // Send email via FormSubmit
-    fetch('https://formsubmit.co/ajax/gilenogestorfinanceiro@gmail.com',{
+    fetch('https://formsubmit.co/ajax/gilenopaivalima@gmail.com',{
         method:'POST',
         headers:{'Content-Type':'application/json','Accept':'application/json'},
         body:JSON.stringify({
@@ -3832,7 +3349,7 @@ function saveSug(){
             Tipo:tipo,
             Sugestão:texto,
             Usuário:user,
-            Email:currentEmail||'Não logado',
+            Email:currentUser||'Não logado',
             Data:new Date().toLocaleString('pt-BR')
         })
     }).then(r=>r.json()).then(data=>{
@@ -3954,8 +3471,6 @@ function openAgendaAdd(dateStr){
     $('agValor').value='';
     $('agNotes').value='';
     $('agRepeat').value='none';
-    $('agQtdRow').style.display='none';
-    if($('agQtd'))$('agQtd').value='12';
     // Populate selects
     const bs=$('agBanco');if(bs){bs.innerHTML='';getBancos().forEach(b=>{const o=document.createElement('option');o.value=b;o.textContent=b;bs.appendChild(o)})}
     const cs=$('agCartao');if(cs){cs.innerHTML='';getCartoes().forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;cs.appendChild(o)})}
@@ -3975,26 +3490,8 @@ function openAgendaAdd(dateStr){
 function openAgendaEdit(id){
     const ev=(D.ag||[]).find(e=>e.id===id);
     if(!ev)return;
-    // Evento de vencimento de fatura — abre modal de pagamento direto
-    if(ev.isVencFatura && !ev.done){
-        const card=ev.cartao||ev.title.replace('💳 Fatura ','').trim();
-        const faturas=(D.cp||[]).filter(c=>c.card===card&&c.st!=='paga');
-        if(!faturas.length){toast('⚠️ Fatura de '+card+' já foi paga!');return}
-        // Pegar mês/ano com maior valor em aberto
-        const meses={};
-        faturas.forEach(c=>{const k=c.m+'_'+c.y;meses[k]=(meses[k]||0)+c.v});
-        const topKey=Object.entries(meses).sort((a,b)=>b[1]-a[1])[0][0];
-        const [cM,cY]=topKey.split('_').map(Number);
-        const prevM=cMonth, prevY=cYear;
-        cMonth=cM; cYear=cY;
-        window._agVencId=id;
-        window._prevM=prevM;
-        window._prevY=prevY;
-        payFatura(card);
-        return;
-    }
-    openAgendaAdd(ev.date); // abre e reseta agEditId=null
-    agEditId=id; // restaura DEPOIS do reset
+    agEditId=id;
+    openAgendaAdd(ev.date);
     $('agTitle').value=ev.title||'';
     $('agDate').value=ev.date||'';
     $('agTime').value=ev.time||'';
@@ -4021,24 +3518,11 @@ function openAgendaEdit(id){
 
 function closeAgendaModal(){$('agendaModal').classList.remove('show')}
 
-function toggleAgQtd(){
-    const rep=$('agRepeat').value;
-    $('agQtdRow').style.display=rep!=='none'?'block':'none';
-}
-
 function saveAgenda(){
     const title=$('agTitle').value.trim();
     if(!title){toast('Preencha o título');return}
     const date=$('agDate').value;
     if(!date){toast('Preencha a data');return}
-    // Validar data passada (só para novos eventos, não para edições)
-    if(!agEditId){
-        const hoje=new Date().toISOString().split('T')[0];
-        if(date<hoje){
-            toast('⚠️ Não é possível agendar para uma data passada!',true);
-            return;
-        }
-    }
     if(!D.ag)D.ag=[];
     const ev={
         id:agEditId||'ag_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
@@ -4059,81 +3543,18 @@ function saveAgenda(){
     };
     if(agEditId){
         const idx=D.ag.findIndex(e=>e.id===agEditId);
-        if(idx>=0){
-            ev.done=D.ag[idx].done;
-            ev.txId=D.ag[idx].txId;
-            D.ag[idx]=ev;
-            // Sincronizar transação vinculada
-            if(ev.txId){
-                const tx=D.tx.find(t=>t.id===ev.txId);
-                if(tx){
-                    tx.dt=normalizeDt(ev.date);
-                    tx.data=normalizeDt(ev.date);
-                    tx.m=parseInt(ev.date.split('-')[1])-1;
-                    tx.y=parseInt(ev.date.split('-')[0]);
-                    tx.desc=ev.title;
-                    if(ev.valor>0) tx.v=ev.valor;
-                    if(ev.cat) tx.cat=ev.cat;
-                    tx.sub=ev.sub||'';
-                    if(ev.banco) tx.banco=ev.banco;
-                }
-                const cp=D.cp.find(c=>c.id===ev.txId);
-                if(cp){
-                    cp.dt=normalizeDt(ev.date);
-                    cp.data=normalizeDt(ev.date);
-                    cp.m=parseInt(ev.date.split('-')[1])-1;
-                    cp.y=parseInt(ev.date.split('-')[0]);
-                    cp.desc=ev.title;
-                    if(ev.valor>0) cp.v=ev.valor;
-                    cp.cat=ev.cat||cp.cat;
-                    cp.sub=ev.sub||cp.sub;
-                    if(ev.cartao) cp.card=ev.cartao;
-                }
-            }
-        }
+        if(idx>=0){ev.done=D.ag[idx].done;ev.txId=D.ag[idx].txId;D.ag[idx]=ev}
     } else {
-        const repeat=$('agRepeat').value||'none';
-        const qtdRep=repeat!=='none'?parseInt($('agQtd').value)||12:1;
-        // Gerar datas das repetições
-        const agDates=[];
-        let dtBase=new Date(date+'T12:00:00');
-        for(let r=0;r<qtdRep;r++){
-            const dtStr=dtBase.toISOString().split('T')[0];
-            agDates.push(dtStr);
-            if(repeat==='weekly') dtBase.setDate(dtBase.getDate()+7);
-            else if(repeat==='biweekly') dtBase.setDate(dtBase.getDate()+14);
-            else if(repeat==='monthly') dtBase.setMonth(dtBase.getMonth()+1);
-            else if(repeat==='yearly') dtBase.setFullYear(dtBase.getFullYear()+1);
-            else break; // none = só 1
+        D.ag.push(ev);
+        // Auto-create pending transaction for payments/receipts
+        if(ev.type!=='lembrete' && ev.valor>0 && ev.destino!=='nenhum'){
+            const txId=launchAgendaTxPending(ev);
+            ev.txId=txId;
         }
-        agDates.forEach((dt,r)=>{
-            const evR={
-                ...ev,
-                id:r===0?ev.id:'ag_'+Date.now()+'_'+r+'_'+Math.random().toString(36).slice(2,6),
-                date:dt,
-                title:qtdRep>1?ev.title+' ('+(r+1)+'/'+qtdRep+')':ev.title,
-                txId:null
-            };
-            D.ag.push(evR);
-            // Auto-create pending transaction para cada evento
-            if(evR.type!=='lembrete' && evR.valor>0 && evR.destino!=='nenhum'){
-                const txId=launchAgendaTxPending(evR);
-                evR.txId=txId;
-            }
-            if(r===0) ev.txId=evR.txId; // mantém ref do primeiro
-        });
     }
-    const wasEdit=!!agEditId;
     save();closeAgendaModal();refresh();
-    webcalAutoSync();
-    if(wasEdit){
+    if(agEditId){
         toast('Compromisso atualizado!');
-        // Oferecer atualizar no calendário do dispositivo
-        setTimeout(()=>{
-            if(confirm('📅 Deseja atualizar "'+ev.title+'" no Calendário do seu dispositivo?\n\nO evento existente será substituído pela versão atualizada.')){
-                exportICS(ev.id);
-            }
-        },500);
     } else {
         toast('Compromisso agendado!');
         // Offer to add to device calendar
@@ -4148,120 +3569,22 @@ function saveAgenda(){
 function toggleAgDone(id){
     const ev=(D.ag||[]).find(e=>e.id===id);
     if(!ev)return;
-    // Evento de vencimento de fatura — abre modal de pagamento
-    if(ev.isVencFatura && !ev.done){
-        // Extrair cartão e mês/ano do evento
-        const card=ev.cartao||ev.title.replace('💳 Fatura ','').trim();
-        // Buscar mês/ano da fatura pelo date do evento
-        const evDate=new Date(ev.date+'T12:00:00');
-        // O mês da fatura é o mês ANTERIOR ao vencimento na maioria dos casos
-        // mas usamos o que está armazenado nas compras em aberto para esse cartão
-        const faturas=(D.cp||[]).filter(c=>c.card===card&&c.st!=='paga');
-        if(!faturas.length){toast('⚠️ Não há compras em aberto para '+card,true);return}
-        // Pegar mês/ano da maioria das compras em aberto
-        const meses={};
-        faturas.forEach(c=>{const k=c.m+'_'+c.y;meses[k]=(meses[k]||0)+c.v});
-        const topKey=Object.entries(meses).sort((a,b)=>b[1]-a[1])[0][0];
-        const [cM,cY]=topKey.split('_').map(Number);
-        // Salvar contexto e abrir modal payFatura
-        // Temporariamente ajustar cMonth/cYear para o mês da fatura
-        const prevM=cMonth, prevY=cYear;
-        cMonth=cM; cYear=cY;
-        payFatura(card);
-        // Sobrescrever o confirmPayFatura para restaurar o mês após pagar
-        const origConfirm=window._origConfirmPay;
-        window._agVencId=id;
-        window._prevM=prevM;
-        window._prevY=prevY;
-        return;
-    }
-    // Se já está concluído — desmarcar diretamente
-    if(ev.done){
-        ev.done=false;
-        if(ev.txId){
-            const tx=D.tx.find(t=>t.id===ev.txId);
-            if(tx) tx.st='agendado';
-            const cp=D.cp.find(c=>c.id===ev.txId);
-            if(cp) cp.st='aberta';
-        }
-        save();refresh();
-        return;
-    }
-    // Se é pagamento ou recebimento — abre modal de confirmação
-    if(ev.type==='pagamento'||ev.type==='recebimento'){
-        abrirConfirmAgModal(ev.id);
-        return;
-    }
-    // Lembrete — marca direto
-    ev.done=true;
-    save();refresh();
-}
-
-function abrirConfirmAgModal(id){
-    const ev=(D.ag||[]).find(e=>e.id===id);
-    if(!ev) return;
-    window._confirmAgId=id;
-    const isPag=ev.type==='pagamento';
-    $('confirmAgTitle').textContent=isPag?'💸 Confirmar Pagamento':'💰 Confirmar Recebimento';
-    $('confirmAgDesc').textContent=ev.title;
-    $('confirmAgTipo').textContent=isPag?'Pagamento':'Recebimento';
-    $('confirmAgValor').textContent=fmt(ev.valor||0);
-    $('confirmAgValor').style.color=isPag?'var(--red)':'var(--green)';
-    $('confirmAgBtn').textContent=isPag?'✅ Confirmar Pagamento':'✅ Confirmar Recebimento';
-    const bancoGroup=$('confirmAgBancoGroup');
-    const bancoSel=$('confirmAgBanco');
-    bancoSel.innerHTML='';
-    getBancos().forEach(b=>{
-        const o=document.createElement('option');
-        o.value=b; o.textContent=b;
-        if(b===ev.banco) o.selected=true;
-        bancoSel.appendChild(o);
-    });
-    bancoGroup.style.display=(ev.destino==='nenhum'||ev.type==='lembrete')?'none':'block';
-    $('confirmAgData').value=new Date().toISOString().split('T')[0];
-    $('confirmAgModal').classList.add('show');
-}
-
-function closeConfirmAgModal(){$('confirmAgModal').classList.remove('show')}
-
-function efetivarAgCompromisso(){
-    const id=window._confirmAgId;
-    const ev=(D.ag||[]).find(e=>e.id===id);
-    if(!ev){closeConfirmAgModal();return}
-    const data=$('confirmAgData').value;
-    const banco=$('confirmAgBanco').value;
-    if(ev.txId){
+    ev.done=!ev.done;
+    // When marking done, efetivate the linked transaction
+    if(ev.done && ev.txId){
         const tx=D.tx.find(t=>t.id===ev.txId);
-        if(tx){
-            tx.st='efetivado';
-            tx.dt=data;
-            if(banco) tx.banco=banco;
-            tx.m=parseInt(data.split('-')[1])-1;
-            tx.y=parseInt(data.split('-')[0]);
-        }
+        if(tx){tx.st='efetivado';toast('✅ Lançamento efetivado!')}
         const cp=D.cp.find(c=>c.id===ev.txId);
-        if(cp){cp.st='paga';cp.paidDt=data;}
-    } else if(ev.valor>0 && ev.type!=='lembrete'){
-        // Evento sem txId — criar transação agora
-        // Funciona para destino='conta', destino indefinido, ou eventos antigos
-        const tp=ev.type==='recebimento'?'Receita':'Despesa';
-        const txId='tx_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
-        const contaFinal=banco||ev.banco||getBancos()[0];
-        D.tx.push({
-            id:txId,dt:data,desc:ev.title,
-            v:ev.valor,tp,banco:contaFinal,
-            cat:ev.cat||'',sub:ev.sub||'',
-            st:'efetivado',
-            m:parseInt(data.split('-')[1])-1,
-            y:parseInt(data.split('-')[0])
-        });
-        ev.txId=txId;
-        ev.banco=contaFinal;
+        if(cp){cp.st='paga';toast('✅ Compra marcada como paga!')}
     }
-    ev.done=true;
-    closeConfirmAgModal();
+    // When unmarking, set back to pending
+    if(!ev.done && ev.txId){
+        const tx=D.tx.find(t=>t.id===ev.txId);
+        if(tx)tx.st='agendado';
+        const cp=D.cp.find(c=>c.id===ev.txId);
+        if(cp)cp.st='aberta';
+    }
     save();refresh();
-    toast('✅ Compromisso efetivado!');
 }
 
 function launchAgendaTxPending(ev){
@@ -4370,22 +3693,16 @@ function renderAgEvent(e,isOverdue){
     const opacity=e.done?'0.4':'1';
     const textDeco=e.done?'line-through':'none';
     const overdueStyle=isOverdue?'border-left:3px solid var(--red);':'border-left:3px solid '+e.color+';';
-    const instrucao = !e.done ? `<div style="display:flex;gap:12px;margin-top:6px;padding-top:6px;border-top:1px dashed var(--border)"><span style="font-size:10px;color:var(--text3);display:flex;align-items:center;gap:4px"><span style="width:14px;height:14px;border-radius:50%;border:2px solid var(--green);display:inline-flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0">○</span>Bolinha = confirmar</span><span style="font-size:10px;color:var(--text3);display:flex;align-items:center;gap:4px">✏️ Texto = editar</span></div>` : '';
-    return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;opacity:${opacity};${overdueStyle}">
-        <div onclick="toggleAgDone('${e.id}')" style="width:22px;height:22px;border-radius:50%;border:2px solid ${e.done?'var(--green)':e.color};display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;margin-top:2px;background:${e.done?'var(--green)':'transparent'};font-size:12px;color:#fff">${e.done?'✓':''}</div>
-        <div style="flex:1">
-            <div style="cursor:pointer" onclick="openAgendaEdit('${e.id}')">
-                <div style="font-size:13px;font-weight:600;text-decoration:${textDeco}">${typeIcon} ${e.title}</div>
-                <div style="font-size:11px;color:var(--text3)">${dayStr}${timeStr}${valorStr}${destStr}${e.cat?' · '+e.cat+(e.sub?' > '+e.sub:''):''}</div>
-                ${e.notes?'<div style="font-size:11px;color:var(--text3);margin-top:2px;font-style:italic">'+e.notes+'</div>':''}
-                ${isOverdue?'<div style="font-size:10px;color:var(--red);margin-top:2px">⚠️ Vencido</div>':''}
-            </div>
-            ${instrucao}
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:6px;opacity:${opacity};${overdueStyle}">
+        <div onclick="toggleAgDone('${e.id}')" style="width:22px;height:22px;border-radius:50%;border:2px solid ${e.done?'var(--green)':e.color};display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;background:${e.done?'var(--green)':'transparent'};font-size:12px;color:#fff">${e.done?'✓':''}</div>
+        <div style="flex:1;cursor:pointer" onclick="openAgendaEdit('${e.id}')">
+            <div style="font-size:13px;font-weight:600;text-decoration:${textDeco}">${typeIcon} ${e.title}</div>
+            <div style="font-size:11px;color:var(--text3)">${dayStr}${timeStr}${valorStr}${destStr}${e.cat?' · '+e.cat+(e.sub?' › '+e.sub:''):''}</div>
+            ${e.notes?'<div style="font-size:11px;color:var(--text3);margin-top:2px;font-style:italic">'+e.notes+'</div>':''}
+            ${isOverdue?'<div style="font-size:10px;color:var(--red);margin-top:2px">⚠️ Vencido</div>':''}
         </div>
-        <div style="display:flex;gap:2px;flex-shrink:0">
-            <button onclick="exportICS('${e.id}')" title="Adicionar ao Calendário" style="background:none;border:none;color:var(--blue);font-size:16px;cursor:pointer;padding:4px">📅</button>
-            <button onclick="delAgenda('${e.id}')" style="background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px">&times;</button>
-        </div>
+        <button onclick="exportICS('${e.id}')" title="Adicionar ao Calendário" style="background:none;border:none;color:var(--blue);font-size:16px;cursor:pointer;padding:4px">📅</button>
+        <button onclick="delAgenda('${e.id}')" style="background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px">&times;</button>
     </div>`;
 }
 
@@ -4445,198 +3762,24 @@ function exportICS(id){
     lines.push('END:VEVENT');
     lines.push('END:VCALENDAR');
     const icsContent=lines.join(NL)+NL;
-    const safeName=ev.title.replace(/[^a-zA-Z0-9À-ſ ]/g,'').trim().replace(/\s+/g,'_')||'evento';
-    const isSafariIOS=/iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if(isSafariIOS){
-        // iOS Safari: data URI com text/calendar abre direto no app Calendário
-        const dataUri='data:text/calendar;charset=utf-8,'+encodeURIComponent(icsContent);
-        window.open(dataUri,'_blank');
-        toast('📅 Abrindo no Calendário...');
-    } else {
-        // Desktop e Android: blob download
+    // Use data URI — Safari/Mac opens Calendar app directly
+    const dataUri='data:text/calendar;charset=utf-8,'+encodeURIComponent(icsContent);
+    const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if(isMobile){
+        // Mobile: download as file (iOS opens Calendar picker)
         const blob=new Blob([icsContent],{type:'text/calendar;charset=utf-8'});
         const url=URL.createObjectURL(blob);
         const a=document.createElement('a');
+        const safeName=ev.title.replace(/[^a-zA-Z0-9\u00C0-\u017F ]/g,'').trim().replace(/\s+/g,'_')||'evento';
         a.href=url;a.download=safeName+'.ics';
         document.body.appendChild(a);a.click();document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        toast('📅 Arquivo .ics baixado — abra para adicionar ao Calendário');
+    } else {
+        // Desktop: open data URI — triggers Calendar app
+        window.open(dataUri,'_self');
     }
+    toast('📅 Adicionando ao Calendário...');
 }
-
-
-// ===================== WEBCAL / ICS FEED =====================
-function gerarICSCompleto(){
-    const eventos=(D.ag||[]).filter(e=>!e.done);
-    if(!eventos.length) return null;
-    const NL='\r\n';
-    const now=new Date();
-    const stamp=now.toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
-    let lines=[
-        'BEGIN:VCALENDAR',
-        'VERSION:2.0',
-        'PRODID:-//Gileno Gestao Financeira//PT',
-        'CALSCALE:GREGORIAN',
-        'METHOD:PUBLISH',
-        'X-WR-CALNAME:Gileno - Gestao Financeira',
-        'X-WR-CALDESC:Agenda financeira sincronizada',
-        'X-WR-TIMEZONE:America/Sao_Paulo',
-        'REFRESH-INTERVAL;VALUE=DURATION:PT15M',
-        'X-PUBLISHED-TTL:PT15M',
-        // VTIMEZONE completo para America/Sao_Paulo
-        'BEGIN:VTIMEZONE',
-        'TZID:America/Sao_Paulo',
-        'X-LIC-LOCATION:America/Sao_Paulo',
-        'BEGIN:DAYLIGHT',
-        'TZOFFSETFROM:-0300',
-        'TZOFFSETTO:-0200',
-        'TZNAME:BRST',
-        'DTSTART:19701004T000000',
-        'RRULE:FREQ=YEARLY;BYDAY=1SU;BYMONTH=10',
-        'END:DAYLIGHT',
-        'BEGIN:STANDARD',
-        'TZOFFSETFROM:-0200',
-        'TZOFFSETTO:-0300',
-        'TZNAME:BRT',
-        'DTSTART:19710221T000000',
-        'RRULE:FREQ=YEARLY;BYDAY=3SU;BYMONTH=2',
-        'END:STANDARD',
-        'END:VTIMEZONE'
-    ];
-    eventos.forEach(ev=>{
-        const typeLabel={pagamento:'💸 Pagamento',lembrete:'🔔 Lembrete',recebimento:'💰 Recebimento'}[ev.type]||'📅 Compromisso';
-        let desc=typeLabel;
-        if(ev.valor) desc+=' - R$ '+ev.valor.toFixed(2).replace('.',',');
-        if(ev.cat) desc+=' - '+ev.cat;
-        if(ev.notes) desc+=' | '+ev.notes.replace(/\n/g,' ');
-        const summary=(typeLabel+' '+ev.title).replace(/,/g,'\,').replace(/;/g,'\;');
-        const descEsc=desc.replace(/,/g,'\,').replace(/;/g,'\;');
-        // UID estável — sempre o mesmo para o mesmo evento (evita duplicação)
-        const uid='gileno-'+ev.id+'@gestaofinanceira';
-        let dtStartStr, dtEndStr, alarmTrigger;
-        if(ev.time && ev.time.match(/^\d{2}:\d{2}$/)){
-            // Com horário — DTSTART com hora no timezone de Brasília
-            const [hh,mm]=ev.time.split(':');
-            const dateParts=ev.date.split('-');
-            dtStartStr='DTSTART;TZID=America/Sao_Paulo:'+dateParts.join('')+'T'+hh+mm+'00';
-            // DTEND = início + 1 hora
-            const endH=String(parseInt(hh)+1).padStart(2,'0');
-            dtEndStr='DTEND;TZID=America/Sao_Paulo:'+dateParts.join('')+'T'+endH+mm+'00';
-            alarmTrigger='-PT30M'; // 30min antes quando tem hora
-        } else {
-            // Dia inteiro
-            const dtStart=ev.date.replace(/-/g,'');
-            const nd=new Date(ev.date+'T12:00:00');
-            nd.setDate(nd.getDate()+1);
-            const dtEnd=nd.toISOString().split('T')[0].replace(/-/g,'');
-            dtStartStr='DTSTART;VALUE=DATE:'+dtStart;
-            dtEndStr='DTEND;VALUE=DATE:'+dtEnd;
-            alarmTrigger='-PT8H'; // 8h antes para dia inteiro
-        }
-        lines=lines.concat([
-            'BEGIN:VEVENT',
-            'UID:'+uid,
-            'DTSTAMP:'+stamp,
-            dtStartStr,
-            dtEndStr,
-            'SUMMARY:'+summary,
-            'DESCRIPTION:'+descEsc,
-            'STATUS:CONFIRMED',
-            'SEQUENCE:0',
-            'BEGIN:VALARM',
-            'TRIGGER:'+alarmTrigger,
-            'ACTION:DISPLAY',
-            'DESCRIPTION:'+summary,
-            'END:VALARM',
-            'END:VEVENT'
-        ]);
-    });
-    lines.push('END:VCALENDAR');
-    return lines.join(NL)+NL;
-}
-
-async function publicarWebCal(){
-    if(!currentUser){toast('Faça login primeiro',true);return}
-    const icsContent=gerarICSCompleto();
-    if(!icsContent){toast('Nenhum evento na agenda para sincronizar',true);return}
-    toast('⏳ Publicando calendário...');
-    try{
-        const uid=firebase.auth().currentUser.uid;
-        const ref=storage.ref('webcal/'+uid+'/agenda.ics');
-        const blob=new Blob([icsContent],{type:'text/calendar;charset=utf-8'});
-        const snapshot=await ref.put(blob,{contentType:'text/calendar',cacheControl:'public,max-age=900'});
-        const url=await ref.getDownloadURL();
-        // Salvar URL no perfil
-        if(!D.webcalUrl) D.webcalUrl=url;
-        D.webcalUrl=url;
-        save();
-        mostrarWebCalModal(url);
-    } catch(err){
-        console.error(err);
-        toast('❌ Erro ao publicar: '+err.message,true);
-    }
-}
-
-function mostrarWebCalModal(url){
-    const httpsUrl=url;
-    // webcal:// para iOS/Mac — mesma URL mas com protocolo diferente
-    const webcalUrl=url.replace('https://','webcal://');
-    // Salvar globalmente para usar nos botões
-    window._lastWebcalHttps=httpsUrl;
-    window._lastWebcalUrl=webcalUrl;
-    let html=`
-    <div class="modal-overlay show" id="webcalModal" onclick="if(event.target===this)this.remove()">
-    <div class="modal-box" style="max-width:460px">
-        <div class="modal-header"><h3>📅 Sincronizar Calendário</h3><button class="btn-icon" onclick="$('webcalModal').remove()">✕</button></div>
-        <div style="padding:16px">
-            <p style="font-size:13px;color:var(--text2);margin-bottom:16px">Assine o calendário no seu dispositivo. Os eventos do Gestor aparecerão automaticamente no app Calendário nativo.</p>
-            
-            <div style="background:var(--card);border-radius:var(--radius);padding:12px;margin-bottom:12px">
-                <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px">📱 IPHONE / MAC</div>
-                <p style="font-size:12px;color:var(--text2);margin-bottom:8px">Copie o link e cole em <b>Calendário → Arquivo → Nova Assinatura de Calendário</b> (Mac) ou <b>Ajustes → Calendário → Contas → Adicionar Conta → Outro → Assinatura de Calendário</b> (iPhone):</p>
-                <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-                    <input id="webcalUrlInputIOS" value="${webcalUrl}" readonly style="flex:1;font-size:9px;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text)">
-                    <button onclick="navigator.clipboard.writeText(window._lastWebcalUrl);toast('✅ Link copiado!')" style="padding:8px 12px;background:var(--red);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">Copiar</button>
-                </div>
-                <a id="webcalOpenBtn" href="" style="display:block;text-align:center;background:var(--red);color:#fff;padding:10px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none" onclick="this.href=window._lastWebcalUrl">📅 Abrir direto no Calendário</a>
-            </div>
-            
-            <div style="background:var(--card);border-radius:var(--radius);padding:12px;margin-bottom:12px">
-                <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px">🤖 ANDROID / GOOGLE AGENDA</div>
-                <p style="font-size:12px;color:var(--text2);margin-bottom:8px">Copie o link e cole no Google Agenda → <b>+</b> → <b>De URL</b>:</p>
-                <div style="display:flex;gap:8px;align-items:center">
-                    <input id="webcalUrlInput" value="${httpsUrl}" readonly style="flex:1;font-size:9px;padding:8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text)">
-                    <button onclick="navigator.clipboard.writeText(window._lastWebcalHttps);toast('✅ Link copiado!')" style="padding:8px 12px;background:var(--green);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;white-space:nowrap">Copiar</button>
-                </div>
-            </div>
-
-            <div style="background:#fff3cd;border-radius:8px;padding:10px;font-size:11px;color:#856404;margin-bottom:8px">
-                ⚠️ <b>Primeira vez?</b> Se aparecerem eventos duplicados, remova a assinatura antiga no Calendário e adicione novamente com o link acima.
-            </div>
-            <div style="background:rgba(255,255,255,0.05);border-radius:8px;padding:10px;font-size:11px;color:var(--text2)">
-                ⏱️ Sincronização automática a cada 15 minutos. Ao publicar novamente, eventos existentes serão atualizados (sem duplicar).
-            </div>
-        </div>
-    </div>
-    </div>`;
-    document.body.insertAdjacentHTML('beforeend',html);
-}
-
-// Republicar automaticamente ao salvar agenda
-function webcalAutoSync(){
-    if(D.webcalUrl && (D.ag||[]).length>0){
-        setTimeout(()=>{
-            const uid=firebase.auth().currentUser?.uid;
-            if(!uid) return;
-            const icsContent=gerarICSCompleto();
-            if(!icsContent) return;
-            const ref=storage.ref('webcal/'+uid+'/agenda.ics');
-            const blob=new Blob([icsContent],{type:'text/calendar;charset=utf-8'});
-            ref.put(blob,{contentType:'text/calendar',cacheControl:'public,max-age=900'}).catch(()=>{});
-        },2000);
-    }
-}
-// ===================== FIM WEBCAL =====================
 
 function selectAgDay(dateStr){
     agSelectedDay=(agSelectedDay===dateStr)?null:dateStr;
@@ -4768,15 +3911,13 @@ Copiar link
 
 <!-- Recurrence -->
 <div class="form-group"><label class="form-label">Repetir</label>
-<select class="form-input" id="agRepeat" onchange="toggleAgQtd()">
+<select class="form-input" id="agRepeat">
 <option value="none">Não repetir</option>
 <option value="weekly">Semanal</option>
 <option value="biweekly">Quinzenal</option>
 <option value="monthly">Mensal</option>
 <option value="yearly">Anual</option>
 </select></div>
-<div class="form-group" id="agQtdRow" style="display:none"><label class="form-label">Quantidade de repetições</label>
-<input type="number" class="form-input" id="agQtd" min="1" max="120" value="12" placeholder="Ex: 12"></div>
 
 <div class="form-group"><label class="form-label">Notas (opcional)</label>
 <textarea class="form-input" id="agNotes" rows="2" placeholder="Observações..." style="resize:vertical;font-family:var(--font)"></textarea></div>
