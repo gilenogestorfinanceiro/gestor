@@ -468,3 +468,22 @@ As 3 formas de lançamento agora recalculam o total da fatura imediatamente:
 - Novo lançamento → D.cp atualizado → sincronizar recalcula total → tx agendado no extrato reflete valor correto
 
 ### Versão atual: v2.9.28
+
+---
+
+## v2.9.29 — Painel: totalizadores e cores do gráfico pizza
+
+### Problemas corrigidos
+
+**1. Somatória faltando no painel**
+- Saldo das Contas: adicionado rodapé "💰 Total das Contas" com soma de todos os saldos (verde/vermelho)
+- Despesas por Categoria: adicionado "📊 Total Despesas" abaixo da lista de categorias
+- Receitas por Categoria: adicionado "📊 Total Receitas" abaixo da lista de categorias
+- Todos respeitam o toggle "Ocultar valores" (classe kpi-val-hide)
+
+**2. Cores do gráfico pizza**
+- Paleta de Despesas substituída por cores com maior contraste entre si:
+  vermelho → laranja → amarelo → verde-claro → verde → azul-claro → índigo → violeta → rosa → vermelho-escuro → azul → roxo
+- Mantida correspondência 1:1 entre fatia do pizza e cor da categoria na lista (mesmo índice i)
+
+### Versão atual: v2.9.29
