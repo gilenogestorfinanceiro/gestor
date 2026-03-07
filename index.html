@@ -878,7 +878,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.21
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.22
 </div>
 
 <!-- BOTTOM NAV -->
@@ -3503,9 +3503,14 @@ function sincronizarFaturasEmAberto(){
     if(!D.tx) D.tx=[];
     const cartoes=getCartoes();
     const vencs=getVencs();
+    // Verifica mês anterior, atual e próximo
+    // Necessário para cartões com vencimento futuro no mês atual (fatura do mês anterior ainda em aberto)
+    const _prev=cMonth===0?{m:11,y:cYear-1}:{m:cMonth-1,y:cYear};
+    const _next=cMonth===11?{m:0,y:cYear+1}:{m:cMonth+1,y:cYear};
     const meses=[
+        _prev,
         {m:cMonth,y:cYear},
-        {m:(cMonth+1)%12,y:cMonth===11?cYear+1:cYear}
+        _next
     ];
 
     // === LIMPEZA NUCLEAR — remove QUALQUER evento/tx de fatura não-paga ===

@@ -318,3 +318,24 @@ Isso garante remoção de qualquer evento de fatura independente de título ou f
 
 ### Versão atual: v2.9.21
 ### Repositório: gilenogestorfinanceiro.github.io
+
+---
+
+## v2.9.22 — Fix: faturas do mês anterior não apareciam
+
+### Problema
+Cartões com vencimento no início do mês (ex: C6 Bank dia 10) têm compras do mês anterior
+ainda em aberto quando o mês vira. A sincronização só verificava mês atual e próximo —
+a fatura de fevereiro do C6 (compras 08/02) nunca gerava evento/tx em março.
+
+### Fix
+Expandido para verificar **3 meses**: anterior + atual + próximo.
+```js
+// Antes: mês atual + próximo
+// Depois: mês anterior + atual + próximo
+const _prev = cMonth===0 ? {m:11,y:cYear-1} : {m:cMonth-1,y:cYear};
+const _next = cMonth===11 ? {m:0,y:cYear+1} : {m:cMonth+1,y:cYear};
+const meses = [_prev, {m:cMonth,y:cYear}, _next];
+```
+
+### Versão atual: v2.9.22
