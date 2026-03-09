@@ -582,29 +582,40 @@ async function downloadBackup(type){
 }
 
 function doDownloadFile(src,version){
-    let finalSrc=src;
-    if(!finalSrc.trim().startsWith('<!DOCTYPE'))finalSrc='<!DOCTYPE html>\n'+finalSrc;
-    const blob=new Blob([finalSrc],{type:'text/html'});
+    // FIX v2.9.36: detecta JSON (dados) vs HTML (codigo)
+    const trimmed=src.trim();
+    const isJSON=trimmed.startsWith('{') || trimmed.startsWith('[');
+    let blob,filename;
+    if(isJSON){
+        blob=new Blob([src],{type:'application/json'});
+        filename='dados_backup_'+version+'_'+new Date().toISOString().slice(0,10)+'.json';
+    }else{
+        let finalSrc=src;
+        if(!finalSrc.trim().startsWith('<!DOCTYPE'))finalSrc='<!DOCTYPE html>\n'+finalSrc;
+        blob=new Blob([finalSrc],{type:'text/html'});
+        filename='index_backup_'+version+'_'+new Date().toISOString().slice(0,10)+'.html';
+    }
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');
-    a.href=url;a.download='index_backup_'+version+'_'+new Date().toISOString().slice(0,10)+'.html';
+    a.href=url;a.download=filename;
     document.body.appendChild(a);a.click();document.body.removeChild(a);
     URL.revokeObjectURL(url);
 }
 
 async function forceBackupNow(){
     const st=document.getElementById('bkStatus');
-    st.style.display='block';st.textContent='⏳ Buscando código-fonte do app...';st.style.color='var(--amber)';
+    st.style.display='block';st.textContent='⏳ Buscando dados dos usuários...';st.style.color='var(--amber)';
     try{
-        const resp=await fetch('https://gilenogestorfinanceiro.github.io/gestor/index.html?nocache='+Date.now());
-        if(!resp.ok)throw new Error('Erro ao buscar index.html: '+resp.status);
-        const src=await resp.text();
-        if(src.length<5000)throw new Error('Arquivo muito pequeno ('+src.length+' chars) - possível erro');
+        // FIX v2.9.36: salva dados reais do Firestore, nao o HTML do app
+        const usersSnap=await db.collection('users').get();
+        const allData={};
+        usersSnap.docs.forEach(d=>{allData[d.id]=d.data();});
+        const src=JSON.stringify(allData);
+        if(src.length<10)throw new Error('Nenhum dado encontrado');
         st.textContent='⏳ Salvando backup manual no Firebase...';
         const chunks=[];const chunkSize=900000;
         for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
-        const verMatch=src.match(/[·]\s*v([\d.]+)/);
-        const version=verMatch?'v'+verMatch[1]:'unknown';
+        const version='v2.9.36';
         await db.collection('backups').doc('backup_manual').set({
             version:version,
             timestamp:firebase.firestore.FieldValue.serverTimestamp(),
