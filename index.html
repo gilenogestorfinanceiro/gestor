@@ -883,7 +883,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.33
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.34
 </div>
 
 <!-- BOTTOM NAV -->
@@ -3709,7 +3709,7 @@ function sincronizarFaturasEmAberto(){
 
     D.tx=D.tx.filter(t=>{
         if(t.pgtoFatura && t.st==='agendado') return false;
-        if(t.faturaAgendada) return false;
+        if(t.faturaAgendada && t.st!=='efetivado') return false; // preserva efetivados!
         return true;
     });
     console.log(`[Sync] ag: ${_agAntes}→${D.ag.length} | tx: ${_txAntes}→${D.tx.length}`);
@@ -3721,6 +3721,9 @@ function sincronizarFaturasEmAberto(){
             if(!cpList.length) return;
             const allPaid=cpList.every(c=>c.st==='paga');
             if(allPaid) return;
+            // Não recriar se já existe tx efetivado para esta fatura
+            const txJaEfetivado=D.tx.find(t=>t.faturaAgendada&&t.pgtoCard===card&&t.m===m&&t.y===y&&t.st==='efetivado');
+            if(txJaEfetivado) return;
             const vencDia=vencs[i]||10;
             const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(vencDia).padStart(2,'0')}`;
             const total=cpList.reduce((s,c)=>s+c.v,0);

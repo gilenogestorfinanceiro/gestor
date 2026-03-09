@@ -215,3 +215,23 @@ O fix do v2.9.32 (`confirmarEfetivar` marcando compras como pagas) também foi p
 agora os dois caminhos (extrato e agenda) fazem o mesmo trabalho correto.
 
 ### Versão atual: v2.9.33
+
+---
+
+## v2.9.34 — Fix crítico: sincronizarFaturasEmAberto apagava tx efetivado
+
+### Problema
+Ao efetivar fatura pelo extrato (botão "✅ Efetivar"):
+1. `confirmarEfetivar` marcava compras em D.cp como pagas ✅
+2. Chamava `sincronizarFaturasEmAberto()` 
+3. O nuclear cleanup removia **todo tx com `faturaAgendada:true`** — inclusive o recém-efetivado
+4. Resultado: tx sumia do extrato, cartão voltava como "Aberta", agenda mostrava como pago (D.ag.done=true mas tx sumiu)
+
+### Causa raiz
+Nuclear cleanup tinha: `if(t.faturaAgendada) return false` — sem verificar se estava efetivado.
+
+### Fixes aplicados
+1. **Nuclear cleanup**: `if(t.faturaAgendada && t.st!=='efetivado') return false` — preserva efetivados
+2. **Recriação de faturas**: antes de criar novo tx/ag, verifica se já existe `tx.faturaAgendada && st==='efetivado'` para aquele cartão/m/y — se sim, pula (não recria)
+
+### Versão atual: v2.9.34
