@@ -688,7 +688,6 @@ Entrar com Google
 <div class="card-title"><div class="dot" style="background:var(--red)"></div>Zona de Perigo</div>
 <button class="btn btn-red btn-sm" onclick="if(confirm('⚠️ Apagar TODOS os dados? Não pode ser desfeito!')) clearAll()">🗑️ Limpar Todos os Dados</button>
 <button class="btn btn-outline btn-sm" style="margin-top:6px" onclick="diagFaturas()">🔍 Diagnóstico Faturas Agenda</button>
-<button class="btn btn-outline btn-sm" style="margin-top:6px;color:var(--yellow);border-color:var(--yellow)" onclick="corrigirDuplicatasFaturas()">🔧 Corrigir Duplicatas de Faturas</button>
 <pre id="diagOut" style="font-size:10px;color:var(--text3);margin-top:8px;white-space:pre-wrap;max-height:300px;overflow-y:auto;display:none"></pre>
 <button class="btn btn-outline btn-sm" style="margin-top:6px;background:rgba(239,68,68,0.1);color:var(--red);border-color:rgba(239,68,68,0.3)" onclick="limparFaturasLegadas()">🧹 Limpar Faturas Legadas (FORÇA)</button>
 </div>
@@ -884,7 +883,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.35
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.31
 </div>
 
 <!-- BOTTOM NAV -->
@@ -2425,22 +2424,10 @@ function confirmarEfetivar(id){
         const agEv=D.ag.find(e=>e.txId===id);
         if(agEv){agEv.done=true;agEv.date=novaData||agEv.date;}
     }
-    // Se é pagamento de fatura, marcar compras do cartão como pagas
-    if(tx.faturaAgendada && tx.pgtoCard){
-        const card=tx.pgtoCard;
-        const cpList=(D.cp||[]).filter(c=>c.card===card&&c.m===tx.m&&c.y===tx.y&&c.st!=='paga');
-        cpList.forEach(c=>{
-            const cp=D.cp.find(x=>x.id===c.id);
-            if(cp){cp.st='paga';cp.paidDt=novaData||tx.dt;cp.paidConta=tx.banco;}
-        });
-        // Remover o tx agendado de fatura (este mesmo) e recriar como efetivado já foi feito acima
-        // Sincronizar para limpar eventos de agenda da fatura paga
-        sincronizarFaturasEmAberto();
-    }
     save();rExt();
     cancelEfetivar();
     const isR=tx.tp==='Receita';
-    toast(tx.faturaAgendada?'✅ Fatura paga e compras marcadas como pagas!':isR?'✅ Recebimento confirmado!':'✅ Pagamento confirmado!');
+    toast(isR?'✅ Recebimento confirmado!':'✅ Pagamento confirmado!');
 }
 
 function cancelEfetivar(){
@@ -3698,9 +3685,6 @@ function sincronizarFaturasEmAberto(){
 
     const _agAntes=D.ag.length, _txAntes=D.tx.length;
 
-    // Antes de limpar, guardar IDs de faturas já pagas (done=true)
-    const _agFatPagas=new Set(D.ag.filter(e=>e.done&&(e.isFaturaEvent||( e.id&&e.id.startsWith('agfat_')))).map(e=>e.id));
-
     D.ag=D.ag.filter(e=>{
         if(e.done) return true; // preserva pagos/confirmados
         if(e.isFaturaEvent) return false; // flag nova
@@ -3713,7 +3697,7 @@ function sincronizarFaturasEmAberto(){
 
     D.tx=D.tx.filter(t=>{
         if(t.pgtoFatura && t.st==='agendado') return false;
-        if(t.faturaAgendada && t.st!=='efetivado') return false; // preserva efetivados!
+        if(t.faturaAgendada) return false;
         return true;
     });
     console.log(`[Sync] ag: ${_agAntes}→${D.ag.length} | tx: ${_txAntes}→${D.tx.length}`);
@@ -3725,11 +3709,6 @@ function sincronizarFaturasEmAberto(){
             if(!cpList.length) return;
             const allPaid=cpList.every(c=>c.st==='paga');
             if(allPaid) return;
-            // Não recriar se já existe tx efetivado para esta fatura
-            const txJaEfetivado=D.tx.find(t=>t.faturaAgendada&&t.pgtoCard===card&&t.m===m&&t.y===y&&t.st==='efetivado');
-            if(txJaEfetivado) return;
-            // Não recriar ag se já existe evento pago com mesmo id
-            if(_agFatPagas.has(agId)) return;
             const vencDia=vencs[i]||10;
             const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(vencDia).padStart(2,'0')}`;
             const total=cpList.reduce((s,c)=>s+c.v,0);
@@ -3865,117 +3844,25 @@ function saveAgenda(){
     }
 }
 
-let _confirmAgId=null;
-
 function toggleAgDone(id){
     const ev=(D.ag||[]).find(e=>e.id===id);
     if(!ev)return;
-    // Se já done, desfaz direto
-    if(ev.done){
-        ev.done=false;
-        if(ev.txId){
-            const tx=D.tx.find(t=>t.id===ev.txId);
-            if(tx)tx.st='agendado';
-        }
-        save();refresh();
-        toast('↩ Compromisso reaberto');
-        return;
-    }
-    // Se é lembrete, marca/desmarca direto
-    if(ev.type==='lembrete'||ev.destino==='nenhum'){
-        ev.done=true;save();refresh();toast('✅ Lembrete marcado!');return;
-    }
-    // Abre modal de confirmação
-    _confirmAgId=id;
-    const isRec=ev.type==='recebimento';
-    const isFat=ev.isFaturaEvent;
-    document.getElementById('confirmAgTitle').textContent=isFat?'💳 Confirmar Pagamento de Fatura':isRec?'💰 Confirmar Recebimento':'💸 Confirmar Pagamento';
-    document.getElementById('confirmAgDesc').textContent=(ev.title||'')+(ev.valor?' — '+fmt(ev.valor):'');
-    // Conta
-    const sel=document.getElementById('confirmAgConta');
-    sel.innerHTML='';
-    const grp=document.getElementById('confirmAgContaGroup');
-    if(ev.destino==='conta'){
-        grp.style.display='block';
-        getBancos().forEach(b=>{const o=document.createElement('option');o.value=b;o.textContent=b;if(b===(ev.banco||''))o.selected=true;sel.appendChild(o);});
-    } else if(isFat){
-        grp.style.display='block';
-        getBancos().forEach(b=>{const o=document.createElement('option');o.value=b;o.textContent=b;if(b===(ev.banco||D.ca[ev.cartao]||''))o.selected=true;sel.appendChild(o);});
-    } else {
-        grp.style.display='none';
-    }
-    document.getElementById('confirmAgData').value=new Date().toISOString().split('T')[0];
-    document.getElementById('confirmAgModal').classList.add('show');
-}
-
-function closeConfirmAg(){
-    document.getElementById('confirmAgModal').classList.remove('show');
-    _confirmAgId=null;
-}
-
-function doConfirmAg(){
-    const ev=(D.ag||[]).find(e=>e.id===_confirmAgId);
-    if(!ev){closeConfirmAg();return;}
-    const data=document.getElementById('confirmAgData').value;
-    const conta=document.getElementById('confirmAgConta').value;
-    if(!data){toast('Informe a data',true);return;}
-    ev.done=true;
-    ev.date=data;
-    // Efetivar tx vinculado
-    if(ev.txId){
+    ev.done=!ev.done;
+    // When marking done, efetivate the linked transaction
+    if(ev.done && ev.txId){
         const tx=D.tx.find(t=>t.id===ev.txId);
-        if(tx){
-            tx.st='efetivado';
-            tx.dt=data;
-            if(conta)tx.banco=conta;
-            // Se é fatura, marcar compras como pagas
-            if(tx.faturaAgendada && tx.pgtoCard){
-                const card=tx.pgtoCard;
-                const cpList=(D.cp||[]).filter(c=>c.card===card&&c.m===tx.m&&c.y===tx.y&&c.st!=='paga');
-                cpList.forEach(c=>{const cp=D.cp.find(x=>x.id===c.id);if(cp){cp.st='paga';cp.paidDt=data;cp.paidConta=conta;}});
-                sincronizarFaturasEmAberto();
-                toast('✅ Fatura paga! Compras marcadas como pagas.');
-                closeConfirmAg();save();refresh();return;
-            }
-        }
+        if(tx){tx.st='efetivado';toast('✅ Lançamento efetivado!')}
+        const cp=D.cp.find(c=>c.id===ev.txId);
+        if(cp){cp.st='paga';toast('✅ Compra marcada como paga!')}
+    }
+    // When unmarking, set back to pending
+    if(!ev.done && ev.txId){
+        const tx=D.tx.find(t=>t.id===ev.txId);
+        if(tx)tx.st='agendado';
+        const cp=D.cp.find(c=>c.id===ev.txId);
+        if(cp)cp.st='aberta';
     }
     save();refresh();
-    toast('✅ Compromisso confirmado!');
-    closeConfirmAg();
-}
-
-function corrigirDuplicatasFaturas(){
-    if(!D.ag) return;
-    // Para cada agId, se houver duplicatas, manter apenas a done=true (ou a primeira)
-    const seen={};
-    const antes=D.ag.length;
-    D.ag=D.ag.filter(e=>{
-        if(!e.id||!e.id.startsWith('agfat_')) return true;
-        if(!seen[e.id]){seen[e.id]=e;return true;}
-        // Duplicata — manter done=true, remover done=false
-        if(e.done && !seen[e.id].done){
-            // Trocar: manter este (done=true), remover o anterior
-            D.ag=D.ag.filter(x=>x!==seen[e.id]);
-            seen[e.id]=e;
-            return true;
-        }
-        return false; // descartar duplicata
-    });
-    // Também corrigir D.tx: remover tx agendado se já existe efetivado com mesmo pgtoCard/m/y
-    const txAntes=D.tx.length;
-    const efetivados=D.tx.filter(t=>t.faturaAgendada&&t.st==='efetivado');
-    D.tx=D.tx.filter(t=>{
-        if(t.faturaAgendada&&t.st==='agendado'){
-            const jaEfet=efetivados.find(e=>e.pgtoCard===t.pgtoCard&&e.m===t.m&&e.y===t.y);
-            if(jaEfet) return false;
-        }
-        return true;
-    });
-    const removidosAg=antes-D.ag.length;
-    const removidosTx=txAntes-D.tx.length;
-    save();refresh();
-    toast(`🔧 Corrigido: ${removidosAg} evento(s) e ${removidosTx} tx duplicado(s) removidos`);
-    diagFaturas();
 }
 
 function launchAgendaTxPending(ev){
@@ -4105,7 +3992,6 @@ function renderAgEvent(e,isOverdue){
             <div style="font-size:11px;color:var(--text3)">${dayStr}${timeStr}${valorStr}${destStr}${e.cat?' · '+e.cat+(e.sub?' › '+e.sub:''):''}</div>
             ${e.notes?'<div style="font-size:11px;color:var(--text3);margin-top:2px;font-style:italic">'+e.notes+'</div>':''}
             ${isOverdue?'<div style="font-size:10px;color:var(--red);margin-top:2px">⚠️ Vencido</div>':''}
-            ${(!e.done&&e.type!=='lembrete'&&e.destino&&e.destino!=='nenhum')?'<div style="font-size:10px;color:var(--text3);margin-top:2px">○ Bolinha = confirmar &nbsp;·&nbsp; ✏️ Texto = editar</div>':''}
         </div>
         <button onclick="exportICS('${e.id}')" title="Adicionar ao Calendário" style="background:none;border:none;color:var(--blue);font-size:16px;cursor:pointer;padding:4px">📅</button>
         <button onclick="delAgenda('${e.id}')" style="background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px">&times;</button>
@@ -4347,25 +4233,5 @@ Copiar link
 </div>
 </div>
 </div>
-
-<div class="modal-overlay" id="confirmAgModal" onclick="if(event.target===this)closeConfirmAg()">
-<div class="modal-content" style="max-width:360px">
-<div class="modal-title" id="confirmAgTitle">✅ Confirmar Compromisso</div>
-<p style="font-size:13px;color:var(--text3);margin-bottom:16px" id="confirmAgDesc"></p>
-<div class="form-group" id="confirmAgContaGroup">
-  <label class="form-label">Conta</label>
-  <select class="form-input" id="confirmAgConta"></select>
-</div>
-<div class="form-group">
-  <label class="form-label">Data da efetivação</label>
-  <input type="date" class="form-input" id="confirmAgData">
-</div>
-<div style="display:flex;gap:8px;margin-top:16px">
-  <button class="btn btn-outline" onclick="closeConfirmAg()" style="flex:1">Cancelar</button>
-  <button class="btn btn-green" onclick="doConfirmAg()" style="flex:2">✅ Confirmar</button>
-</div>
-</div>
-</div>
-
 </body>
 </html>
