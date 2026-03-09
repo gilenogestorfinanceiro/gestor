@@ -688,6 +688,7 @@ Entrar com Google
 <div class="card-title"><div class="dot" style="background:var(--red)"></div>Zona de Perigo</div>
 <button class="btn btn-red btn-sm" onclick="if(confirm('⚠️ Apagar TODOS os dados? Não pode ser desfeito!')) clearAll()">🗑️ Limpar Todos os Dados</button>
 <button class="btn btn-outline btn-sm" style="margin-top:6px" onclick="diagFaturas()">🔍 Diagnóstico Faturas Agenda</button>
+<button class="btn btn-outline btn-sm" style="margin-top:6px;color:var(--yellow);border-color:var(--yellow)" onclick="corrigirDuplicatasFaturas()">🔧 Corrigir Duplicatas de Faturas</button>
 <pre id="diagOut" style="font-size:10px;color:var(--text3);margin-top:8px;white-space:pre-wrap;max-height:300px;overflow-y:auto;display:none"></pre>
 <button class="btn btn-outline btn-sm" style="margin-top:6px;background:rgba(239,68,68,0.1);color:var(--red);border-color:rgba(239,68,68,0.3)" onclick="limparFaturasLegadas()">🧹 Limpar Faturas Legadas (FORÇA)</button>
 </div>
@@ -883,7 +884,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.34
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.35
 </div>
 
 <!-- BOTTOM NAV -->
@@ -3697,6 +3698,9 @@ function sincronizarFaturasEmAberto(){
 
     const _agAntes=D.ag.length, _txAntes=D.tx.length;
 
+    // Antes de limpar, guardar IDs de faturas já pagas (done=true)
+    const _agFatPagas=new Set(D.ag.filter(e=>e.done&&(e.isFaturaEvent||( e.id&&e.id.startsWith('agfat_')))).map(e=>e.id));
+
     D.ag=D.ag.filter(e=>{
         if(e.done) return true; // preserva pagos/confirmados
         if(e.isFaturaEvent) return false; // flag nova
@@ -3724,6 +3728,8 @@ function sincronizarFaturasEmAberto(){
             // Não recriar se já existe tx efetivado para esta fatura
             const txJaEfetivado=D.tx.find(t=>t.faturaAgendada&&t.pgtoCard===card&&t.m===m&&t.y===y&&t.st==='efetivado');
             if(txJaEfetivado) return;
+            // Não recriar ag se já existe evento pago com mesmo id
+            if(_agFatPagas.has(agId)) return;
             const vencDia=vencs[i]||10;
             const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(vencDia).padStart(2,'0')}`;
             const total=cpList.reduce((s,c)=>s+c.v,0);
@@ -3936,6 +3942,40 @@ function doConfirmAg(){
     save();refresh();
     toast('✅ Compromisso confirmado!');
     closeConfirmAg();
+}
+
+function corrigirDuplicatasFaturas(){
+    if(!D.ag) return;
+    // Para cada agId, se houver duplicatas, manter apenas a done=true (ou a primeira)
+    const seen={};
+    const antes=D.ag.length;
+    D.ag=D.ag.filter(e=>{
+        if(!e.id||!e.id.startsWith('agfat_')) return true;
+        if(!seen[e.id]){seen[e.id]=e;return true;}
+        // Duplicata — manter done=true, remover done=false
+        if(e.done && !seen[e.id].done){
+            // Trocar: manter este (done=true), remover o anterior
+            D.ag=D.ag.filter(x=>x!==seen[e.id]);
+            seen[e.id]=e;
+            return true;
+        }
+        return false; // descartar duplicata
+    });
+    // Também corrigir D.tx: remover tx agendado se já existe efetivado com mesmo pgtoCard/m/y
+    const txAntes=D.tx.length;
+    const efetivados=D.tx.filter(t=>t.faturaAgendada&&t.st==='efetivado');
+    D.tx=D.tx.filter(t=>{
+        if(t.faturaAgendada&&t.st==='agendado'){
+            const jaEfet=efetivados.find(e=>e.pgtoCard===t.pgtoCard&&e.m===t.m&&e.y===t.y);
+            if(jaEfet) return false;
+        }
+        return true;
+    });
+    const removidosAg=antes-D.ag.length;
+    const removidosTx=txAntes-D.tx.length;
+    save();refresh();
+    toast(`🔧 Corrigido: ${removidosAg} evento(s) e ${removidosTx} tx duplicado(s) removidos`);
+    diagFaturas();
 }
 
 function launchAgendaTxPending(ev){

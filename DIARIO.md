@@ -235,3 +235,26 @@ Nuclear cleanup tinha: `if(t.faturaAgendada) return false` — sem verificar se 
 2. **Recriação de faturas**: antes de criar novo tx/ag, verifica se já existe `tx.faturaAgendada && st==='efetivado'` para aquele cartão/m/y — se sim, pula (não recria)
 
 ### Versão atual: v2.9.34
+
+---
+
+## v2.9.35 — Fix duplicatas de faturas + botão de correção
+
+### Problema identificado via diagnóstico
+O C6 Bank tinha dois eventos com o mesmo `id=agfat_C6_Bank_2_2026`:
+- `[1]` done=true (pago pela agenda)
+- `[2]` done=false (recriado pelo sincronizar após o pagamento)
+
+O `sincronizarFaturasEmAberto` limpava os `agfat_*` com `done=false`, mas ao recriar
+não verificava se já existia um `agfat_*` com `done=true` e mesmo id — criando duplicata.
+
+### Fixes
+1. Nuclear cleanup: guarda Set de `_agFatPagas` (ids com done=true) antes de limpar
+2. Recriação: pula se `agId` já está em `_agFatPagas`
+3. Botão **"🔧 Corrigir Duplicatas de Faturas"** na Zona de Perigo
+4. Função `corrigirDuplicatasFaturas()`: remove duplicatas de D.ag e D.tx agendados redundantes
+
+### Como usar para corrigir estado atual
+Zona de Perigo → "🔧 Corrigir Duplicatas de Faturas" → vai limpar o C6 Bank corrompido
+
+### Versão atual: v2.9.35
