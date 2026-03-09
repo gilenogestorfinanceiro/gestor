@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
+<html lang="pt-BR"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Gileno - Gestão Financeira</title>
@@ -18,7 +17,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Gileno GF">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -340,13 +339,13 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 .inv-ativo-gain{font-size:11px;font-weight:600}
 .inv-div-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
 </style>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://apis.google.com/_/scs/abc-static/_/js/k=gapi.lb.pt_BR.ONVw5yTL6qU.O/m=gapi_iframes/rt=j/sv=1/d=1/ed=1/rs=AHpOoo8bmz95RA_0Dsg9O-UeFcHPYsi-4g/cb=gapi.loaded_0?le=scs" async=""></script><script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-</head>
+<script src="https://apis.google.com/js/api.js?onload=__iframefcb275025" type="text/javascript" charset="UTF-8" gapi_processed="true"></script></head>
 <body>
 <!-- LOGIN SCREEN -->
-<div id="loginScreen" style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px">
+<div id="loginScreen" style="min-height: 100vh; display: none; align-items: center; justify-content: center; padding: 20px;">
 <div style="max-width:380px;width:100%;background:var(--surface);border-radius:var(--radius);padding:32px;border:1px solid var(--border)">
 <div style="text-align:center;margin-bottom:24px">
 <img src="data:image/jpeg;base64,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" width="120" height="120" style="margin-bottom:8px;border-radius:16px">
@@ -356,7 +355,7 @@ select.form-input{appearance:none;background-image:url("data:image/svg+xml,%3Csv
 </div>
 </div>
 <button onclick="doGoogleLogin()" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:16px;font-family:var(--font)">
-<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path></svg>
 Entrar com Google
 </button>
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px"><div style="flex:1;height:1px;background:var(--border)"></div><span style="font-size:12px;color:var(--text3)">ou</span><div style="flex:1;height:1px;background:var(--border)"></div></div>
@@ -375,18 +374,18 @@ Entrar com Google
 </div>
 </div>
 
-<div class="app" id="appContainer" style="display:none">
+<div class="app" id="appContainer" style="display: flex;">
 <header class="app-header">
 <div class="app-logo">
 <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAoACgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDwaiium8M+Go9SjN/qMhhsELd9pfaMsc9lUEZPqQBzVFHM5x1NHWvS7Txvo9hbzWuieBtLu7dSEae7QNIxPTA5Iz7k1yeqXcMEdxbxW0aSzEtJ5SjbHk525xzgcVMpWaSN6NHnjKcnZL8X0XqzAoooqzAK7Rrhf7B06CTmwW3WOVEcgyZdnxwOPmZc/wC7XF1rafrKW1obS5t/OhJOCrYIz1Hof0qJqX2TowzoJv26bXS3fz8i/dXeywZo32OluixsAA23kAe3Hfrz1rrLvxbqdn8NV0fUvKWT7MLeGJY9rJGRhQ3q2Mk+nFYmjeJPC+kI07aPc3V4q/uWlcEIex54/HBNczrGsXGtXrXE4CDJ2xr0X/E+9NRSMp1JTsnstkZ9FFFUQFFFFABRRRQAUUUUAf/Z" width="32" height="32" style="border-radius:6px">
 <span>Gileno - Gestão Financeira</span>
 </div>
 <div class="header-actions">
-<span id="headerUser" style="font-size:11px;color:var(--text3);margin-right:4px"></span>
-<button class="btn-icon" onclick="openShareModal()" title="Compartilhar com amigos" style="color:var(--green);position:relative"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
+<span id="headerUser" style="font-size:11px;color:var(--text3);margin-right:4px">👤 Gileno Paiva <span style="font-size:10px;color:var(--text3)">v2.9.36</span></span>
+<button class="btn-icon" onclick="openShareModal()" title="Compartilhar com amigos" style="color:var(--green);position:relative"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg></button>
 <button class="btn-icon" onclick="toggleTheme()" id="themeToggleBtn" title="Alternar tema claro/escuro"><span id="themeIcon">☀️</span></button>
-<button class="btn-icon" onclick="exportCSV()" title="Exportar CSV"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
-<button class="btn-icon" onclick="doLogout()" title="Sair" style="color:var(--red)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg></button>
+<button class="btn-icon" onclick="exportCSV()" title="Exportar CSV"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg></button>
+<button class="btn-icon" onclick="doLogout()" title="Sair" style="color:var(--red)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"></path></svg></button>
 </div>
 </header>
 
@@ -394,10 +393,10 @@ Entrar com Google
 
 <!-- DASHBOARD -->
 <div class="page active" id="page-dash">
-<div id="appUserHeader" style="text-align:center;margin-bottom:8px;font-size:13px;color:var(--text3)"></div>
+<div id="appUserHeader" style="text-align:center;margin-bottom:8px;font-size:13px;color:var(--text3)">👤 Gileno Paiva</div>
 <div class="month-selector">
 <button class="month-btn" onclick="chgMonth(-1)">‹</button>
-<div class="month-label" id="ml1"></div>
+<div class="month-label" id="ml1">Março 2026</div>
 <button class="month-btn" onclick="chgMonth(1)">›</button>
 </div>
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
@@ -407,40 +406,446 @@ Entrar com Google
 </button>
 </div>
 <div class="kpi-grid">
-<div class="kpi green"><div class="kpi-label">Receitas</div><div class="kpi-value kpi-val-hide" id="k1">-</div></div>
-<div class="kpi red"><div class="kpi-label">Despesas</div><div class="kpi-value kpi-val-hide" id="k2">-</div></div>
-<div class="kpi" id="kpiResult"><div class="kpi-label">Resultado</div><div class="kpi-value kpi-val-hide" id="k3">-</div></div>
-<div class="kpi orange"><div class="kpi-label">Cartões</div><div class="kpi-value kpi-val-hide" id="k4">-</div></div>
+<div class="kpi green"><div class="kpi-label">Receitas</div><div class="kpi-value kpi-val-hide" id="k1">R$ 16.958,69<div style="font-size:10px;margin-top:2px;font-weight:400">✅ R$ 10.342,69 · 🕐 R$ 6.616,00</div></div></div>
+<div class="kpi red"><div class="kpi-label">Despesas</div><div class="kpi-value kpi-val-hide" id="k2">R$ 10.586,78<div style="font-size:10px;margin-top:2px;font-weight:400">✅ R$ 7.451,23 · 🕐 R$ 8.063,52</div></div></div>
+<div class="kpi res-pos" id="kpiResult"><div class="kpi-label">Resultado</div><div class="kpi-value kpi-val-hide" id="k3">R$ 6.371,91</div></div>
+<div class="kpi orange"><div class="kpi-label">Cartões</div><div class="kpi-value kpi-val-hide" id="k4">R$ 4.927,97</div></div>
 </div>
 <div class="card">
 <div class="card-title"><div class="dot" style="background:var(--primary)"></div>Receitas vs Despesas (6 meses)</div>
-<div class="chart-bar-group" id="chartBars"></div>
+<div class="chart-bar-group" id="chartBars"><div class="chart-col"><div class="chart-bars-pair"><div class="chart-bar green" style="height:2px" title="Rec R$ 0,00"></div><div class="chart-bar red" style="height:2px" title="Desp R$ 0,00"></div></div><div class="chart-lbl">OUT/25</div></div><div class="chart-col"><div class="chart-bars-pair"><div class="chart-bar green" style="height:2px" title="Rec R$ 0,00"></div><div class="chart-bar red" style="height:2px" title="Desp R$ 0,00"></div></div><div class="chart-lbl">NOV/25</div></div><div class="chart-col"><div class="chart-bars-pair"><div class="chart-bar green" style="height:2px" title="Rec R$ 0,00"></div><div class="chart-bar red" style="height:2px" title="Desp R$ 0,00"></div></div><div class="chart-lbl">DEZ/25</div></div><div class="chart-col"><div class="chart-bars-pair"><div class="chart-bar green" style="height:2px" title="Rec R$ 0,00"></div><div class="chart-bar red" style="height:2px" title="Desp R$ 0,00"></div></div><div class="chart-lbl">JAN</div></div><div class="chart-col"><div class="chart-bars-pair"><div class="chart-bar green" style="height:110px" title="Rec R$ 20.680,84"></div><div class="chart-bar red" style="height:59.99341419400759px" title="Desp R$ 11.279,22"></div></div><div class="chart-lbl">FEV</div></div><div class="chart-col"><div class="chart-bars-pair"><div class="chart-bar green" style="height:90.20213395587413px" title="Rec R$ 16.958,69"></div><div class="chart-bar red" style="height:56.310372305960485px" title="Desp R$ 10.586,78"></div></div><div class="chart-lbl">MAR</div></div></div>
 </div>
 <div class="card">
 <div class="card-title"><div class="dot" style="background:var(--red)"></div>Despesas por Categoria</div>
 <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
-<canvas id="pieDesp" style="flex-shrink:0"></canvas>
-<div style="flex:1;min-width:200px" id="catBreakDesp"></div>
+<canvas id="pieDesp" style="flex-shrink: 0; display: block; width: 220px; height: 220px;" width="440" height="440"></canvas>
+<div style="flex:1;min-width:200px" id="catBreakDesp"><div style="margin-bottom:2px">
+            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+                <div style="width:12px;height:12px;border-radius:3px;background:#ef4444;flex-shrink:0"></div>
+                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
+                <span style="flex:1;font-size:13px;font-weight:600">Saúde</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 2.789,16</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">18%</span>
+            </div>
+            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#ef4444;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Plano de Saúde</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 1.076,99</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">39%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#ef4444;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Farmácia</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 882,27</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">32%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#ef4444;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Personal</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 725,00</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">26%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#ef4444;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Academia</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 79,90</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">3%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#ef4444;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Barbearia</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 25,00</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">1%</span>
+            </div></div>
+        </div><div style="margin-bottom:2px">
+            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+                <div style="width:12px;height:12px;border-radius:3px;background:#f97316;flex-shrink:0"></div>
+                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
+                <span style="flex:1;font-size:13px;font-weight:600">Alimentação</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 2.460,37</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">16%</span>
+            </div>
+            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#f97316;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Restaurante</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 1.713,63</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">70%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#f97316;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Padaria</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 210,55</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">9%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#f97316;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Compras Amazon</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 183,06</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">7%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#f97316;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Cafe da Manha</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 118,25</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">5%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#f97316;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Lanches</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 103,18</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">4%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#f97316;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Delivery</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 71,70</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">3%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#f97316;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Supermercado</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 60,00</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">2%</span>
+            </div></div>
+        </div><div style="margin-bottom:2px">
+            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+                <div style="width:12px;height:12px;border-radius:3px;background:#f59e0b;flex-shrink:0"></div>
+                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
+                <span style="flex:1;font-size:13px;font-weight:600">Filhos e Netos</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 2.394,91</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">15%</span>
+            </div>
+            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#f59e0b;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Leilane</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 1.204,66</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">50%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#f59e0b;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Breno</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 958,54</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">40%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#f59e0b;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Marcela</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 231,71</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">10%</span>
+            </div></div>
+        </div><div style="margin-bottom:2px">
+            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+                <div style="width:12px;height:12px;border-radius:3px;background:#84cc16;flex-shrink:0"></div>
+                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
+                <span style="flex:1;font-size:13px;font-weight:600">Investimento</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 2.106,40</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">14%</span>
+            </div>
+            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#84cc16;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Cotas Agrodel Tatiana</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 2.106,40</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">100%</span>
+            </div></div>
+        </div><div style="margin-bottom:2px">
+            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+                <div style="width:12px;height:12px;border-radius:3px;background:#10b981;flex-shrink:0"></div>
+                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
+                <span style="flex:1;font-size:13px;font-weight:600">Viagens</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 1.471,76</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">9%</span>
+            </div>
+            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#10b981;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Passagens Aereas</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 1.197,76</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">81%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#10b981;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Bancorbras</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 274,00</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">19%</span>
+            </div></div>
+        </div><div style="margin-bottom:2px">
+            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+                <div style="width:12px;height:12px;border-radius:3px;background:#06b6d4;flex-shrink:0"></div>
+                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
+                <span style="flex:1;font-size:13px;font-weight:600">Sebastiana da Silva</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 1.072,58</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">7%</span>
+            </div>
+            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#06b6d4;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Salario Mensal</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 750,00</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">70%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#06b6d4;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">INSS 2026</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 178,31</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">17%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#06b6d4;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Celular</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 98,99</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">9%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#06b6d4;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Plano Funerário</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 45,28</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">4%</span>
+            </div></div>
+        </div><div style="margin-bottom:2px">
+            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+                <div style="width:12px;height:12px;border-radius:3px;background:#6366f1;flex-shrink:0"></div>
+                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
+                <span style="flex:1;font-size:13px;font-weight:600">Despesas Porcino Costa</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 850,33</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">5%</span>
+            </div>
+            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#6366f1;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Condominio</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 750,43</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">88%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#6366f1;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Internet Brisa</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 99,90</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">12%</span>
+            </div></div>
+        </div><div style="margin-bottom:2px">
+            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+                <div style="width:12px;height:12px;border-radius:3px;background:#8b5cf6;flex-shrink:0"></div>
+                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
+                <span style="flex:1;font-size:13px;font-weight:600">Presentes</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 714,62</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">5%</span>
+            </div>
+            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#8b5cf6;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Amor</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 616,25</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">86%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#8b5cf6;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Gileno</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 65,00</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">9%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#8b5cf6;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Diversos</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 33,37</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">5%</span>
+            </div></div>
+        </div><div style="margin-bottom:2px">
+            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+                <div style="width:12px;height:12px;border-radius:3px;background:#ec4899;flex-shrink:0"></div>
+                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
+                <span style="flex:1;font-size:13px;font-weight:600">Moradia</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 500,00</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">3%</span>
+            </div>
+            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#ec4899;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Sem subcategoria</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 500,00</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">100%</span>
+            </div></div>
+        </div><div style="margin-bottom:2px">
+            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+                <div style="width:12px;height:12px;border-radius:3px;background:#e11d48;flex-shrink:0"></div>
+                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
+                <span style="flex:1;font-size:13px;font-weight:600">Seguros</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 447,06</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">3%</span>
+            </div>
+            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#e11d48;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Seguro Viagem</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 244,71</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">55%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#e11d48;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Seguro de Vida</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 128,96</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">29%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#e11d48;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Plano Funerario SEMPRE</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 73,39</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">16%</span>
+            </div></div>
+        </div><div style="margin-bottom:2px">
+            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+                <div style="width:12px;height:12px;border-radius:3px;background:#0ea5e9;flex-shrink:0"></div>
+                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
+                <span style="flex:1;font-size:13px;font-weight:600">Assinaturas</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 309,49</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">2%</span>
+            </div>
+            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#0ea5e9;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Streaming</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 269,59</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">87%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#0ea5e9;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Apps</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 39,90</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">13%</span>
+            </div></div>
+        </div><div style="margin-bottom:2px">
+            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+                <div style="width:12px;height:12px;border-radius:3px;background:#a855f7;flex-shrink:0"></div>
+                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
+                <span style="flex:1;font-size:13px;font-weight:600">Comunicação</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 222,95</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">1%</span>
+            </div>
+            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#a855f7;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Celular</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 122,96</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">55%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#a855f7;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Internet</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 99,99</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">45%</span>
+            </div></div>
+        </div><div style="margin-bottom:2px">
+            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+                <div style="width:12px;height:12px;border-radius:3px;background:#ef4444;flex-shrink:0"></div>
+                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
+                <span style="flex:1;font-size:13px;font-weight:600">Negocios</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 183,88</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">1%</span>
+            </div>
+            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#ef4444;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Hospedagem de Site</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 143,88</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">78%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#ef4444;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Registro de Dominio gilenogestão.com.br</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 40,00</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">22%</span>
+            </div></div>
+        </div><div style="margin-bottom:2px">
+            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+                <div style="width:12px;height:12px;border-radius:3px;background:#f97316;flex-shrink:0"></div>
+                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
+                <span style="flex:1;font-size:13px;font-weight:600">Educação</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 149,06</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">1%</span>
+            </div>
+            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#f97316;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Sem subcategoria</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 149,06</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">100%</span>
+            </div></div>
+        </div><div style="margin-bottom:2px">
+            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+                <div style="width:12px;height:12px;border-radius:3px;background:#f59e0b;flex-shrink:0"></div>
+                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
+                <span style="flex:1;font-size:13px;font-weight:600">Transporte</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 60,00</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">0%</span>
+            </div>
+            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#f59e0b;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Estacionamento</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 60,00</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">100%</span>
+            </div></div>
+        </div><div style="margin-bottom:2px">
+            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+                <div style="width:12px;height:12px;border-radius:3px;background:#84cc16;flex-shrink:0"></div>
+                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
+                <span style="flex:1;font-size:13px;font-weight:600">Diversão</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 40,00</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">0%</span>
+            </div>
+            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#84cc16;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Festas</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 40,00</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">100%</span>
+            </div></div>
+        </div><div style="margin-bottom:2px">
+            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+                <div style="width:12px;height:12px;border-radius:3px;background:#10b981;flex-shrink:0"></div>
+                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
+                <span style="flex:1;font-size:13px;font-weight:600">Estorno</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">-R$ 257,82</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">-2%</span>
+            </div>
+            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#10b981;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Sicredi Mossoró</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">-R$ 257,82</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">100%</span>
+            </div></div>
+        </div></div>
 </div>
-<div id="catDespTotal"></div>
+<div id="catDespTotal"><div style="display:flex;justify-content:space-between;align-items:center;padding:10px 8px;border-top:2px solid var(--border);margin-top:6px;font-weight:700"><span style="font-size:13px;color:var(--text)">📊 Total Despesas</span><span class="kpi-val-hide" style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--red)">R$ 15.514,75</span></div></div>
 <div class="empty" id="catEmpty" style="display:none"><p>Nenhuma despesa registrada</p></div>
 </div>
 <div class="card">
 <div class="card-title"><div class="dot" style="background:var(--green)"></div>Receitas por Categoria</div>
 <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
-<canvas id="pieRec" style="flex-shrink:0"></canvas>
-<div style="flex:1;min-width:200px" id="catBreakRec"></div>
+<canvas id="pieRec" style="flex-shrink: 0; display: block; width: 220px; height: 220px;" width="440" height="440"></canvas>
+<div style="flex:1;min-width:200px" id="catBreakRec"><div style="margin-bottom:2px">
+            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+                <div style="width:12px;height:12px;border-radius:3px;background:#10b981;flex-shrink:0"></div>
+                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
+                <span style="flex:1;font-size:13px;font-weight:600">Salário/Remuneração</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 10.342,69</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">61%</span>
+            </div>
+            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#10b981;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Pro Labore</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 10.342,69</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">100%</span>
+            </div></div>
+        </div><div style="margin-bottom:2px">
+            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
+                <div style="width:12px;height:12px;border-radius:3px;background:#059669;flex-shrink:0"></div>
+                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
+                <span style="flex:1;font-size:13px;font-weight:600">Aluguel</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 6.616,00</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">39%</span>
+            </div>
+            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#059669;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Otica Sol</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 2.107,00</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">32%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#059669;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Otica Limão com Mel</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 2.100,00</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">32%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#059669;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Industria Dsfrut</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 840,00</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">13%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#059669;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Predio Santos Dumont Primeiro Andar</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 810,00</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">12%</span>
+            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                <div style="width:8px;height:8px;border-radius:50%;background:#059669;opacity:0.6;flex-shrink:0"></div>
+                <span style="flex:1;font-size:12px;color:var(--text2)">Loja Dsfrut</span>
+                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 759,00</span>
+                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">11%</span>
+            </div></div>
+        </div></div>
 </div>
-<div id="catRecTotal"></div>
+<div id="catRecTotal"><div style="display:flex;justify-content:space-between;align-items:center;padding:10px 8px;border-top:2px solid var(--border);margin-top:6px;font-weight:700"><span style="font-size:13px;color:var(--text)">📊 Total Receitas</span><span class="kpi-val-hide" style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--green)">R$ 16.958,69</span></div></div>
 <div class="empty" id="catEmptyRec" style="display:none"><p>Nenhuma receita registrada</p></div>
 </div>
 <div class="card">
 <div class="card-title"><div class="dot" style="background:var(--green)"></div>Saldo das Contas</div>
-<div class="bank-list" id="bankList"></div>
+<div class="bank-list" id="bankList"><div class="bank-item"><span class="bank-name">Sicredi Mossoró</span><span class="bank-balance kpi-val-hide">R$ 16,30</span></div><div class="bank-item"><span class="bank-name">Banco do Brasil</span><span class="bank-balance kpi-val-hide">R$ 14,20</span></div><div class="bank-item"><span class="bank-name">BTG Pactual</span><span class="bank-balance kpi-val-hide">R$ 3.383,19</span></div><div class="bank-item"><span class="bank-name">C6 Bank</span><span class="bank-balance kpi-val-hide">R$ 21,94</span></div><div class="bank-item"><span class="bank-name">InfinityPay</span><span class="bank-balance kpi-val-hide">R$ 0,77</span></div><div class="bank-item"><span class="bank-name">Sicredi Solanea</span><span class="bank-balance kpi-val-hide">R$ 2,05</span></div><div class="bank-item"><span class="bank-name">XP Banco</span><span class="bank-balance kpi-val-hide">R$ 1,06</span></div><div class="bank-item"><span class="bank-name">Integralização Capital Mossoro</span><span class="bank-balance kpi-val-hide">R$ 6.912,11</span></div><div class="bank-item"><span class="bank-name">NOMAD (USA)</span><span class="bank-balance kpi-val-hide">R$ 166,60</span></div><div class="bank-item"><span class="bank-name">SICREDINVEST MOSSORO</span><span class="bank-balance kpi-val-hide">R$ 25.882,62</span></div><div class="bank-item"><span class="bank-name">C6 Banck Investimento</span><span class="bank-balance kpi-val-hide">R$ 58.080,65</span></div><div class="bank-item"><span class="bank-name">XP Banck Investimento</span><span class="bank-balance kpi-val-hide">R$ 6.714,69</span></div><div class="bank-item"><span class="bank-name">SICREDINVEST SOLANEA</span><span class="bank-balance kpi-val-hide">R$ 27.326,75</span></div><div class="bank-item"><span class="bank-name">BTG Pactual OCTO</span><span class="bank-balance kpi-val-hide">R$ 77.049,95</span></div><div class="bank-item"><span class="bank-name">BTG Pactual OCTO/Internacional</span><span class="bank-balance kpi-val-hide">R$ 10,64</span></div><div class="bank-item"><span class="bank-name">Integralização Capital Solanea</span><span class="bank-balance kpi-val-hide">R$ 620,00</span></div><div class="bank-item"><span class="bank-name">CONTA EMPRESTIMOS</span><span class="bank-balance kpi-val-hide">R$ 80.558,13</span></div><div class="bank-item"><span class="bank-name">Investimentos BRINCANTO</span><span class="bank-balance kpi-val-hide">R$ 50.000,00</span></div><div class="bank-item"><span class="bank-name">Investimentos COTAS VERUSCHKA</span><span class="bank-balance kpi-val-hide">R$ 10.000,00</span></div><div class="bank-item"><span class="bank-name">Investimentos COTAS TATIANA</span><span class="bank-balance kpi-val-hide">R$ 20.000,00</span></div><div class="bank-item" style="border-top:2px solid var(--border);margin-top:6px;padding-top:8px;font-weight:700"><span class="bank-name">💰 Total das Contas</span><span class="kpi-val-hide" style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--green)">R$ 366.761,65</span></div></div>
 </div>
 <div class="card" id="dashAgendaCard">
 <div class="card-title" style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;align-items:center;gap:8px"><div class="dot" style="background:var(--purple)"></div>Próximos Compromissos</div><button onclick="goPage('agenda')" style="background:none;border:none;color:var(--primary);font-size:11px;cursor:pointer;font-family:var(--font)">Ver todos →</button></div>
-<div id="dashAgendaList"></div>
+<div id="dashAgendaList"><div style="padding:8px 12px;background:var(--red-bg);border-radius:var(--radius-sm);margin-bottom:8px;font-size:12px;color:var(--red);cursor:pointer" onclick="goPage('agenda')">⚠️ 5 compromissos vencidos</div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="goPage('agenda')"><div style="width:4px;height:38px;border-radius:2px;background:#10b981;flex-shrink:0"></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🔔 Reunião sobre Tributação</div><div style="font-size:11px;color:var(--text3)">10/03 às 18:45 · nenhum</div></div></div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="goPage('agenda')"><div style="width:4px;height:38px;border-radius:2px;background:#3b82f6;flex-shrink:0"></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">💰 Aluguel Loja Dsfrut MARÇO 2026 - R$ 1.518,00 (L)</div><div style="font-size:11px;color:var(--text3)">10/03 · conta</div></div><div class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--green);white-space:nowrap;text-align:right">R$ 759,00</div></div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="goPage('agenda')"><div style="width:4px;height:38px;border-radius:2px;background:#ef4444;flex-shrink:0"></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">💸 Conta Celular CLARO Gileno</div><div style="font-size:11px;color:var(--text3)">10/03 às 08:00 · conta</div></div><div class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--red);white-space:nowrap;text-align:right">− R$ 122,96</div></div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="goPage('agenda')"><div style="width:4px;height:38px;border-radius:2px;background:#ef4444;flex-shrink:0"></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">💸 Conta Celular CLARO Breno</div><div style="font-size:11px;color:var(--text3)">10/03 às 08:00 · conta</div></div><div class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--red);white-space:nowrap;text-align:right">− R$ 100,00</div></div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="goPage('agenda')"><div style="width:4px;height:38px;border-radius:2px;background:#ef4444;flex-shrink:0"></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">💸 Conta Celular CLARO Leila</div><div style="font-size:11px;color:var(--text3)">10/03 às 08:00 · conta</div></div><div class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--red);white-space:nowrap;text-align:right">− R$ 100,00</div></div></div>
 <div id="dashAgendaEmpty" style="display:none;text-align:center;padding:12px;color:var(--text3);font-size:12px">📅 Nenhum compromisso próximo</div>
 </div>
 </div>
@@ -449,7 +854,7 @@ Entrar com Google
 <div class="page" id="page-ext">
 <div class="month-selector">
 <button class="month-btn" onclick="chgMonth(-1)">‹</button>
-<div class="month-label" id="ml2"></div>
+<div class="month-label" id="ml2">Março 2026</div>
 <button class="month-btn" onclick="chgMonth(1)">›</button>
 </div>
 <div class="toggle-tabs">
@@ -517,7 +922,7 @@ Entrar com Google
 <option value="dias">Dia(s)</option>
 <option value="semanas">Semana(s)</option>
 <option value="quinzenas">Quinzena(s)</option>
-<option value="meses" selected>Mês(es)</option>
+<option value="meses" selected="">Mês(es)</option>
 </select></div></div>
 <div class="form-group"><label class="form-label">Repetições</label><input type="number" class="form-input" id="fRecQtd" value="12" min="2" max="365" oninput="calcContaRec()"></div>
 </div>
@@ -589,7 +994,7 @@ Entrar com Google
 <!-- Month selector -->
 <div class="month-selector">
 <button class="month-btn" onclick="chgMonth(-1)">‹</button>
-<div class="month-label"></div>
+<div class="month-label">Março 2026</div>
 <button class="month-btn" onclick="chgMonth(1)">›</button>
 </div>
 
@@ -625,7 +1030,7 @@ Entrar com Google
 <div class="page" id="page-card">
 <div class="month-selector">
 <button class="month-btn" onclick="chgMonth(-1)">‹</button>
-<div class="month-label" id="ml3"></div>
+<div class="month-label" id="ml3">Março 2026</div>
 <button class="month-btn" onclick="chgMonth(1)">›</button>
 </div>
 <div class="kpi-grid" style="grid-template-columns:1fr">
@@ -633,7 +1038,7 @@ Entrar com Google
 </div>
 <div class="card-summary" id="cardSum"></div>
 <div style="display:flex;gap:8px;margin-top:16px">
-<button class="btn btn-primary" style="flex:2" onclick="addFromCard=true;goPage('add');setAddType('Despesa',document.querySelector('#addTabs .t-red'));setTimeout(()=>setDestino('cartao',document.querySelector('#destinoTabs .toggle-tab:last-child')),100)">+ Nova Compra</button>
+<button class="btn btn-primary" style="flex:2" onclick="addFromCard=true;goPage('add');setAddType('Despesa',document.querySelector('#addTabs .t-red'));setTimeout(()=&gt;setDestino('cartao',document.querySelector('#destinoTabs .toggle-tab:last-child')),100)">+ Nova Compra</button>
 <button class="btn btn-outline" style="flex:1;color:var(--green);border-color:var(--green)" onclick="openEstornoModal()">↩ Estorno</button>
 </div>
 </div>
@@ -675,7 +1080,7 @@ Entrar com Google
 <input type="file" id="impFile" accept=".json" style="display:none" onchange="importJSON(event)">
 <p style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center">Dados salvos automaticamente no navegador (localStorage)</p>
 </div>
-<div class="card" id="cfgBrapiCard" style="display:none">
+<div class="card" id="cfgBrapiCard" style="display: block;">
 <div class="card-title"><div class="dot" style="background:var(--green)"></div>API de Cotações (Investimentos)</div>
 <p style="font-size:12px;color:var(--text3);margin-bottom:8px">Para ver cotações de ações e Ibovespa, cadastre-se grátis em <a href="https://brapi.dev" target="_blank" style="color:var(--blue)">brapi.dev</a> e cole seu token aqui:</p>
 <div style="display:flex;gap:8px">
@@ -685,11 +1090,17 @@ Entrar com Google
 <p id="cfgBrapiStatus" style="font-size:11px;color:var(--text3);margin-top:6px"></p>
 </div>
 <div class="card">
+<div class="card-title"><div class="dot" style="background:var(--blue)"></div>Backup e Restauração</div>
+<button class="btn btn-primary btn-sm" onclick="runManualBackup()" style="margin-bottom:6px">💾 Fazer Backup Manual Agora</button>
+<button class="btn btn-outline btn-sm" onclick="restoreAutoBackup()">🔄 Restaurar Último Backup Automático</button>
+<p style="font-size:11px;color:var(--text3);margin-top:8px">Backup automático a cada 2h salva seus dados no Firestore.<br>Use "Restaurar" para recuperar dados em caso de problemas.</p>
+</div>
+<div class="card">
 <div class="card-title"><div class="dot" style="background:var(--red)"></div>Zona de Perigo</div>
-<button class="btn btn-red btn-sm" onclick="if(confirm('⚠️ Apagar TODOS os dados? Não pode ser desfeito!')) clearAll()">🗑️ Limpar Todos os Dados</button>
+<button class="btn btn-red btn-sm" onclick="if(confirm('⚠️ Apagar TODOS os dados? Não pode ser desfeito!'))if(confirm('⚠️ SEGUNDA CONFIRMAÇÃO: Tem absoluta certeza? Todos os lançamentos serão perdidos!'))clearAll()">🗑️ Limpar Todos os Dados</button>
 <button class="btn btn-outline btn-sm" style="margin-top:6px" onclick="diagFaturas()">🔍 Diagnóstico Faturas Agenda</button>
 <pre id="diagOut" style="font-size:10px;color:var(--text3);margin-top:8px;white-space:pre-wrap;max-height:300px;overflow-y:auto;display:none"></pre>
-<button class="btn btn-outline btn-sm" style="margin-top:6px;background:rgba(239,68,68,0.1);color:var(--red);border-color:rgba(239,68,68,0.3)" onclick="limparFaturasLegadas()">🧹 Limpar Faturas Legadas (FORÇA)</button>
+<button class="btn btn-outline btn-sm" style="margin-top:6px;background:rgba(239,68,68,0.1);color:var(--red);border-color:rgba(239,68,68,0.3)" onclick="if(confirm('⚠️ Limpar faturas legadas? Isso remove eventos antigos de fatura da agenda.'))if(confirm('⚠️ SEGUNDA CONFIRMAÇÃO: Confirma a limpeza?'))limparFaturasLegadas()">🧹 Limpar Faturas Legadas</button>
 </div>
 <div class="card">
 <div class="card-title"><div class="dot" style="background:var(--text3)"></div>Legal</div>
@@ -883,35 +1294,35 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.31
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.36
 </div>
 
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
 <button class="nav-item active" data-page="dash" onclick="goPage('dash',this)">
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg>
 Painel
 </button>
 <button class="nav-item" data-page="ext" onclick="goPage('ext',this)">
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><polyline points="14,2 14,8 20,8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
 Extrato
 </button>
 <button class="nav-item" data-page="add" onclick="goPage('add',this)">
 <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--purple));display:flex;align-items:center;justify-content:center;margin-top:-18px;box-shadow:0 4px 16px rgba(59,130,246,0.4)">
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M12 5v14M5 12h14"></path></svg>
 </div>
 <span style="margin-top:2px">Novo</span>
 </button>
 <button class="nav-item" data-page="agenda" onclick="goPage('agenda',this)">
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="12" cy="16" r="1"/></svg>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><circle cx="12" cy="16" r="1"></circle></svg>
 Agenda
 </button>
 <button class="nav-item" data-page="card" onclick="goPage('card',this)">
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
 Cartões
 </button>
 <button class="nav-item" data-page="cfg" onclick="toggleMaisMenu(event,this)">
-<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
 Mais
 </button>
 </nav>
@@ -922,7 +1333,7 @@ Mais
 <button onclick="closeMaisMenu();goPage('invest')" style="width:100%;padding:14px 16px;background:none;border:none;color:var(--text);font-size:14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;font-family:var(--font);border-top:1px solid var(--border)">📈 Investimentos</button>
 <button onclick="closeMaisMenu();goPage('sobre')" style="width:100%;padding:14px 16px;background:none;border:none;color:var(--text);font-size:14px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px;font-family:var(--font);border-top:1px solid var(--border)">🏢 Sobre nós</button>
 </div>
-</nav>
+
 </div>
 
 <!-- PAY FATURA MODAL -->
@@ -1128,16 +1539,53 @@ async function runAutoBackup(){
         const lastBk=bkSnap.exists&&bkSnap.data().timestamp?bkSnap.data().timestamp.toDate():null;
         const now=new Date();
         if(!lastBk||now-lastBk>7200000){
-            const src=document.documentElement.outerHTML;
+            const src=JSON.stringify(D); // ✅ FIX v2.9.36: salva dados D, não HTML
             const chunks=[];const chunkSize=900000;
             for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
-            const verMatch=src.match(/[·]\s*v([\d.]+)/);
-            const version=verMatch?'v'+verMatch[1]:'v2.7';
-            await bkRef.set({version:version,timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'auto'});
+            const version='v2.9.36';
+            await bkRef.set({version:version,timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'auto',uid:currentUid||''});
             for(let i=0;i<chunks.length;i++)await db.collection('backups').doc('backup_auto_chunk_'+i).set({data:chunks[i],index:i});
             console.log('✅ Backup automático salvo ('+chunks.length+' chunks, '+Math.round(src.length/1024)+'KB)');
         }else{console.log('⏭️ Backup automático: próximo em '+Math.round((7200000-(now-lastBk))/60000)+' min')}
     }catch(e){console.log('Backup auto erro:',e)}
+}
+
+async function restoreAutoBackup(){
+    if(!confirm('⚠️ Restaurar backup automático?\n\nIsso vai SUBSTITUIR todos os dados atuais pelos dados do último backup automático.\n\nTem certeza?'))return;
+    try{
+        toast('🔄 Restaurando backup...');
+        const bkRef=db.collection('backups').doc('backup_auto');
+        const bkSnap=await bkRef.get();
+        if(!bkSnap.exists){toast('❌ Nenhum backup automático encontrado');return;}
+        const meta=bkSnap.data();
+        const totalChunks=meta.totalChunks||1;
+        let src='';
+        for(let i=0;i<totalChunks;i++){
+            const chunkSnap=await db.collection('backups').doc('backup_auto_chunk_'+i).get();
+            if(!chunkSnap.exists){toast('❌ Chunk '+i+' não encontrado');return;}
+            src+=chunkSnap.data().data;
+        }
+        let restored;
+        try{restored=JSON.parse(src);}catch(e){toast('❌ Backup corrompido — não é JSON válido');return;}
+        if(!restored||typeof restored!=='object'){toast('❌ Dados inválidos no backup');return;}
+        Object.assign(D,restored);
+        await saveImmediate();
+        toast('✅ Backup restaurado! ('+meta.version+' — '+new Date(meta.timestamp.seconds*1000).toLocaleString('pt-BR')+')');
+        setTimeout(()=>location.reload(),1500);
+    }catch(e){console.error(e);toast('❌ Erro ao restaurar: '+e.message)}
+}
+
+async function runManualBackup(){
+    try{
+        toast('💾 Salvando backup manual...');
+        const src=JSON.stringify(D); // ✅ salva dados D
+        const chunks=[];const chunkSize=900000;
+        for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
+        const bkRef=db.collection('backups').doc('backup_manual');
+        await bkRef.set({version:'v2.9.36',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'manual',uid:currentUid||''});
+        for(let i=0;i<chunks.length;i++)await db.collection('backups').doc('backup_manual_chunk_'+i).set({data:chunks[i],index:i});
+        toast('✅ Backup manual salvo! ('+Math.round(src.length/1024)+'KB)');
+    }catch(e){toast('❌ Erro no backup manual: '+e.message)}
 }
 
 // ===== SHARE =====
@@ -4090,17 +4538,17 @@ function selectAgDay(dateStr){
 
 <div style="display:flex;flex-direction:column;gap:10px">
 <button onclick="shareWhatsApp()" style="width:100%;padding:14px;background:#25D366;border:none;border-radius:12px;color:#fff;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px">
-<svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"></path></svg>
 Enviar no WhatsApp
 </button>
 
 <button onclick="shareNative()" id="shareNativeBtn" style="width:100%;padding:14px;background:var(--primary);border:none;border-radius:12px;color:#fff;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px">
-<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"></path></svg>
 Compartilhar...
 </button>
 
 <button onclick="copyShareLink()" style="width:100%;padding:14px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px">
-<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg>
 Copiar link
 </button>
 </div>
@@ -4115,7 +4563,7 @@ Copiar link
 <div style="max-width:600px;margin:20px auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
 <h2 style="font-size:18px;font-weight:700;color:var(--text)">🔒 Política de Privacidade e Segurança</h2>
-<button onclick="closeLgpd()" style="background:none;border:none;color:var(--text3);font-size:24px;cursor:pointer">&times;</button>
+<button onclick="closeLgpd()" style="background:none;border:none;color:var(--text3);font-size:24px;cursor:pointer">×</button>
 </div>
 <div style="font-size:13px;color:var(--text2);line-height:1.8">
 
@@ -4152,7 +4600,7 @@ Copiar link
 
 <h3 style="color:var(--text);font-size:14px;margin:16px 0 8px">7. Responsável pelo Tratamento</h3>
 <p style="margin-bottom:4px"><strong style="color:var(--text)">Controlador:</strong> Gileno Paiva Lima</p>
-<p style="margin-bottom:12px"><strong style="color:var(--text)">Contato:</strong> <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6e0907020b00011e0f07180f0207030f2e09030f0702400d0103">[email&#160;protected]</a></p>
+<p style="margin-bottom:12px"><strong style="color:var(--text)">Contato:</strong> <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6e0907020b00011e0f07180f0207030f2e09030f0702400d0103">[email&nbsp;protected]</a></p>
 
 <h3 style="color:var(--text);font-size:14px;margin:16px 0 8px">8. Alterações nesta Política</h3>
 <p style="margin-bottom:12px">Esta política pode ser atualizada periodicamente. Eventuais alterações serão comunicadas através do próprio aplicativo.</p>
@@ -4233,5 +4681,6 @@ Copiar link
 </div>
 </div>
 </div>
-</body>
-</html>
+
+
+<iframe ng-non-bindable="" frameborder="0" hspace="0" marginheight="0" marginwidth="0" scrolling="no" tabindex="-1" vspace="0" width="100%" aria-hidden="true" id="I0_1773079121407" name="I0_1773079121407" src="https://gestor-financeiro-pessoa-90a13.firebaseapp.com/__/auth/iframe?apiKey=AIzaSyDNq64Kqr2kt1baYlgPduSo5LbTsfdxdWQ&amp;appName=%5BDEFAULT%5D&amp;v=10.12.0&amp;eid=p&amp;usegapi=1&amp;jsh=m%3B%2F_%2Fscs%2Fabc-static%2F_%2Fjs%2Fk%3Dgapi.lb.pt_BR.ONVw5yTL6qU.O%2Fd%3D1%2Frs%3DAHpOoo8bmz95RA_0Dsg9O-UeFcHPYsi-4g%2Fm%3D__features__#id=I0_1773079121407&amp;_gfid=I0_1773079121407&amp;parent=https%3A%2F%2Fgilenogestorfinanceiro.github.io&amp;pfname=&amp;rpctoken=18214668" style="position: absolute; top: -100px; width: 1px; height: 1px;"></iframe></body></html>
