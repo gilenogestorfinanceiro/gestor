@@ -632,7 +632,10 @@ Entrar com Google
 <div class="kpi red"><div class="kpi-label">Total Faturas do Mês</div><div class="kpi-value" id="kCard">-</div></div>
 </div>
 <div class="card-summary" id="cardSum"></div>
-<button class="btn btn-primary" style="margin-top:16px" onclick="goPage('add');setAddType('Despesa',document.querySelector('#addTabs .t-red'));setTimeout(()=>setDestino('cartao',document.querySelector('#destinoTabs .toggle-tab:last-child')),100)">+ Nova Compra no Cartão</button>
+<div style="display:flex;gap:8px;margin-top:16px">
+<button class="btn btn-primary" style="flex:2" onclick="addFromCard=true;goPage('add');setAddType('Despesa',document.querySelector('#addTabs .t-red'));setTimeout(()=>setDestino('cartao',document.querySelector('#destinoTabs .toggle-tab:last-child')),100)">+ Nova Compra</button>
+<button class="btn btn-outline" style="flex:1;color:var(--green);border-color:var(--green)" onclick="openEstornoModal()">↩ Estorno</button>
+</div>
 </div>
 
 <!-- CONFIG -->
@@ -880,7 +883,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.30
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.31
 </div>
 
 <!-- BOTTOM NAV -->
@@ -937,6 +940,26 @@ Mais
 <div style="display:flex;gap:8px;margin-top:16px">
 <button class="btn btn-outline" onclick="closePayModal()" style="flex:1">Cancelar</button>
 <button class="btn btn-green" onclick="confirmPayFatura()" style="flex:2">✅ Confirmar Pagamento</button>
+</div>
+</div>
+</div>
+
+<!-- ESTORNO MODAL -->
+<div class="modal-overlay" id="estornoModal" onclick="if(event.target===this)closeEstornoModal()">
+<div class="modal">
+<div class="modal-handle"></div>
+<div class="modal-title">↩ Lançar Estorno</div>
+<div style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px;margin-bottom:14px;font-size:13px;color:var(--text2)">
+O estorno será lançado como crédito na fatura do mês selecionado, abatendo o valor total.
+</div>
+<div class="form-group"><label class="form-label">Cartão</label><select class="form-input" id="estornoCard"></select></div>
+<div class="form-group"><label class="form-label">Descrição do estorno</label><input type="text" class="form-input" id="estornoDesc" placeholder="Ex: Estorno Shopee — pedido cancelado"></div>
+<div class="form-group"><label class="form-label">Valor do estorno (R$)</label><input type="number" class="form-input" id="estornoVal" placeholder="0,00" min="0.01" step="0.01"></div>
+<div class="form-group"><label class="form-label">Data do estorno</label><input type="date" class="form-input" id="estornoDt"></div>
+<div class="form-group"><label class="form-label">Mês da fatura</label><select class="form-input" id="estornoMes"></select></div>
+<div style="display:flex;gap:8px;margin-top:16px">
+<button class="btn btn-outline" onclick="closeEstornoModal()" style="flex:1">Cancelar</button>
+<button class="btn btn-green" onclick="confirmEstorno()" style="flex:2">↩ Confirmar Estorno</button>
 </div>
 </div>
 </div>
@@ -1683,9 +1706,10 @@ function renderExtItem(t){
         return`<div class="tx-item" style="opacity:${opacity}"><div class="tx-icon ${iconClass}" style="cursor:pointer" onclick="${isTransf?'':`toggleTxStatus('${t.id}')`}" title="${isTransf?'Transferência':'Toque para alternar status'}">${iconChar}</div><div class="tx-info" style="cursor:pointer" onclick="editItem('tx','${t.id}')"><div class="tx-desc">${t.desc}${stBadge}</div><div class="tx-meta">${metaInfo} <span style="font-size:9px;color:var(--primary)">✏️</span></div></div><div class="tx-amount ${amtClass}" style="${isTransf?'color:var(--primary)':''}">${amtSign}${fmt(t.v).replace('R$ ','').replace('-R$ ','')}</div><button class="tx-del" onclick="delTx('${t.id}')">&times;</button></div>`;
     } else {
         const isPaga=t.st==='paga';
-        const stBadge=isPaga?`<span style="font-size:10px;background:var(--green-bg);color:var(--green);padding:2px 6px;border-radius:4px;margin-left:4px">✅ Paga</span>`:`<span style="font-size:10px;background:var(--red-bg);color:var(--red);padding:2px 6px;border-radius:4px;margin-left:4px">🔴 Aberta</span>`;
-        const opacity=isPaga?'0.6':'1';
-        return`<div class="tx-item" style="opacity:${opacity}"><div class="tx-icon card-icon">💳</div><div class="tx-info" style="cursor:pointer" onclick="editItem('cp','${t.id}')"><div class="tx-desc">${t.desc}${stBadge}</div><div class="tx-meta">${dt} · ${t.card}${t.parc?' · '+t.parc:''} · ${t.cat}${subLabel} <span style="font-size:9px;color:var(--primary)">✏️</span></div></div><div class="tx-amount negative">−${fmt(t.v).replace('R$ ','').replace('-R$ ','')}</div><button class="tx-del" onclick="delCardExt('${t.id}')">✕</button></div>`;
+        const isEst=t.estorno===true;
+        const stBadge=isEst?`<span style="font-size:10px;background:var(--green-bg);color:var(--green);padding:2px 6px;border-radius:4px;margin-left:4px">↩ Estorno</span>`:isPaga?`<span style="font-size:10px;background:var(--green-bg);color:var(--green);padding:2px 6px;border-radius:4px;margin-left:4px">✅ Paga</span>`:`<span style="font-size:10px;background:var(--red-bg);color:var(--red);padding:2px 6px;border-radius:4px;margin-left:4px">🔴 Aberta</span>`;
+        const opacity=(isPaga&&!isEst)?'0.6':'1';
+        return`<div class="tx-item" style="opacity:${opacity}"><div class="tx-icon card-icon">💳</div><div class="tx-info" style="cursor:pointer" onclick="editItem('cp','${t.id}')"><div class="tx-desc">${t.desc}${stBadge}</div><div class="tx-meta">${dt} · ${t.card}${t.parc?' · '+t.parc:''} · ${t.cat}${subLabel} <span style="font-size:9px;color:var(--primary)">✏️</span></div></div><div class="tx-amount ${isEst?'positive':'negative'}">${isEst?'+'+fmt(Math.abs(t.v)):'−'+fmt(Math.abs(t.v)).replace('R$ ','')}</div><button class="tx-del" onclick="delCardExt('${t.id}')">✕</button></div>`;
     }
 }
 
@@ -2681,6 +2705,40 @@ function payFatura(card){
     $('payModal').classList.add('show');
 }
 
+
+// -- ESTORNO --
+function openEstornoModal(){
+    const sel=$('estornoCard');sel.innerHTML='';
+    getCartoes().forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);});
+    const mSel=$('estornoMes');mSel.innerHTML='';
+    for(let d=-2;d<=2;d++){
+        let m=cMonth+d,y=cYear;
+        while(m<0){m+=12;y--;}while(m>11){m-=12;y++;}
+        const o=document.createElement('option');
+        o.value=m+'|'+y;o.textContent=MN[m]+' '+y;
+        if(d===0)o.selected=true;
+        mSel.appendChild(o);
+    }
+    $('estornoDt').value=new Date().toISOString().split('T')[0];
+    $('estornoDesc').value='';$('estornoVal').value='';
+    $('estornoModal').classList.add('show');
+}
+function closeEstornoModal(){$('estornoModal').classList.remove('show')}
+function confirmEstorno(){
+    const card=$('estornoCard').value;
+    const desc=$('estornoDesc').value.trim();
+    const val=parseFloat($('estornoVal').value);
+    const dt=$('estornoDt').value;
+    const [m,y]=$('estornoMes').value.split('|').map(Number);
+    if(!desc){toast('Informe a descrição do estorno',true);return;}
+    if(!val||val<=0){toast('Informe um valor válido',true);return;}
+    if(!dt){toast('Informe a data do estorno',true);return;}
+    D.cp.push({id:uid(),dt,m,y,card,desc:'↩ '+desc,v:-val,tipo:'Estorno',parc:'',cat:'Estorno',sub:'',st:'aberta',estorno:true});
+    sincronizarFaturasEmAberto();
+    save();closeEstornoModal();rCard();
+    toast('↩ Estorno de '+fmt(val)+' lançado em '+MN[m]+' '+y);
+}
+
 function closePayModal(){$('payModal').classList.remove('show')}
 
 function confirmPayFatura(){
@@ -2760,8 +2818,9 @@ function showCardDetail(card){
             const dt=c.dt?new Date(c.dt+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'}):'';
             const catLabel=c.cat?` · ${c.cat}`:'';
             const subLabel=c.sub?' › '+c.sub:'';
-            const stBadge=c.st==='paga'?'<span style="font-size:9px;background:var(--green-bg);color:var(--green);padding:1px 5px;border-radius:3px;margin-left:4px">✅</span>':'';
-            return`<div class="tx-item"><div class="tx-icon card-icon">💳</div><div class="tx-info" style="cursor:pointer" onclick="closeDetailModal();editItem('cp','${c.id}')"><div class="tx-desc">${c.desc}${stBadge}</div><div class="tx-meta">${dt} · ${c.tipo}${c.parc?' · '+c.parc:''}${catLabel}${subLabel} <span style="font-size:9px;color:var(--primary)">✏️</span></div></div><div class="tx-amount negative">${fmt(c.v)}</div><button class="tx-del" onclick="delCard('${c.id}');showCardDetail('${card}')">✕</button></div>`;
+            const isEst=c.estorno===true;
+            const stBadge=isEst?'<span style="font-size:9px;background:var(--green-bg);color:var(--green);padding:1px 5px;border-radius:3px;margin-left:4px">↩ Estorno</span>':c.st==='paga'?'<span style="font-size:9px;background:var(--green-bg);color:var(--green);padding:1px 5px;border-radius:3px;margin-left:4px">✅</span>':'';
+            return`<div class="tx-item"><div class="tx-icon card-icon">💳</div><div class="tx-info" style="cursor:pointer" onclick="closeDetailModal();editItem('cp','${c.id}')"><div class="tx-desc">${c.desc}${stBadge}</div><div class="tx-meta">${dt} · ${c.tipo}${c.parc?' · '+c.parc:''}${catLabel}${subLabel} <span style="font-size:9px;color:var(--primary)">✏️</span></div></div><div class="tx-amount ${isEst?'positive':'negative'}">${isEst?'+'+fmt(Math.abs(c.v)):fmt(Math.abs(c.v))}</div><button class="tx-del" onclick="delCard('${c.id}');showCardDetail('${card}')">✕</button></div>`;
         }).join('')+`<div style="text-align:right;margin-top:12px;font-family:var(--mono);font-size:16px;font-weight:700;color:var(--red)">Total: ${fmt(total)}</div>`;
     }
     $('detailModal').classList.add('show');

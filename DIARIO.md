@@ -1,6 +1,42 @@
 # Diário de Bordo — Gileno Gestão Financeira
-**Última atualização:** 07/03/2026  
-**Versão atual:** v2.9.14
+**Última atualização:** 09/03/2026  
+**Versão atual:** v2.9.31
+
+---
+
+## ⚡ PROTOCOLO DE INÍCIO DE SESSÃO (OBRIGATÓRIO)
+
+> **Toda sessão começa aqui.** Antes de qualquer desenvolvimento, rodar o checklist abaixo no arquivo recebido.
+
+```bash
+for token in 'estornoModal' 'openEstornoModal' 'sincronizarFaturasEmAberto' 'isFaturaEvent' 'agFaturaMes' 'rExtConta' 'rExtBank' 'autoBackup' 'confirmAgModal' 'openConfirmAg'; do
+  [ $(grep -c "$token" index.html) -gt 0 ] && echo "✅ $token" || echo "❌ PERDIDO: $token"
+done
+```
+
+Se qualquer linha retornar ❌, **parar tudo** e reintegrar a feature antes de continuar.
+
+---
+
+## ✅ Checklist de Features Críticas
+
+| Feature | Token de verificação | Desde |
+|---------|---------------------|-------|
+| ↩ Estorno no Cartão | `id="estornoModal"` | v2.9.4 |
+| ↩ Estorno funções JS | `function openEstornoModal()` | v2.9.4 |
+| ↩ Estorno valor verde | `isEst?'positive':'negative'` | v2.9.31 |
+| Faturas na Agenda (sync) | `function sincronizarFaturasEmAberto()` | v2.9.x |
+| Faturas flag isFaturaEvent | `isFaturaEvent` | v2.9.x |
+| Faturas flag faturaAgendada | `faturaAgendada` | v2.9.x |
+| Mês da fatura na agenda | `id="agFaturaMes"` | v2.9.23 |
+| setAgDestino meses | `function setAgDestino(` | v2.9.23 |
+| Confirmação agenda modal | `id="confirmAgModal"` | v2.9.x |
+| Confirmação agenda função | `function openConfirmAg(` | v2.9.x |
+| Extrato por conta | `function rExtConta(` | v2.9.x |
+| Extrato estilo banco | `function rExtBank(` | v2.9.x |
+| Backup automático | `function autoBackup(` | v2.9.x |
+| Agendados criam evento agenda | `ag_tx_` | v2.9.30 |
+| Efetivar marca agenda done | `agEv.done=true` | v2.9.30 |
 
 ---
 
@@ -9,504 +45,122 @@
 - **Repositório:** gilenogestorfinanceiro.github.io
 - **Firebase projeto:** gestor-financeiro-pessoa-90a13
 - **authDomain:** gestor-financeiro-pessoa-90a13.firebaseapp.com (NUNCA alterar)
-- **Login:** `signInWithPopup` simples — funciona no Mac e iPhone
+- **Login:** `signInWithPopup` — funciona no Mac e iPhone
 
 ---
 
 ## Funcionalidades implementadas (acumulado)
 
 - Faturas na agenda automáticas ao abrir o app (`sincronizarFaturasEmAberto`)
-- Fatura aparece no extrato da conta como **agendado** (tx com `faturaAgendada:true`)
+- Fatura aparece no extrato da conta como **agendado** (`faturaAgendada:true`)
 - Pagar fatura pela agenda com um clique (abre `payFatura` direto)
-- Confirmar qualquer compromisso pela bolinha com modal
-- Trocar conta de um lançamento
-- Instruções visuais nos cards da agenda
-- Backup automático (2h) + manual via painel admin
-- Compartilhamento social no header
-- Estorno de cartão de crédito (`↩ Estorno`, `v` negativo, `estorno:true`)
+- Confirmar qualquer compromisso pela bolinha com modal de conta + data
+- **↩ Estorno** de cartão de crédito (valor negativo em `D.cp`, aparece em verde)
+- Trocar conta de um lançamento no modal de edição
+- Instruções visuais nos cards da agenda (○ bolinha = confirmar / ✏️ = editar)
+- Backup automático (2h) + manual via painel admin (chunks ~900KB)
+- Compartilhamento social no header (WhatsApp, nativo, copiar link)
 - Edição de recorrentes/parcelados: "Somente este / Este e os próximos"
 - Login Google funcionando no Safari iOS (fix na 404.html)
+- Lançamento de cartão pelo mês da fatura com seletor inteligente
+- Lançamentos agendados pelo botão + criam evento na agenda automaticamente
+- Efetivar tx marca evento de agenda como done (e vice-versa)
+- Painel: total das contas + total despesas/receitas por categoria
+- Gráfico pizza: paleta de cores com máximo contraste + clearRect correto
+- Extrato da conta: valor do tx agendado de fatura sempre atualizado após novo lançamento
+
+---
+
+## Arquitetura — Objetos principais
+
+```js
+// D.cp — compra de cartão
+{ id, dt, card, desc, v, tipo, parc, cat, sub, m, y,
+  st:'aberta'|'paga', paidDt?, paidConta?,
+  estorno?:true  // ← estorno tem v negativo
+}
+
+// D.tx — lançamento em conta
+{ id, dt, m, y, desc, v, tp, banco, cat, sub, st,
+  pgtoFatura?, pgtoCard?,   // ← pagamento de fatura
+  faturaAgendada?,          // ← tx agendado criado pelo sincronizar
+  transf?, transfId?, transfOrigem?, transfDestino?
+}
+
+// D.ag — evento de agenda
+{ id, title, date, time, type, valor, destino, banco, cartao,
+  faturaMes?,    // ← mês da fatura (formato "m_y")
+  isFaturaEvent?,txId?,
+  done, color, repeat, notes
+}
+
+// D.ca — mapeamento cartão → conta que paga
+// D.ca['C6 Bank'] = 'BTG Pactual'
+
+// D.bs — saldos iniciais por conta (NUNCA manipular diretamente)
+// bankBal() calcula dinamicamente — NUNCA alterar D.bs direto
+```
+
+---
+
+## Regras críticas de desenvolvimento
+
+1. **NUNCA manipular `D.bs` diretamente** — saldo é calculado por `bankBal()`
+2. **SEMPRE usar `str_replace`** para editar o arquivo — Python com write completo causa truncamento
+3. **SEMPRE entregar os 3 arquivos juntos**: `index.html` + `sw.js` + `DIARIO.md`
+4. **Cache-busting**: acessar com `?v=XXXX` após subir nova versão
+5. **Recuperação via curl**: `curl -o index.html https://raw.githubusercontent.com/gilenogestorfinanceiro/gestor/main/index.html` — rodar checklist logo depois
+6. **`saveImmediate()`** para saves críticos (sem debounce) — `save()` tem delay
+7. **authDomain NUNCA muda**: `gestor-financeiro-pessoa-90a13.firebaseapp.com`
 
 ---
 
 ## Arquivos no repositório
+
 | Arquivo | Descrição |
 |---------|-----------|
-| `index.html` | App principal v2.9.14 |
-| `sw.js` | Service Worker v2.9.14 |
-| `404.html` | Página de atualização + fix Firebase Auth `/__/` |
-| `DIARIO.md` | Este arquivo |
+| `index.html` | App principal — versão atual |
+| `sw.js` | Service Worker — CACHE_VERSION deve bater com index.html |
+| `404.html` | Fix Firebase Auth no Safari iOS |
+| `DIARIO.md` | Este arquivo — contexto completo do projeto |
 
 ---
 
-## Lições aprendidas críticas
+## Lições aprendidas
 
-1. **404.html intercepta TUDO no GitHub Pages** — sempre manter redirect para `firebaseapp.com` nas rotas `/__/`:
-```js
-if (window.location.pathname.indexOf('/__/') === 0) {
-    window.location.replace('https://gestor-financeiro-pessoa-90a13.firebaseapp.com' +
-      window.location.pathname + window.location.search + window.location.hash);
-}
-```
-
-2. **NUNCA alterar `authDomain`** para o domínio do GitHub Pages.
-
-3. **`signInWithPopup` simples funciona** — não adicionar detecção de browser nem redirect.
-
-4. **Ao exportar index.html, SEMPRE aplicar:**
-   - Versão no rodapé: `re.sub(r'(© 2026 · )v[\d.]+', r'\g<1>vX.X.X', h)`
-   - headerUser com versão (substituir `.textContent='👤 '+currentUser` por):
-   ```js
-   const _verMH=document.body.innerHTML.match(/·\s*v([\d.]+)/);
-   const _appVerH=_verMH?'v'+_verMH[1]:'';
-   document.getElementById('headerUser').innerHTML='👤 '+currentUser+
-     (_appVerH?' <span style="font-size:10px;color:var(--text3)">'+_appVerH+'</span>':'');
-   ```
-   - sw.js: `re.sub(r"CACHE_VERSION = '[^']+'", "CACHE_VERSION = 'X.X.X'", sw)`
-
-5. **`D.bs` nunca manipular diretamente** — saldo calculado por `bankBal()`.
-
----
-
-## Sincronização Fatura/Agenda/Extrato (v2.9.14)
-
-**Lógica da `sincronizarFaturasEmAberto()`:**
-- Remove todos os eventos de fatura `done:false` (não pagos) para recriar com valores atualizados
-- Remove todos os `D.tx` com `faturaAgendada:true` (não confirmados)
-- Recria evento `D.ag` com `isFaturaEvent:true` e `txId` apontando para o tx
-- Recria `D.tx` com `st:'agendado'` e `faturaAgendada:true` — aparece no extrato como agendado
-- Ao pagar: remove tx agendado, cria tx real com `pgtoFatura:true`, marca `agEv.done=true`
-- IDs fixos: `agfat_NomeCartao_mes_ano` e `agfat_tx_NomeCartao_mes_ano`
-
----
-
-## Estrutura de dados relevante
-
-```js
-// Evento de fatura na agenda (D.ag)
-{ id:'agfat_Sicredi_Mossoro_2_2026', title:'Fatura Sicredi Mossoró',
-  date:'2026-03-08', type:'pagamento', valor:3050.67,
-  cartao:'Sicredi Mossoró', banco:'BTG Pactual',
-  isFaturaEvent:true, done:false, txId:'agfat_tx_Sicredi_Mossoro_2_2026' }
-
-// Tx agendado no extrato (D.tx)
-{ id:'agfat_tx_Sicredi_Mossoro_2_2026', st:'agendado',
-  faturaAgendada:true, pgtoFatura:true, pgtoCard:'Sicredi Mossoró' }
-
-// Tx real após pagamento (D.tx)
-{ id:'uid...', st:'efetivado', pgtoFatura:true, pgtoCard:'Sicredi Mossoró' }
-```
+- **404.html intercepta TUDO no GitHub Pages** — manter redirect para `firebaseapp.com` nas rotas `/__/`
+- **`[].every(fn)` retorna `true`** em JS — sempre checar `length > 0` antes
+- **Canvas não limpa sozinho** — sempre `clearRect` antes de redesenhar o gráfico pizza
+- **`sincronizarFaturasEmAberto()`** deve ser chamada após qualquer novo lançamento de cartão
+- **Features se perdem** quando arquivo é recuperado do GitHub sem checklist — daí este protocolo
 
 ---
 
 ## Pendências
 
-- [ ] Testar edição de recorrentes/parcelados em produção (v2.9.5)
-- [ ] Posts Instagram — POST01 Feed/Stories criados, faltam POST02 a POST06
-- [ ] Gestão Saúde — app companheiro planejado, mesma arquitetura
+- [ ] Confirmar fix C6 Bank (v2.9.22) funcionando em produção
+- [ ] Instagram posts POST02–POST06
+- [ ] App Gestão Saúde (companion app — mesma arquitetura)
+- [ ] Avaliar remoção dos botões de diagnóstico da Zona de Perigo
 
 ---
 
-## v2.9.15 — Correção duplicatas agenda + conta errada no extrato
+## Histórico de versões desta sessão (09/03/2026)
 
-**Problemas corrigidos:**
+### v2.9.28 — Fix extrato conta valor errado após novo lançamento cartão
+- `sincronizarFaturasEmAberto()` adicionado em `saveAgenda()` e `saveTx()`
 
-### Duplicatas na agenda (Bug 1)
-- Causa raiz: eventos legados tinham IDs com formato diferente (ex: espaços no nome do cartão)  
-- Fix: filtro agora remove por **título** também (`fatTitulos.includes(e.title)`) além do ID exato
-- Isso garante remoção de qualquer versão legada do evento de fatura
+### v2.9.29 — Painel: totalizadores + cores gráfico pizza
+- Total das Contas, Total Despesas, Total Receitas no painel
+- Paleta de cores com maior contraste entre categorias
 
-### Conta errada no extrato (Bug 2)  
-- Causa raiz: tx legados (versão anterior) criados com `pgtoFatura:true, st:'agendado'` mas sem `faturaAgendada:true` não eram removidos na ressincronização
-- Fix: filtro de tx ampliado para também remover `pgtoFatura && st==='agendado' && !pgtoFaturaConfirmado`
-- Também garantido que `banco` do tx e do evento agenda usa explicitamente `D.ca[card]` (conta que paga o cartão)
+### v2.9.30 — Fix cores pizza + agendados não apareciam na agenda
+- `clearRect` no `drawPie` (canvas não limpava entre meses)
+- `saveTx` agendado cria evento em `D.ag` com `txId` vinculado
+- `confirmarEfetivar` marca `D.ag` como `done:true`
 
-### Resumo do fluxo correto após v2.9.15:
-- `sincronizarFaturasEmAberto()` remove TODOS eventos fatura não-pagos (por ID E por título)
-- Remove TODOS tx agendados de fatura não-confirmados (por faturaAgendada E por pgtoFatura+agendado)
-- Recria com `bancoFatura = D.ca[card]` — sempre a conta correta configurada pelo usuário
+### v2.9.31 — Reintegração Estorno + Fix valor verde + Checklist
+- Estorno perdido em atualização anterior — reintegrado completamente
+- Fix: estorno aparecia em vermelho com `-` — agora verde com `+`
+- Criado protocolo de checklist incorporado neste DIARIO.md
 
----
-
-## v2.9.16 — FIX DEFINITIVO: legados persistidos no Firestore
-
-### Causa raiz real descoberta
-A função `sincronizarFaturasEmAberto()` rodava no `loadFromCloud()` mas **sem `save()` depois**.
-Resultado: a limpeza acontecia apenas em memória. Na próxima carga, o Firestore devolvia os dados legados intactos. O problema se repetia infinitamente.
-
-### Correção 1 — save() no loadFromCloud
-```js
-D=migrateData(doc.data().data||{});
-sincronizarFaturasEmAberto();
-save(); // ← ADICIONADO — persiste limpeza no Firestore
-```
-
-### Correção 2 — Limpeza nuclear na sincronização
-Critérios anteriores dependiam de ID exato ou título exato — falhavam com encodings diferentes (espaço, acento, formato legado).
-
-Nova lógica remove **qualquer** fatura não-paga por dois critérios amplos:
-- `e.isFaturaEvent === true` (flag nova)
-- `e.title.startsWith('Fatura ')` (qualquer evento com esse prefixo)
-- `t.pgtoFatura && t.st === 'agendado'` (qualquer tx de pagamento agendado)
-- `t.faturaAgendada === true` (flag nova)
-
-Isso elimina absolutamente qualquer legado independente de formato de ID ou encoding do nome.
-
-### Na primeira carga após este deploy:
-1. App carrega dados do Firestore (com legados)
-2. `sincronizarFaturasEmAberto()` faz limpeza nuclear
-3. `save()` persiste os dados limpos no Firestore
-4. Nas próximas cargas, nenhum legado sobrevive
-
----
-
-## v2.9.17 — FIX: debounce cancelava o save da sincronização
-
-### Causa raiz encontrada (nível 3)
-O `save()` usa debounce de 1 segundo. No fluxo do `onAuthStateChanged`:
-1. `await loadFromCloud()` → chama `sincronizarFaturasEmAberto()` → chama `save()` → inicia timer 1s
-2. Retorna para `onAuthStateChanged`
-3. `if(!D.userName){D.userName=currentUser;save()}` → **cancela o timer anterior** com `clearTimeout`!
-4. O save da sincronização nunca executa no Firestore
-
-### Correção
-Adicionada `saveImmediate()` — save direto sem debounce, cancela qualquer timer pendente:
-```js
-async function saveImmediate(){
-    if(!currentUid)return;
-    if(saveTimeout){clearTimeout(saveTimeout);saveTimeout=null;}
-    await db.collection('users').doc(currentUid).set({data:..., updated:...}, {merge:true});
-}
-```
-`loadFromCloud()` agora usa `await saveImmediate()` após a sincronização.
-
-### Debug adicionado
-`console.log('[Sync] ag: X→Y | tx: X→Y')` no início da sincronização para confirmar quantos eventos são removidos/criados.
-
-### Verificar no console do browser após deploy:
-- Deve aparecer `[Sync] ag: 4→0 | tx: X→0` (removeu os 4 legados)
-- Em seguida recria 2 (um por mês) para cada cartão com fatura aberta
-
----
-
-## v2.9.18 — Diagnóstico + Limpeza Manual Forçada
-
-Após 3 tentativas de fix automático falharem, adicionado ferramental de diagnóstico.
-
-### Novo na Zona de Perigo (Configurações):
-- **🔍 Diagnóstico Faturas Agenda** — exibe na tela todos os eventos e tx de fatura com seus IDs, títulos e flags exatos. Também loga no console como `[DIAG]`.
-- **🧹 Limpar Faturas Legadas (FORÇA)** — limpeza manual com `saveImmediate()` duplo, recriação e refresh.
-
-### Para usar:
-1. Sobe v2.9.18
-2. Vai em Configurações → Zona de Perigo
-3. Clica "🔍 Diagnóstico Faturas Agenda"
-4. Me manda o resultado (ou screenshot) — assim saberemos exatamente os IDs e flags dos legados
-5. Clica "🧹 Limpar Faturas Legadas (FORÇA)" para limpar manualmente de vez
-
----
-
-## v2.9.19 — CAUSA RAIZ REAL das "duplicatas" encontrada via diagnóstico
-
-### O que o diagnóstico revelou
-Não havia duplicatas no banco de dados! Os dados estavam corretos:
-- AG[0..6]: 7 eventos únicos, cada um para um cartão/mês diferente
-- TX[6..12]: 7 tx agendados correspondentes (corretos)
-- TX[0..5]: pagamentos já efetivados de faturas anteriores (st:'efetivado') — normais
-
-### Causa real da duplicata VISUAL
-A agenda tem duas seções:
-1. **Dia selecionado** — mostra eventos do `agSelectedDay`
-2. **Próximos Compromissos** — mostra `e.date >= todayStr`
-
-Quando o dia selecionado é hoje ou futuro, o mesmo evento aparecia nas **duas seções**. Por isso apareciam 4 cards de "Fatura Sicredi Mossoró": 2 no "dia selecionado" (meses 2 e 3) e os mesmos 2 em "Próximos Compromissos".
-
-### Fix (1 linha)
-```js
-// Antes:
-D.ag.filter(e=>!e.done && e.date>=todayStr)
-// Depois:
-D.ag.filter(e=>!e.done && e.date>=todayStr && e.date!==agSelectedDay)
-```
-
-### Bug 2 (conta errada no extrato)
-O tx agendado aparece na conta correta conforme `D.ca[card]` — configuração do usuário.
-Se aparecer na conta "errada", verificar em Configurações → Cartões qual conta está configurada para cada cartão.
-
----
-
-## v2.9.20 — Limpeza nuclear v2 + trim() para encodings
-
-### Problema confirmado
-Existem DE FATO dois eventos no D.ag para o mesmo cartão/mês:
-- Evento legado (R$1.423,83): criado por versão anterior, sem `isFaturaEvent`, possivelmente com título com espaço ou encoding diferente
-- Evento novo (R$3.050,67): criado pela sincronização atual, com `isFaturaEvent:true` e banco correto
-
-### Melhorias na limpeza:
-1. **Set de títulos exatos** dos cartões cadastrados (`'Fatura ' + card`) para match preciso
-2. **`.trim()`** no título antes de comparar — pega títulos com espaços extras no início/fim
-3. Mesmo fix aplicado ao botão "🧹 Limpar Faturas Legadas" no painel admin
-
-### Se ainda persistir após v2.9.20:
-Rodar no console para ver o título EXATO do evento legado:
-```js
-D.ag.filter(e=>e.title&&e.title.includes('Sicredi')).forEach((e,i)=>
-  console.log(i, JSON.stringify([...e.title].map(c=>c.charCodeAt(0))), e.title, e.id))
-```
-Isso mostra os char codes do título — se houver encoding diferente ficará visível.
-
----
-
-## v2.9.21 — CAUSA RAIZ DEFINITIVA dos legados
-
-### Descoberto via console
-Os eventos legados têm IDs com prefixo **`venc_`** (ex: `venc_Sicredi_Mossoró_2_2026`).
-Foram criados por uma versão muito antiga do app com formato de ID completamente diferente.
-Como `isFaturaEvent` é undefined nesses eventos, escapavam de todos os filtros anteriores.
-O título provavelmente também é diferente de "Fatura X", por isso `startsWith` também falhava.
-
-### Fix definitivo
-Adicionado filtro por prefixo de ID:
-```js
-if(e.id && e.id.startsWith('venc_')) return false; // legados venc_*
-if(e.id && e.id.startsWith('agfat_')) return false; // novos agfat_* não-pagos
-```
-Isso garante remoção de qualquer evento de fatura independente de título ou flag.
-
-### Padrões de ID históricos identificados:
-- `venc_NomeCartao_mes_ano` — formato muito antigo (pré-isFaturaEvent)
-- `agfat_NomeCartao_mes_ano` — formato atual
-
----
-
-## STATUS ATUAL — 07/03/2026 (14h)
-
-### ✅ RESOLVIDO em v2.9.21
-- **Duplicatas na agenda** — IDs legados `venc_*` removidos definitivamente
-- **Versão no header** — aparecendo corretamente
-- **Próximos Compromissos** — não mostra mais eventos do dia selecionado
-
-### 🔍 Em teste pelo usuário
-- Extrato conta: fatura aparecendo na conta correta (verificar configuração Cartões → "Paga com...")
-
-### 📋 Pendências técnicas
-- [ ] Testar edição de recorrentes/parcelados em produção (feature v2.9.5)
-- [ ] Remover botões de diagnóstico da Zona de Perigo em versão futura (ou manter como ferramenta)
-- [ ] Posts Instagram POST02-POST06
-
----
-
-## ONBOARDING PARA NOVA SESSÃO
-
-### Stack
-- HTML/CSS/JS puro (sem frameworks), Firebase Firestore, GitHub Pages
-- 1 arquivo: `index.html` + `sw.js` + `404.html`
-- Dados em objeto global `D`, persistido no Firestore via `save()` / `saveImmediate()`
-
-### Regras críticas
-1. **NUNCA manipular `D.bs` diretamente** — saldo calculado por `bankBal()`
-2. **Sempre usar `str_replace`** para editar — nunca Python com write completo
-3. **Toda entrega** inclui: `index.html` + `sw.js` (CACHE_VERSION atualizada) + `DIARIO.md`
-4. **`saveImmediate()`** para saves críticos (sem debounce) — `save()` tem debounce 1s que pode ser cancelado
-5. **authDomain NUNCA alterar**: `gestor-financeiro-pessoa-90a13.firebaseapp.com`
-6. **404.html** deve sempre ter redirect `/__/` para Firebase Auth
-
-### Padrões de ID (agenda)
-- `venc_*` — formato legado muito antigo (remover sempre)
-- `agfat_NomeCartao_mes_ano` — formato atual para faturas
-- `agfat_tx_NomeCartao_mes_ano` — tx agendado correspondente no extrato
-
-### Versão atual: v2.9.21
-### Repositório: gilenogestorfinanceiro.github.io
-
----
-
-## v2.9.22 — Fix: faturas do mês anterior não apareciam
-
-### Problema
-Cartões com vencimento no início do mês (ex: C6 Bank dia 10) têm compras do mês anterior
-ainda em aberto quando o mês vira. A sincronização só verificava mês atual e próximo —
-a fatura de fevereiro do C6 (compras 08/02) nunca gerava evento/tx em março.
-
-### Fix
-Expandido para verificar **3 meses**: anterior + atual + próximo.
-```js
-// Antes: mês atual + próximo
-// Depois: mês anterior + atual + próximo
-const _prev = cMonth===0 ? {m:11,y:cYear-1} : {m:cMonth-1,y:cYear};
-const _next = cMonth===11 ? {m:0,y:cYear+1} : {m:cMonth+1,y:cYear};
-const meses = [_prev, {m:cMonth,y:cYear}, _next];
-```
-
-### Versão atual: v2.9.22
-
----
-
-## v2.9.23 — Fix: lançamento via agenda no cartão com mês correto + validação fatura paga
-
-### Problema
-Ao criar compromisso na agenda com destino "Cartão":
-1. Não havia campo para escolher o mês da fatura — usava o mês da data do evento
-2. Permitia lançar em fatura já paga, alterando o valor incorretamente
-
-### Fix
-- **Campo "Mês da fatura"** adicionado no modal da agenda quando destino=Cartão
-  - Mostra mês anterior, atual e próximo
-  - Meses com fatura já paga aparecem como `✅ Paga` e ficam desabilitados (`disabled`)
-- **`launchAgendaTxPending`** agora usa `ev.faturaMes` (formato `"m_y"`) para determinar m/y do D.cp
-- **Validação**: se todos os cp do mês/cartão já estão `st:'paga'`, bloqueia e mostra toast de erro
-- **`faturaMes`** salvo no objeto do evento (D.ag) para persistência
-
-### Versão atual: v2.9.23
-
----
-
-## ⚠️ FEATURE CRÍTICA — NÃO PODE SER PERDIDA EM RECUPERAÇÕES DE ARQUIVO
-
-### Lançamento via Agenda → Cartão: campo "Mês da fatura"
-
-Esta feature foi implementada, perdida após recuperação via `curl` do GitHub, e reimplementada. **Se o arquivo for recuperado do GitHub novamente, verificar imediatamente se esses elementos existem:**
-
-**1. Campo HTML no modal da agenda** (`id="agFaturaMes"`):
-```html
-<div id="agCartaoField" style="display:none">
-  <div class="form-group"><label>Cartão</label><select id="agCartao"></select></div>
-  <div class="form-group"><label>Mês da fatura</label><select id="agFaturaMes"></select></div>
-</div>
-```
-
-**2. `setAgDestino('cartao',...)` deve preencher `#agFaturaMes`** com meses anterior/atual/próximo, mostrando os pagos como `✅ Paga` e `disabled`.
-
-**3. `launchAgendaTxPending(ev)`** deve usar `ev.faturaMes` (formato `"m_y"`) para definir `m` e `y` do `D.cp`, NÃO a data do evento.
-
-**4. Validação**: bloquear lançamento se fatura do mês selecionado já está paga.
-
-**5. `faturaMes` salvo no objeto D.ag** ao salvar o compromisso.
-
-Se qualquer um desses pontos estiver faltando após uma recuperação, reimplementar antes de qualquer outra coisa.
-
-
----
-
-## v2.9.24 — Fix: bug "Março ✅ Paga" quando não havia compras
-
-### Problema
-`Array.every()` em JavaScript retorna `true` para arrays vazios. Quando o mês não tinha nenhuma compra no cartão, `cpList.length === 0` mas `cpList.every(c=>c.st==='paga')` retornava `true`, fazendo o mês aparecer como "✅ Paga" e disabled erroneamente.
-
-### Fix
-- Condição corrigida: `cpList.length > 0 && cpList.every(...)` — explícito já estava, mas o select ao tentar pré-selecionar um mês `disabled` (ex: Fevereiro pago), o browser saltava para o próximo — que também aparecia "pago" pelo bug acima.
-- Seleção automática agora busca o **primeiro mês não pago** disponível em vez de forçar o mês da data do evento.
-
-### Versão atual: v2.9.24
-
----
-
-## v2.9.25 — Fix: seleção inteligente do mês da fatura baseada no vencimento do cartão
-
-### Problema
-v2.9.24 selecionava o "primeiro mês não pago", que resultava em Janeiro para uma compra de fevereiro — incorreto.
-
-### Lógica correta implementada
-- Se dia da compra < dia do vencimento do cartão → fatura = mesmo mês da compra
-- Se dia da compra >= dia do vencimento do cartão → fatura = mês seguinte
-- Exemplo: C6 Bank vence dia 10. Compra em 09/02 (antes do dia 10) → fatura Fevereiro. Compra em 15/02 (depois do dia 10) → fatura Março.
-- Se o mês calculado estiver pago, tenta o próximo disponível automaticamente.
-
-### Versão atual: v2.9.25
-
----
-
-## v2.9.26 — Validação no saveAgenda: bloquear lançamento em fatura paga
-
-### Correções
-1. **Março aparecia como pago sem compras**: confirmado que era cache do browser — código já estava correto com `length>0 &&` desde v2.9.25. **Solução: forçar cache-bust acessando `?v=2926`**
-
-2. **Validação no saveAgenda**: ao tentar salvar um compromisso de cartão, verifica se a fatura do mês selecionado já está paga. Se sim, exibe toast de erro e bloqueia o salvamento.
-
-### Versão atual: v2.9.26
-
----
-
-## v2.9.27 — Fix raiz: meses da fatura não recalculavam ao trocar cartão ou data
-
-### Problema real
-O select "Mês da fatura" era populado apenas uma vez ao clicar em "Cartão".
-Se o usuário trocava o cartão ou a data depois, os meses não eram recalculados
-— mostrando status de pago/aberto do cartão anterior.
-
-### Fix
-- `#agCartao` ganhou `onchange="setAgDestino('cartao',null)"` — ao trocar cartão, recalcula os meses
-- `#agDate` ganhou `onchange` condicional — ao trocar data (quando destino=cartão), recalcula os meses
-- `setAgDestino(d, null)` — quando chamado com `el=null` (por onchange), não mexe nas tabs visuais
-
-### Sincronização das 3 formas (análise)
-- **Botão + / Nova Compra**: usa `fMonth` (select explícito) → vai direto para `D.cp` ✅
-- **Agenda**: usa `faturaMes` (calculado) → vai para `D.cp` via `launchAgendaTxPending` ✅
-- **Todas** inserem em `D.cp` com `{card, m, y, st:'aberta'}` — mesma estrutura ✅
-- Validação de fatura paga: só bloqueia se `cpList.length>0 && every(paga)` — compras em aberto permitem juntar ✅
-
-### Versão atual: v2.9.27
-
----
-
-## v2.9.28 — Fix: extrato da conta mostrando valor errado da fatura após novo lançamento
-
-### Problema raiz
-Quando uma nova compra era lançada no cartão (por qualquer das 3 formas), o tx agendado
-no extrato da conta ("Fatura C6 Bank") **não era atualizado** com o novo total.
-
-Isso porque `sincronizarFaturasEmAberto()` — que recalcula o total e recria o tx agendado —
-só era chamada em `loadFromCloud`, `payFatura` e `reopenFatura`. Não era chamada ao salvar
-um novo lançamento de cartão.
-
-### Fix
-- **`saveAgenda()`**: adicionado `sincronizarFaturasEmAberto()` antes do `save()` quando `agDestino==='cartao'`
-- **`saveTx()`** (botão + / Nova Compra): adicionado `sincronizarFaturasEmAberto()` antes do `save()` no bloco de cartão
-
-### Resultado
-As 3 formas de lançamento agora recalculam o total da fatura imediatamente:
-- Novo lançamento → D.cp atualizado → sincronizar recalcula total → tx agendado no extrato reflete valor correto
-
-### Versão atual: v2.9.28
-
----
-
-## v2.9.29 — Painel: totalizadores e cores do gráfico pizza
-
-### Problemas corrigidos
-
-**1. Somatória faltando no painel**
-- Saldo das Contas: adicionado rodapé "💰 Total das Contas" com soma de todos os saldos (verde/vermelho)
-- Despesas por Categoria: adicionado "📊 Total Despesas" abaixo da lista de categorias
-- Receitas por Categoria: adicionado "📊 Total Receitas" abaixo da lista de categorias
-- Todos respeitam o toggle "Ocultar valores" (classe kpi-val-hide)
-
-**2. Cores do gráfico pizza**
-- Paleta de Despesas substituída por cores com maior contraste entre si:
-  vermelho → laranja → amarelo → verde-claro → verde → azul-claro → índigo → violeta → rosa → vermelho-escuro → azul → roxo
-- Mantida correspondência 1:1 entre fatia do pizza e cor da categoria na lista (mesmo índice i)
-
-### Versão atual: v2.9.29
-
----
-
-## v2.9.30 — Fix: cores pizza + lançamentos agendados não apareciam na agenda
-
-### Problema 1: Cores do gráfico pizza dessincronizadas
-- **Causa raiz**: `drawPie` não chamava `clearRect` no início — ao trocar de mês, o canvas
-  mantinha o desenho anterior por baixo, criando sobreposição visual
-- **Fix**: adicionado `ctx.clearRect(0,0,220,220)` no início do `drawPie`, antes do `scale`
-
-### Problema 2: Lançamentos agendados pelo botão + não apareciam na agenda
-- **Causa raiz**: `saveTx` salvava `D.tx` com `st:'agendado'` mas nunca criava evento em `D.ag`.
-  A agenda só exibe eventos de `D.ag`
-- **Fix em saveTx**: ao salvar lançamento único ou recorrente com `addStatus='agendado'`,
-  cria automaticamente evento em `D.ag` com `txId` vinculado ao tx
-- **Fix em confirmarEfetivar**: ao efetivar um tx, marca o `D.ag` vinculado como `done:true`
-- **Fix em toggleTxStatus**: ao reverter para agendado, reativa o evento de agenda (`done:false`)
-
-### Fluxo completo agora:
-Botão + (agendado) → D.tx agendado + D.ag evento → Efetivar → D.tx efetivado + D.ag done:true
-Agenda → saveAgenda → D.ag evento + D.tx vinculado → Efetivar pela agenda → ambos atualizados
-
-### Versão atual: v2.9.30
