@@ -164,3 +164,54 @@ Se qualquer linha retornar ❌, **parar tudo** e reintegrar a feature antes de c
 - Fix: estorno aparecia em vermelho com `-` — agora verde com `+`
 - Criado protocolo de checklist incorporado neste DIARIO.md
 
+
+---
+
+## v2.9.32 — Fix: efetivar fatura pelo extrato não marcava compras como pagas
+
+### Problema
+Ao clicar "✅ Efetivar" no extrato da conta (nas faturas agendadas "Fatura Sicredi" / "Fatura C6 Bank"),
+o tx era marcado como `efetivado` — mas as compras em `D.cp` continuavam com `st:'aberta'`.
+Ao recarregar o app, `sincronizarFaturasEmAberto()` via as compras ainda abertas e recriava
+os eventos/tx agendados, fazendo a fatura "voltar" para aberta.
+
+### Causa raiz
+`confirmarEfetivar(id)` só alterava `tx.st='efetivado'` — não sabia que aquele tx
+representava o pagamento de uma fatura de cartão e que precisava marcar o `D.cp`.
+
+### Fix
+Em `confirmarEfetivar`, quando `tx.faturaAgendada===true && tx.pgtoCard`:
+1. Busca todas as compras do cartão no mesmo `m/y` ainda com `st:'aberta'`
+2. Marca cada uma como `st:'paga'`, `paidDt` e `paidConta`
+3. Chama `sincronizarFaturasEmAberto()` para limpar os eventos de agenda da fatura
+4. Toast específico: "✅ Fatura paga e compras marcadas como pagas!"
+
+### Adicionado ao checklist
+Token: `tx.faturaAgendada && tx.pgtoCard` — garantia de que o fix está presente.
+
+### Versão atual: v2.9.32
+
+---
+
+## v2.9.33 — Reintegração: modal confirmação na agenda (○ bolinha)
+
+### Funcionalidade restaurada
+O clique na ○ bolinha do card da agenda abria um modal de confirmação
+com campos de conta e data antes de efetivar — esse comportamento havia
+sido perdido (toggleAgDone efetivava direto, sem perguntar nada).
+
+### O que foi reintegrado
+- **Modal `#confirmAgModal`**: título dinâmico (pagamento/recebimento/fatura), descrição, select conta, campo data
+- **`toggleAgDone(id)` reformulado**:
+  - Se já done → desfaz direto (sem modal)
+  - Se lembrete/destino nenhum → marca direto
+  - Caso contrário → abre `confirmAgModal`
+- **`doConfirmAg()`**: efetiva tx, atualiza data/conta, e se `faturaAgendada` marca compras como pagas + chama `sincronizarFaturasEmAberto()`
+- **`closeConfirmAg()`**: fecha e limpa `_confirmAgId`
+- **Dica visual** no card: "○ Bolinha = confirmar · ✏️ Texto = editar" (visível só em eventos pendentes não-lembrete)
+
+### Nota importante
+O fix do v2.9.32 (`confirmarEfetivar` marcando compras como pagas) também foi preservado —
+agora os dois caminhos (extrato e agenda) fazem o mesmo trabalho correto.
+
+### Versão atual: v2.9.33
