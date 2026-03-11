@@ -374,14 +374,14 @@ Entrar com Google
 </div>
 </div>
 
-<div class="app" id="appContainer" style="display: flex;">
+<div class="app" id="appContainer" style="display: flex; flex-direction: column; min-height: 100vh;">
 <header class="app-header">
 <div class="app-logo">
 <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAoACgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDwaiium8M+Go9SjN/qMhhsELd9pfaMsc9lUEZPqQBzVFHM5x1NHWvS7Txvo9hbzWuieBtLu7dSEae7QNIxPTA5Iz7k1yeqXcMEdxbxW0aSzEtJ5SjbHk525xzgcVMpWaSN6NHnjKcnZL8X0XqzAoooqzAK7Rrhf7B06CTmwW3WOVEcgyZdnxwOPmZc/wC7XF1rafrKW1obS5t/OhJOCrYIz1Hof0qJqX2TowzoJv26bXS3fz8i/dXeywZo32OluixsAA23kAe3Hfrz1rrLvxbqdn8NV0fUvKWT7MLeGJY9rJGRhQ3q2Mk+nFYmjeJPC+kI07aPc3V4q/uWlcEIex54/HBNczrGsXGtXrXE4CDJ2xr0X/E+9NRSMp1JTsnstkZ9FFFUQFFFFABRRRQAUUUUAf/Z" width="32" height="32" style="border-radius:6px">
 <span>Gileno - Gestão Financeira</span>
 </div>
 <div class="header-actions">
-<span id="headerUser" style="font-size:11px;color:var(--text3);margin-right:4px">👤 Gileno Paiva <span style="font-size:10px;color:var(--text3)">v2.9.38-BETA</span></span>
+<span id="headerUser" style="font-size:11px;color:var(--text3);margin-right:4px">👤 Gileno Paiva <span style="font-size:10px;color:var(--text3)">v2.9.39-BETA</span></span>
 <button class="btn-icon" onclick="openShareModal()" title="Compartilhar com amigos" style="color:var(--green);position:relative"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg></button>
 <button class="btn-icon" onclick="toggleTheme()" id="themeToggleBtn" title="Alternar tema claro/escuro"><span id="themeIcon">☀️</span></button>
 <button class="btn-icon" onclick="exportCSV()" title="Exportar CSV"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg></button>
@@ -886,7 +886,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.38
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.39
 </div>
 
 <!-- BOTTOM NAV -->
@@ -1131,10 +1131,10 @@ async function runAutoBackup(){
         const lastBk=bkSnap.exists&&bkSnap.data().timestamp?bkSnap.data().timestamp.toDate():null;
         const now=new Date();
         if(!lastBk||now-lastBk>7200000){
-            const src=JSON.stringify(D); // ✅ FIX v2.9.38: salva dados D, não HTML
+            const src=JSON.stringify(D); // ✅ FIX v2.9.39: salva dados D, não HTML
             const chunks=[];const chunkSize=900000;
             for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
-            const version='v2.9.38';
+            const version='v2.9.39';
             await bkRef.set({version:version,timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'auto',uid:currentUid||''});
             for(let i=0;i<chunks.length;i++)await db.collection('backups').doc('backup_auto_chunk_'+i).set({data:chunks[i],index:i});
             console.log('✅ Backup automático salvo ('+chunks.length+' chunks, '+Math.round(src.length/1024)+'KB)');
@@ -1174,7 +1174,7 @@ async function runManualBackup(){
         const chunks=[];const chunkSize=900000;
         for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
         const bkRef=db.collection('backups').doc('backup_manual');
-        await bkRef.set({version:'v2.9.38',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'manual',uid:currentUid||''});
+        await bkRef.set({version:'v2.9.39',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'manual',uid:currentUid||''});
         for(let i=0;i<chunks.length;i++)await db.collection('backups').doc('backup_manual_chunk_'+i).set({data:chunks[i],index:i});
         toast('✅ Backup manual salvo! ('+Math.round(src.length/1024)+'KB)');
     }catch(e){toast('❌ Erro no backup manual: '+e.message)}
@@ -1248,7 +1248,7 @@ auth.onAuthStateChanged(async function(user){
         const isAdmin=user.email&&user.email.toLowerCase()==='gilenopaivalima@gmail.com';
         if(isAdmin&&document.getElementById('cfgBrapiCard'))document.getElementById('cfgBrapiCard').style.display='block';
         document.getElementById('loginScreen').style.display='none';
-        document.getElementById('appContainer').style.display='flex';
+        document.getElementById('appContainer').style.cssText='display:flex;flex-direction:column;min-height:100vh';
         const _verMH=document.body.innerHTML.match(/·\s*v([\d.]+)/);
         const _appVerH=_verMH?'v'+_verMH[1]:'';
         document.getElementById('headerUser').innerHTML='👤 '+currentUser+(_appVerH?' <span style="font-size:10px;color:var(--text3)">'+_appVerH+'</span>':'');
