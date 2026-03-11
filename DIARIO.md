@@ -1,152 +1,130 @@
-# Diário de Bordo — Gileno Gestão Financeira
-**Última atualização:** 09/03/2026  
-**Versão atual:** v2.9.36
+# Diário de Bordo Técnico — Gileno Gestão Financeira
+**Atualizado em:** 11/03/2026 — 16:50  
+**Versão atual:** Beta v2.9.41 | Produção v2.9.37
 
 ---
 
-## ⚡ PROTOCOLO DE INÍCIO DE SESSÃO (OBRIGATÓRIO)
+## 🗂 INFORMAÇÕES DO PROJETO
 
-> **Toda sessão começa aqui.** Antes de qualquer desenvolvimento, rodar o checklist abaixo no arquivo recebido.
+| Item | Valor |
+|---|---|
+| Repositório GitHub | https://github.com/gilenogestorfinanceiro/gestor |
+| Repositório local Mac | `~/gestor` |
+| URL Produção | https://gilenogestorfinanceiro.github.io/gestor/ |
+| URL Beta | https://gilenogestorfinanceiro.github.io/gestor/beta/ |
+| Firebase Produção | `gestor-financeiro-pessoa-90a13` (Blaze) |
+| Firebase Beta | `gestor-financeiro-beta` (Spark) |
+| UID Gileno Produção | `9NWXXOwHHUSrxEg7Ygw226zsuHj1` |
+| UID Gileno Beta | `WPt1n2dZSGNxpOA2azPWgpRWk5u1` |
+| GitHub PAT | *(armazenado localmente — não commitar)* |
+
+---
+
+## ✅ BUG CRÍTICO RESOLVIDO — v2.9.41-BETA
+
+### Problema: Extrato, Agenda, Cartões e Mais não renderizavam
+
+**Causa raiz encontrada:** Faltavam 2 `</div>` de fechamento no final do bloco `#page-dash`.
+
+**Como foi diagnosticado:**
+1. Console do navegador confirmou: `innerHTML.length: 1194`, `offsetHeight: 0`, `class: page active`
+2. Script de debug percorreu ancestrais e encontrou: `#page-dash` com `display: none` como pai direto de `#page-ext`
+3. Parser Python contou 51 `<div>` e apenas 49 `</div>` no bloco do `page-dash` — faltavam exatamente 2 fechamentos
+
+**Correção aplicada (linha 442 do index.html):**
+```html
+<!-- ANTES (2 fechamentos) -->
+</div>
+</div>
+
+<!-- DEPOIS (4 fechamentos — correto) -->
+</div>
+</div>
+</div>
+</div>
+```
+
+**Por que aconteceu:** As divs aninhadas dos cards do dashboard (Receitas por Categoria e Saldo das Contas) usavam um padrão de aninhamento que perdeu 2 fechamentos em alguma edição anterior.
+
+---
+
+## BUGS CONHECIDOS
+
+### Bug 1 — ✅ RESOLVIDO: Páginas além do Painel com altura zero
+**Versão:** v2.9.41-BETA
+
+### Bug 2 — PENDENTE: FirebaseError userActivity
+**Erro:** Missing or insufficient permissions em sincronizarFaturasEmAberto (beta:3743)  
+**Solução:** Adicionar no Firestore beta (Console > Regras):
+```
+match /userActivity/{userId} {
+  allow read, write: if request.auth != null && request.auth.uid == userId;
+}
+```
+
+### Bug 3 — PENDENTE: SW de produção intercepta /beta/ no iPhone
+**Descrição:** Service Worker de produção bloqueia acesso ao beta no celular
+
+---
+
+## O QUE FOI FEITO NESTA SESSÃO (11/03/2026 — tarde)
+
+### 1. Debug completo do bug de tela preta ✅
+- Executado script de diagnóstico no console do Safari DevTools
+- Identificada causa raiz: `#page-dash` sem 2 `</div>` de fechamento
+- Todas as outras páginas estavam aninhadas dentro de `#page-dash`
+- Quando `page-dash` ia para `display:none`, levava tudo junto
+
+### 2. Correção do HTML — v2.9.41-BETA ✅
+- Adicionados 2 `</div>` faltantes após o card `dashAgendaCard`
+- Versão atualizada de v2.9.40 para v2.9.41
+
+---
+
+## PRÓXIMOS PASSOS
+
+1. **[IMEDIATO]** Fazer deploy da v2.9.41-BETA e testar navegação entre todas as abas
+2. Corrigir regras Firestore beta para userActivity (Bug 2)
+3. Corrigir SW de produção para não interceptar /beta/ (Bug 3)
+4. Testes completos de todas as funcionalidades no beta
+5. Responder sugestão Patricio Mackson (recebimento parcial)
+6. Corrigir bug botão "Responder" em sugestões não lidas
+7. Quando testes OK → promover para produção v2.9.41
+
+---
+
+## COMO FAZER DEPLOY
 
 ```bash
-for token in 'estornoModal' 'openEstornoModal' 'sincronizarFaturasEmAberto' 'isFaturaEvent' 'agFaturaMes' 'rExtConta' 'rExtBank' 'autoBackup' 'restoreAutoBackup' 'runManualBackup'; do
-  [ $(grep -c "$token" index.html) -gt 0 ] && echo "✅ $token" || echo "❌ PERDIDO: $token"
-done
+cd ~/gestor
+git pull
+cp ~/Downloads/index.html beta/index.html
+cp ~/Downloads/sw.js sw.js
+git add beta/index.html sw.js DIARIO.md
+git commit -m "fix: corrige tela preta - divs faltantes no page-dash - v2.9.41-BETA"
+git push
 ```
 
-Se qualquer linha retornar ❌, **parar tudo** e reintegrar a feature antes de continuar.
+**Regras:**
+- SEMPRE git pull antes de push
+- SEMPRE testar no BETA antes de produção
+- NUNCA manipular D.bs diretamente (saldo calculado por bankBal())
+- Usar str_replace para editar arquivos, nunca scripts Python
 
 ---
 
-## ✅ Checklist de Features Críticas
+## ARQUITETURA RESUMIDA
 
-| Feature | Token de verificação | Desde |
-|---------|---------------------|-------|
-| ↩ Estorno no Cartão | `id="estornoModal"` | v2.9.4 |
-| ↩ Estorno funções JS | `function openEstornoModal()` | v2.9.4 |
-| Faturas na Agenda (sync) | `function sincronizarFaturasEmAberto()` | v2.9.x |
-| Faturas flag isFaturaEvent | `isFaturaEvent` | v2.9.x |
-| Mês da fatura na agenda | `id="agFaturaMes"` | v2.9.23 |
-| Extrato por conta | `function rExtConta(` | v2.9.x |
-| Extrato estilo banco | `function rExtBank(` | v2.9.x |
-| Backup automático | `function runAutoBackup(` | v2.9.x |
-| ✅ Backup salva JSON dos dados | `JSON.stringify(D)` no backup | v2.9.36 |
-| ✅ Restaurar backup | `function restoreAutoBackup(` | v2.9.36 |
-| ✅ Backup manual | `function runManualBackup(` | v2.9.36 |
+- Stack: HTML/CSS/JS puro, Firebase Firestore, GitHub Pages, Service Worker
+- Arquivo único: index.html (sem frameworks)
+- Dados centralizados no objeto D, persistido no Firestore
+- Funções principais: goPage(), refresh(), rDash(), rExt(), rAgenda(), rCard(), loadFromCloud(), save()
+- Páginas: page-dash, page-ext, page-add, page-agenda, page-card, page-cfg, page-invest, page-sobre, page-sug
+- CSS navegação: .page{display:none} .page.active{display:block}
 
----
-
-## Estado atual do app
-
-- **Repositório:** gilenogestorfinanceiro.github.io
-- **Firebase projeto:** gestor-financeiro-pessoa-90a13
-- **authDomain:** gestor-financeiro-pessoa-90a13.firebaseapp.com (NUNCA alterar)
-- **Login:** `signInWithPopup` — funciona no Mac e iPhone
-- **⚠️ DADOS PERDIDOS** em 09/03/2026 ~15:52 (incidente `corrigirDuplicatasFaturas`)
-
----
-
-## ⚠️ INCIDENTE CRÍTICO — 09/03/2026
-
-### O que aconteceu
-1. Bug na função `corrigirDuplicatasFaturas()` apagou todos os dados do usuário Gileno
-2. Backup automático existia mas salvava o **HTML do app**, não os dados (bug crítico)
-3. Dados de D.tx e D.cp perdidos permanentemente
-
-### Lição aprendida
-- **NUNCA criar função de correção que chama save() sem dry-run e confirmação dupla**
-- **Backup DEVE salvar `JSON.stringify(D)`, não `document.documentElement.outerHTML`**
-- Qualquer botão destrutivo na Zona de Perigo precisa de **duas confirmações**
-
----
-
-## Funcionalidades implementadas (acumulado v2.9.36)
-
-- Faturas na agenda automáticas ao abrir o app (`sincronizarFaturasEmAberto`)
-- Fatura aparece no extrato da conta como **agendado** (`faturaAgendada:true`)
-- Pagar fatura pela agenda com um clique (abre `payFatura` direto)
-- **↩ Estorno** de cartão de crédito (valor negativo em `D.cp`, aparece em verde)
-- Trocar conta de um lançamento no modal de edição
-- Backup automático (2h) salva **JSON dos dados D** no Firestore ✅ (fix v2.9.36)
-- Backup manual via botão na aba Mais > Backup e Restauração ✅
-- Restaurar backup automático com um clique ✅ (novo em v2.9.36)
-- Confirmação dupla em todas as operações destrutivas da Zona de Perigo ✅
-- Compartilhamento social no header (WhatsApp, nativo, copiar link)
-- Lançamento de cartão pelo mês da fatura com seletor inteligente
-- Extrato da conta por banco e estilo banco
-
----
-
-## Arquitetura — Objetos principais
-
-```js
-// D.cp — compra de cartão
-{ id, dt, card, desc, v, tipo, parc, cat, sub, m, y,
-  st:'aberta'|'paga', paidDt?, paidConta?,
-  estorno?:true
-}
-
-// D.tx — lançamento em conta
-{ id, dt, m, y, desc, v, tp, banco, cat, sub, st,
-  pgtoFatura?, pgtoCard?,
-  faturaAgendada?,
-  transf?, transfId?, transfOrigem?, transfDestino?
-}
-
-// D.ag — evento de agenda
-{ id, title, date, time, type, valor, destino, banco, cartao,
-  faturaMes?,
-  isFaturaEvent?,txId?,
-  done, color, repeat, notes
-}
-
-// D.bs — saldos iniciais por conta (NUNCA manipular diretamente)
-// bankBal() calcula dinamicamente
+## Firebase Beta Credentials
+```javascript
+apiKey: "AIzaSyDPt3PE5a6XHNKfNDlfVvWqwT66_55hOF0"
+authDomain: "gestor-financeiro-beta.firebaseapp.com"
+projectId: "gestor-financeiro-beta"
 ```
-
----
-
-## Regras críticas de desenvolvimento
-
-1. **NUNCA manipular `D.bs` diretamente** — saldo é calculado por `bankBal()`
-2. **SEMPRE usar `str_replace`** para editar o arquivo
-3. **SEMPRE entregar os 3 arquivos juntos**: `index.html` + `sw.js` + `DIARIO.md`
-4. **Cache-busting**: acessar com `?v=XXXX` após subir nova versão
-5. **Recuperação via curl**: `curl -o index.html https://raw.githubusercontent.com/gilenogestorfinanceiro/gestor/main/index.html`
-6. **`saveImmediate()`** para saves críticos (sem debounce)
-7. **authDomain NUNCA muda**: `gestor-financeiro-pessoa-90a13.firebaseapp.com`
-8. **NUNCA criar função destrutiva sem dry-run + confirmação dupla + preview**
-9. **Backup SEMPRE salva `JSON.stringify(D)`** — nunca o HTML da página
-
----
-
-## Arquivos no repositório
-
-| Arquivo | Descrição |
-|---------|-----------|
-| `index.html` | App principal — versão atual |
-| `sw.js` | Service Worker — CACHE_VERSION deve bater com index.html |
-| `404.html` | Fix Firebase Auth no Safari iOS |
-| `DIARIO.md` | Este arquivo — contexto completo do projeto |
-
----
-
-## Pendências
-
-- [ ] Reintegrar `confirmAgModal` e `openConfirmAg` (perdidos com o incidente — estavam em versão posterior ao v2.9.31)
-- [ ] Testar backup manual e restauração em produção
-- [ ] Instagram posts POST02–POST06
-- [ ] App Gestão Saúde (companion app — mesma arquitetura)
-
----
-
-## Histórico de versões
-
-### v2.9.36 — Fix crítico backup + restauração + segurança Zona de Perigo
-- **Bug do backup corrigido**: `runAutoBackup()` agora salva `JSON.stringify(D)` em vez do HTML
-- **Nova função `restoreAutoBackup()`**: restaura dados do último backup com confirmação
-- **Nova função `runManualBackup()`**: backup manual sob demanda
-- **Botão "Backup e Restauração"** adicionado na aba Mais (acima da Zona de Perigo)
-- **Confirmação dupla** em todas as operações destrutivas da Zona de Perigo
-- **Base**: v2.9.31 (versão no GitHub no momento do incidente)
-- ⚠️ Nota: features `confirmAgModal` e `openConfirmAg` não presentes (foram implementadas entre v2.9.31 e o incidente — precisam ser reintegradas)

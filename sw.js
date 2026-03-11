@@ -1,28 +1,31 @@
-const CACHE_VERSION = 'v2.9.37';
-const CACHE_NAME = 'gestor-financeiro-' + CACHE_VERSION;
+const CACHE_VERSION = 'v2.9.41';
+const CACHE_NAME = `gestor-cache-${CACHE_VERSION}`;
 
 const ASSETS = [
-  '/gestor/',
-  '/gestor/index.html',
-  '/gestor/sw.js'
+  './',
+  './index.html',
 ];
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
   );
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
       Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
+    )
   );
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
+  // Não interceptar requisições do Firebase
+  if (e.request.url.includes('firestore') || e.request.url.includes('firebase')) return;
+  
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request))
   );
