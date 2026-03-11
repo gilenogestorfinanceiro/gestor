@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v2.9.36-beta';
+const CACHE_VERSION = 'v2.9.38-beta';
 const CACHE_NAME = 'gestor-financeiro-beta-' + CACHE_VERSION;
 
 const ASSETS = [
