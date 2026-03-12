@@ -8,13 +8,15 @@ const ASSETS = [
   './index.html',
 ];
 
-// INSTALAÇÃO — faz cache dos arquivos e ativa imediatamente
+// INSTALAÇÃO — skipWaiting SEMPRE, independente do cache
 self.addEventListener('install', e => {
   console.log('[SW] Instalando', CACHE_VERSION);
+  // skipWaiting fora do waitUntil — garante ativação mesmo se cache falhar
+  self.skipWaiting();
   e.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(ASSETS))
-      .then(() => self.skipWaiting()) // força ativação sem esperar fechar abas
+      .catch(err => console.warn('[SW] Cache falhou mas continuando:', err))
   );
 });
 
@@ -36,6 +38,7 @@ self.addEventListener('activate', e => {
       .then(() => self.clients.claim())
       .then(() =>
         self.clients.matchAll({ includeUncontrolled: true }).then(clients => {
+          console.log('[SW] Notificando', clients.length, 'clientes — nova versão:', CACHE_VERSION);
           clients.forEach(client => {
             client.postMessage({ type: 'NEW_VERSION', version: CACHE_VERSION });
           });
