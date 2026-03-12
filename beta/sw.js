@@ -1,6 +1,6 @@
 // Gileno — Gestão Financeira | Service Worker
 // ⚠️ IMPORTANTE: Sempre incrementar CACHE_VERSION junto com a versão do index.html
-const CACHE_VERSION = 'v2.9.42';
+const CACHE_VERSION = 'v2.9.43';
 const CACHE_NAME = `gestor-cache-${CACHE_VERSION}`;
 
 const ASSETS = [

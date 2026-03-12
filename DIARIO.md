@@ -1,6 +1,6 @@
 # Diário de Bordo Técnico — Gileno Gestão Financeira
 **Atualizado em:** 12/03/2026  
-**Versão atual:** Beta v2.9.42 | Produção v2.9.37
+**Versão atual:** Beta v2.9.43 | Produção v2.9.37
 
 ---
 
@@ -14,122 +14,98 @@
 | URL Beta | https://gilenogestorfinanceiro.github.io/gestor/beta/ |
 | Firebase Produção | `gestor-financeiro-pessoa-90a13` (Blaze) |
 | Firebase Beta | `gestor-financeiro-beta` (Spark) |
-| UID Gileno Produção | `9NWXXOwHHUSrxEg7Ygw226zsuHj1` |
 | UID Gileno Beta | `WPt1n2dZSGNxpOA2azPWgpRWk5u1` |
-| GitHub PAT | *(armazenado localmente — nao commitar)* |
 
 ---
 
-## CORRECOES v2.9.42-BETA
+## CORREÇÕES v2.9.43-BETA
 
-### Fix 1 — Botao lapis explicito na Agenda
-- Adicionado botao visivel em cada evento
-- Faturas mostram 💳 (abre pagamento), eventos comuns mostram ✏️ (abre edicao)
+### Fix 1 — importJSON: confirmação dupla antes de sobrescrever dados (SEGURANÇA)
+- Antes: clicava no arquivo e dados eram substituídos instantaneamente sem aviso
+- Agora: mostra quantos lançamentos serão perdidos + exige 2 confirmações
+- Mensagem 1: "X lançamentos e Y compras serão perdidos. Confirma?"
+- Mensagem 2: "SEGUNDA CONFIRMAÇÃO: Tem certeza absoluta?"
 
-### Fix 2 — Perda de dados por debounce
-- Debounce 1s -> 2s
-- Adicionado beforeunload: flush do save pendente antes de fechar a pagina
-- Operacoes rapidas em sequencia nao perdem mais dados
-
-### Fix 3 — sincronizarFaturasEmAberto apagava edicoes manuais
-- Flag userEdited=true protege eventos editados pelo usuario
-- _doneMap preserva status done ao recriar eventos de fatura
-
-### Fix 4 — Edicao de evento nao atualizava tx vinculada
-- Salvar edicao agora sincroniza valor, data, desc, cat, sub, banco na tx
-
-### Fix 5 — confirmarEfetivar com data diferente perdia mes/ano
-- Atualiza tx.m e tx.y ao confirmar com nova data
-
-### Fix 6 — Auto-update sem ?v=XXXX manual (DEFINITIVO)
-- sw.js reescrito com estrategia Network-first + notificacao de versao
-- Ao ativar nova versao, SW envia mensagem NEW_VERSION para todas as abas
-- index.html ouve essa mensagem e recarrega automaticamente apos 1s
-- Daqui pra frente: subir nova versao no GitHub = app atualiza sozinho
-- Nao precisa mais de ?v=XXXX no celular, desktop ou PWA instalado
+### Fix 2 — importJSON: validação de estrutura mínima (SEGURANÇA)
+- Antes: qualquer .json era aceito, podendo corromper D silenciosamente
+- Agora: valida que o arquivo tem pelo menos tx, cp ou bs antes de prosseguir
+- Arquivo inválido exibe: "Arquivo inválido: não é um backup do Gestor Financeiro"
 
 ---
 
-## COMO FUNCIONA O AUTO-UPDATE (IMPORTANTE)
+## CORREÇÕES v2.9.42-BETA
+
+### Fix 1 — Botão lápis explícito na Agenda
+### Fix 2 — Perda de dados por debounce (1s → 2s + flush beforeunload)
+### Fix 3 — sincronizarFaturasEmAberto protegia edições com userEdited + _doneMap
+### Fix 4 — Edição de evento sincroniza tx vinculada
+### Fix 5 — confirmarEfetivar com nova data atualiza tx.m e tx.y
+### Fix 6 — Auto-update sem ?v=XXXX (Service Worker com postMessage NEW_VERSION)
+
+---
+
+## AUTO-UPDATE — COMO FUNCIONA (IMPORTANTE)
 
 ```
-1. Voce sobe nova versao no GitHub (index.html + sw.js com CACHE_VERSION nova)
-2. Usuario abre o app -> SW detecta versao diferente no servidor
+1. Você sobe nova versão no GitHub (index.html + sw.js com CACHE_VERSION nova)
+2. Usuário abre o app → SW detecta versão diferente no servidor
 3. SW baixa os arquivos novos em background (Network-first)
 4. SW envia mensagem { type: 'NEW_VERSION' } para o app
-5. App recarrega automaticamente apos 1 segundo
-6. Usuario ve a versao nova sem fazer nada
+5. App recarrega automaticamente após 1 segundo
+6. Usuário vê a versão nova sem fazer nada
 ```
 
-REGRA OBRIGATORIA: sempre mudar CACHE_VERSION no sw.js junto com a versao do index.html.
-Se esquecer de mudar o sw.js, o auto-update NAO dispara.
+REGRA OBRIGATÓRIA: sempre mudar CACHE_VERSION no sw.js junto com a versão do index.html.
 
 ---
 
-## DEBITO TECNICO — v2.10.0 (planejado)
+## ANÁLISE DE SEGURANÇA — PRODUÇÃO (12/03/2026)
 
-### Refatorar sincronizarFaturasEmAberto para upsert por chave
-Problema atual: a funcao apaga tudo e recria (limpeza nuclear), chamada em 5 lugares.
-Solucao planejada: upsert por agId — so atualiza o que mudou, nunca apaga dados validos.
-Isso eliminara de vez o risco de cascata na sincronizacao de faturas.
-Impacto: alto. Requer versao dedicada e testes completos antes de produzir.
+| Vulnerabilidade | Severidade | Status |
+|---|---|---|
+| importJSON sem confirmação | CRÍTICO | ✅ Corrigido v2.9.43 |
+| importJSON sem validação de estrutura | MÉDIO | ✅ Corrigido v2.9.43 |
+| API Key Firebase visível no código | INFO | ✅ Normal Firebase — protegido pelas Rules |
+| sincronizarFaturasEmAberto limpeza nuclear | MÉDIO | ✅ Mitigado v2.9.42 — refactor planejado v2.10.0 |
+| clearAll sem confirmação | CRÍTICO | ✅ Já tinha dupla confirmação |
+
+---
+
+## DÉBITO TÉCNICO — v2.10.0 (planejado)
+
+Refatorar sincronizarFaturasEmAberto de "apaga tudo e recria" para upsert por chave.
+Impacto alto — requer versão dedicada com testes completos.
 
 ---
 
 ## BUGS RESOLVIDOS
 
-| Bug | Versao | Status |
+| Bug | Versão | Status |
 |---|---|---|
-| Tela preta nas paginas | v2.9.41 | OK |
-| FirebaseError userActivity | v2.9.41 | OK |
-| API Key Firebase Beta exposta | v2.9.41 | OK |
-| Botao lapis sumiu da Agenda | v2.9.42 | OK |
-| Atualizacoes perdidas (debounce) | v2.9.42 | OK |
-| sincronizar() apagava edicoes | v2.9.42 | OK |
-| Edicao de evento nao atualizava tx | v2.9.42 | OK |
-| confirmarEfetivar perdia m/y | v2.9.42 | OK |
-| Cache manual ?v=XXXX necessario | v2.9.42 | OK — auto-update implementado |
+| Tela preta nas páginas | v2.9.41 | ✅ OK |
+| FirebaseError userActivity | v2.9.41 | ✅ OK |
+| API Key Firebase Beta exposta | v2.9.41 | ✅ OK |
+| Botão lápis sumiu da Agenda | v2.9.42 | ✅ OK |
+| Atualizações perdidas (debounce) | v2.9.42 | ✅ OK |
+| sincronizar() apagava edições | v2.9.42 | ✅ OK |
+| Edição de evento não atualizava tx | v2.9.42 | ✅ OK |
+| confirmarEfetivar perdia m/y | v2.9.42 | ✅ OK |
+| Cache manual ?v=XXXX necessário | v2.9.42 | ✅ OK — auto-update |
+| importJSON sem confirmação | v2.9.43 | ✅ OK |
+| importJSON sem validação | v2.9.43 | ✅ OK |
 
 ---
 
-## PROXIMOS PASSOS
+## PRÓXIMOS PASSOS
 
-1. Testes completos no beta v2.9.42
-2. Validar fluxo: Cartao -> Agenda -> Efetivar -> Extrato
-3. Validar edicao de evento de agenda
-4. Validar auto-update (subir versao e ver se recarrega sozinho)
-5. Responder sugestao Patricio Mackson (recebimento parcial)
-6. Corrigir bug botao Responder em sugestoes nao lidas
-7. Quando testes OK -> promover para producao v2.9.42
-8. Planejar v2.10.0 com refatoracao do sincronizarFaturasEmAberto
-
----
-
-## ESTRATEGIA DE DEPLOY SEM ERRO EM CASCATA
-
-### Regra de Ouro
-BETA -> Testes -> Aprovacao -> Producao (nunca editar direto em producao)
-
-### Versionamento
-v2.MAJOR.MINOR-BETA
-  MAJOR: mudancas estruturais (novo modulo, refactor)
-  MINOR: fixes e melhorias incrementais
-  -BETA: sufixo obrigatorio ate aprovacao
-
-### Checklist obrigatorio antes de qualquer deploy
-- git pull antes de qualquer edicao
-- Toda mudanca via str_replace (nunca reescrever arquivo inteiro)
-- Verificar balanco de divs apos edicao HTML
-- SEMPRE atualizar CACHE_VERSION no sw.js junto com a versao
-- Testar no beta ANTES de promover para producao
-- DIARIO.md sempre atualizado com o que foi feito
-
-### Regras anti-cascata
-- NUNCA operacoes destrutivas sem dry-run e confirmacao dupla
-- NUNCA save() dentro de funcoes que iteram arrays (risco de loop)
-- SEMPRE flags de protecao antes de limpar dados (userEdited, done)
-- SEMPRE sincronizar campos derivados (m, y) ao alterar datas
-- NUNCA editar direto em producao — sempre passar pelo beta
+1. Testes completos no beta v2.9.43
+2. Validar fluxo: Cartão → Agenda → Efetivar → Extrato
+3. Validar edição de evento de agenda
+4. Validar auto-update (subir versão e ver se recarrega sozinho)
+5. Responder sugestão Patricio Mackson (recebimento parcial)
+6. Corrigir bug botão Responder em sugestões não lidas
+7. Quando testes OK → promover para produção v2.9.43 (produção atual: v2.9.37)
+8. Planejar v2.10.0 com refatoração do sincronizarFaturasEmAberto
 
 ---
 
@@ -139,27 +115,20 @@ v2.MAJOR.MINOR-BETA
 cd ~/gestor
 git pull
 cp ~/Downloads/index.html beta/index.html
-cp ~/Downloads/sw.js sw.js
+cp ~/Downloads/sw.js beta/sw.js
 cp ~/Downloads/DIARIO.md DIARIO.md
-git add beta/index.html sw.js DIARIO.md
-git commit -m "descricao clara do que foi feito - vX.X.XX-BETA"
+git add beta/index.html beta/sw.js DIARIO.md
+git commit -m "descricao - vX.X.XX-BETA"
 git push
 ```
 
 ---
 
-## ARQUITETURA RESUMIDA
+## REGRAS ANTI-CASCATA
 
-- Stack: HTML/CSS/JS puro, Firebase Firestore, GitHub Pages, Service Worker
-- Arquivo unico: index.html (sem frameworks)
-- Dados em objeto D, persistido no Firestore com debounce de 2s
-- Funcoes: goPage(), refresh(), rDash(), rExt(), rAgenda(), rCard(), loadFromCloud(), save()
-- Paginas: page-dash, page-ext, page-add, page-agenda, page-card, page-cfg, page-invest, page-sobre, page-sug
-- SW: estrategia Network-first com auto-update por postMessage
-
-## Firebase Beta Credentials
-```javascript
-apiKey: "AIzaSyDPt3PE5a6XHNKfNDlfVvWqwT66_55hOF0"
-authDomain: "gestor-financeiro-beta.firebaseapp.com"
-projectId: "gestor-financeiro-beta"
-```
+- NUNCA operações destrutivas sem dry-run e confirmação dupla
+- NUNCA save() dentro de funções que iteram arrays
+- SEMPRE flags de proteção antes de limpar dados (userEdited, done)
+- SEMPRE sincronizar campos derivados (m, y) ao alterar datas
+- SEMPRE mudar CACHE_VERSION no sw.js junto com a versão do index.html
+- NUNCA editar direto em produção — sempre passar pelo beta
