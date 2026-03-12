@@ -381,7 +381,7 @@ Entrar com Google
 <span>Gileno - Gestão Financeira</span>
 </div>
 <div class="header-actions">
-<span id="headerUser" style="font-size:11px;color:var(--text3);margin-right:4px">👤 Gileno Paiva <span style="font-size:10px;color:var(--text3)">v2.9.41-BETA</span></span>
+<span id="headerUser" style="font-size:11px;color:var(--text3);margin-right:4px">👤 Gileno Paiva <span style="font-size:10px;color:var(--text3)">v2.9.42-BETA</span></span>
 <button class="btn-icon" onclick="openShareModal()" title="Compartilhar com amigos" style="color:var(--green);position:relative"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg></button>
 <button class="btn-icon" onclick="toggleTheme()" id="themeToggleBtn" title="Alternar tema claro/escuro"><span id="themeIcon">☀️</span></button>
 <button class="btn-icon" onclick="exportCSV()" title="Exportar CSV"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg></button>
@@ -888,7 +888,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.41
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.42
 </div>
 
 <!-- BOTTOM NAV -->
@@ -1133,10 +1133,10 @@ async function runAutoBackup(){
         const lastBk=bkSnap.exists&&bkSnap.data().timestamp?bkSnap.data().timestamp.toDate():null;
         const now=new Date();
         if(!lastBk||now-lastBk>7200000){
-            const src=JSON.stringify(D); // ✅ FIX v2.9.41: salva dados D, não HTML
+            const src=JSON.stringify(D); // ✅ FIX v2.9.42: salva dados D, não HTML
             const chunks=[];const chunkSize=900000;
             for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
-            const version='v2.9.41';
+            const version='v2.9.42';
             await bkRef.set({version:version,timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'auto',uid:currentUid||''});
             for(let i=0;i<chunks.length;i++)await db.collection('backups').doc('backup_auto_chunk_'+i).set({data:chunks[i],index:i});
             console.log('✅ Backup automático salvo ('+chunks.length+' chunks, '+Math.round(src.length/1024)+'KB)');
@@ -1176,7 +1176,7 @@ async function runManualBackup(){
         const chunks=[];const chunkSize=900000;
         for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
         const bkRef=db.collection('backups').doc('backup_manual');
-        await bkRef.set({version:'v2.9.41',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'manual',uid:currentUid||''});
+        await bkRef.set({version:'v2.9.42',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'manual',uid:currentUid||''});
         for(let i=0;i<chunks.length;i++)await db.collection('backups').doc('backup_manual_chunk_'+i).set({data:chunks[i],index:i});
         toast('✅ Backup manual salvo! ('+Math.round(src.length/1024)+'KB)');
     }catch(e){toast('❌ Erro no backup manual: '+e.message)}
@@ -1304,14 +1304,34 @@ function load(){return D}
 
 function save(){
     if(!currentUid)return;
-    // Debounce: save to cloud after 1 second of inactivity
+    // Debounce: save to cloud after 2 seconds of inactivity
+    // IMPORTANTE: 2s para garantir que múltiplas operações em sequência não percam dados
     if(saveTimeout) clearTimeout(saveTimeout);
     saveTimeout=setTimeout(async function(){
+        saveTimeout=null;
         try{
             await db.collection('users').doc(currentUid).set({data:JSON.parse(JSON.stringify(D)),updated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
         }catch(e){console.error('Save error:',e);toast('⚠️ Erro ao salvar na nuvem',true)}
-    },1000);
+    },2000);
 }
+
+// Flush pendente antes de fechar/navegar (evita perda de dados)
+window.addEventListener('beforeunload', function(){
+    if(saveTimeout && currentUid){
+        clearTimeout(saveTimeout);
+        saveTimeout=null;
+        // Usa sendBeacon para garantir envio mesmo durante unload
+        const payload=JSON.stringify({data:D,updated:new Date().toISOString()});
+        try{
+            navigator.sendBeacon&&navigator.sendBeacon(
+                'https://firestore.googleapis.com/v1/projects/gestor-financeiro-beta/databases/(default)/documents/users/'+currentUid+'?updateMask.fieldPaths=data',
+                new Blob([payload],{type:'application/json'})
+            );
+        }catch(_){}
+        // Fallback: saveImmediate síncrono
+        db.collection('users').doc(currentUid).set({data:JSON.parse(JSON.stringify(D)),updated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}).catch(()=>{});
+    }
+});
 
 async function saveImmediate(){
     // Save direto, sem debounce — usar apenas em situações críticas (ex: limpeza de migração)
@@ -2459,12 +2479,22 @@ function confirmarEfetivar(id){
     const tx=D.tx.find(t=>t.id===id);
     if(!tx)return;
     const novaData=document.getElementById('efetivarData').value;
-    if(novaData)tx.dt=novaData;
+    if(novaData){
+        tx.dt=novaData;
+        // Atualizar m e y com base na nova data para manter consistência
+        tx.m=parseInt(novaData.split('-')[1])-1;
+        tx.y=parseInt(novaData.split('-')[0]);
+    }
     tx.st='efetivado';
     // Marcar evento de agenda vinculado como done
     if(D.ag){
-        const agEv=D.ag.find(e=>e.txId===id);
-        if(agEv){agEv.done=true;agEv.date=novaData||agEv.date;}
+        // Busca pelo txId OU pelo id do evento (faturas agendadas usam agfat_tx_*)
+        const fatAgId=id.replace('agfat_tx_','agfat_');
+        const agEv=D.ag.find(e=>e.txId===id||e.id===fatAgId);
+        if(agEv){
+            agEv.done=true;
+            agEv.date=novaData||agEv.date;
+        }
     }
     save();rExt();
     cancelEfetivar();
@@ -3720,16 +3750,25 @@ function sincronizarFaturasEmAberto(){
         _next
     ];
 
-    // === LIMPEZA NUCLEAR — remove QUALQUER evento/tx de fatura não-paga ===
-    // Constrói lista de títulos possíveis para todos os cartões (qualquer variação)
+    // === LIMPEZA SELETIVA — remove apenas eventos de fatura NÃO-PAGOS ===
+    // Preserva: done=true, userEdited=true, pagamentos já efetivados
     const _titulosFatura=new Set();
     getCartoes().forEach(c=>{ _titulosFatura.add('Fatura '+c); });
+
+    // Salvar estado done dos eventos de fatura antes de limpar (para restaurar ao recriar)
+    const _doneMap={};
+    D.ag.forEach(e=>{
+        if(e.isFaturaEvent || (e.id&&(e.id.startsWith('venc_')||e.id.startsWith('agfat_')))){
+            if(e.done) _doneMap[e.id]=true;
+        }
+    });
 
     const _agAntes=D.ag.length, _txAntes=D.tx.length;
 
     D.ag=D.ag.filter(e=>{
         if(e.done) return true; // preserva pagos/confirmados
-        if(e.isFaturaEvent) return false; // flag nova
+        if(e.userEdited) return true; // preserva eventos editados manualmente pelo usuário
+        if(e.isFaturaEvent) return false; // flag nova — recriar
         if(e.id && e.id.startsWith('venc_')) return false; // legados formato antigo (venc_*)
         if(e.id && e.id.startsWith('agfat_')) return false; // formato novo não-pago
         if(e.title && _titulosFatura.has(e.title.trim())) return false; // título exato
@@ -3770,7 +3809,7 @@ function sincronizarFaturasEmAberto(){
                 faturaAgendada:true
             });
 
-            // Evento na agenda
+            // Evento na agenda — preserva done se já estava marcado
             D.ag.push({
                 id:agId,title,date:dateStr,
                 time:'08:00',type:'pagamento',
@@ -3779,7 +3818,7 @@ function sincronizarFaturasEmAberto(){
                 cat:'Cartão Crédito',sub:card,
                 color:'#cc2222',repeat:'none',
                 notes:`Vencimento da fatura de ${card} — ${MN[m]}/${y}`,
-                done:false,txId,
+                done:_doneMap[agId]||false,txId,
                 isFaturaEvent:true
             });
         });
@@ -3861,7 +3900,29 @@ function saveAgenda(){
     };
     if(agEditId){
         const idx=D.ag.findIndex(e=>e.id===agEditId);
-        if(idx>=0){ev.done=D.ag[idx].done;ev.txId=D.ag[idx].txId;D.ag[idx]=ev}
+        if(idx>=0){
+            ev.done=D.ag[idx].done;
+            ev.txId=D.ag[idx].txId;
+            ev.userEdited=true; // flag: usuário editou manualmente — não apagar na sincronização
+            D.ag[idx]=ev;
+            // Sincronizar alterações na tx vinculada (valor, data, categoria)
+            if(ev.txId){
+                const tx=D.tx.find(t=>t.id===ev.txId);
+                if(tx){
+                    tx.v=ev.valor||tx.v;
+                    tx.dt=ev.date||tx.dt;
+                    tx.desc=ev.title||tx.desc;
+                    tx.cat=ev.cat||tx.cat;
+                    tx.sub=ev.sub||tx.sub;
+                    tx.banco=ev.banco||tx.banco;
+                    // Recalcular m e y com base na nova data
+                    if(ev.date){
+                        tx.m=parseInt(ev.date.split('-')[1])-1;
+                        tx.y=parseInt(ev.date.split('-')[0]);
+                    }
+                }
+            }
+        }
     } else {
         D.ag.push(ev);
         // Auto-create pending transaction for payments/receipts
@@ -4035,6 +4096,10 @@ function renderAgEvent(e,isOverdue){
             ${e.notes?'<div style="font-size:11px;color:var(--text3);margin-top:2px;font-style:italic">'+e.notes+'</div>':''}
             ${isOverdue?'<div style="font-size:10px;color:var(--red);margin-top:2px">⚠️ Vencido</div>':''}
         </div>
+        ${e.isFaturaEvent
+            ? `<button onclick="openAgendaEdit('${e.id}')" title="Pagar fatura" style="background:none;border:none;color:var(--primary);font-size:15px;cursor:pointer;padding:4px" >💳</button>`
+            : `<button onclick="openAgendaEdit('${e.id}')" title="Editar compromisso" style="background:none;border:none;color:var(--primary);font-size:15px;cursor:pointer;padding:4px">✏️</button>`
+        }
         <button onclick="exportICS('${e.id}')" title="Adicionar ao Calendário" style="background:none;border:none;color:var(--blue);font-size:16px;cursor:pointer;padding:4px">📅</button>
         <button onclick="delAgenda('${e.id}')" style="background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px">&times;</button>
     </div>`;
@@ -4119,6 +4184,31 @@ function selectAgDay(dateStr){
     agSelectedDay=(agSelectedDay===dateStr)?null:dateStr;
     rAgenda();
 }
+
+// ============================================================
+// SERVICE WORKER — Auto-update sem precisar de ?v=XXXX manual
+// ============================================================
+(function registerSW(){
+    if(!('serviceWorker' in navigator)) return;
+
+    navigator.serviceWorker.register('./sw.js')
+        .then(reg => {
+            console.log('[App] Service Worker registrado:', reg.scope);
+        })
+        .catch(err => console.warn('[App] SW erro:', err));
+
+    // Ouvir notificação de nova versão enviada pelo SW
+    navigator.serviceWorker.addEventListener('message', function(event){
+        if(event.data && event.data.type === 'NEW_VERSION'){
+            const novaVersao = event.data.version;
+            console.log('[App] Nova versão detectada:', novaVersao, '— recarregando...');
+            // Aguarda 1s para garantir que o SW terminou de cachear
+            setTimeout(function(){
+                window.location.reload(true);
+            }, 1000);
+        }
+    });
+})();
 
 </script>
 
