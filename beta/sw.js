@@ -3,38 +3,25 @@
 const CACHE_VERSION = 'v2.9.43';
 const CACHE_NAME = `gestor-cache-${CACHE_VERSION}`;
 
-const ASSETS = [
-  './',
-  './index.html',
-];
+// NUNCA cachear index.html — sempre buscar da rede para garantir versão atual
+const NEVER_CACHE = ['/', './index.html', '/gestor/beta/', '/gestor/beta/index.html'];
 
-// INSTALAÇÃO — skipWaiting SEMPRE, independente do cache
+// INSTALAÇÃO — skipWaiting imediato, sem cachear index.html
 self.addEventListener('install', e => {
   console.log('[SW] Instalando', CACHE_VERSION);
-  // skipWaiting fora do waitUntil — garante ativação mesmo se cache falhar
   self.skipWaiting();
-  e.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(ASSETS))
-      .catch(err => console.warn('[SW] Cache falhou mas continuando:', err))
-  );
+  // Não faz cache de nada na instalação — network-first resolve tudo
 });
 
-// ATIVAÇÃO — remove caches antigos e notifica o app da nova versão
+// ATIVAÇÃO — remove TODOS os caches antigos sem exceção
 self.addEventListener('activate', e => {
   console.log('[SW] Ativando', CACHE_VERSION);
   e.waitUntil(
     caches.keys()
-      .then(keys =>
-        Promise.all(
-          keys
-            .filter(k => k.startsWith('gestor-cache-') && k !== CACHE_NAME)
-            .map(k => {
-              console.log('[SW] Removendo cache antigo:', k);
-              return caches.delete(k);
-            })
-        )
-      )
+      .then(keys => Promise.all(keys.map(k => {
+        console.log('[SW] Deletando cache:', k);
+        return caches.delete(k);
+      })))
       .then(() => self.clients.claim())
       .then(() =>
         self.clients.matchAll({ includeUncontrolled: true }).then(clients => {
@@ -47,17 +34,26 @@ self.addEventListener('activate', e => {
   );
 });
 
-// FETCH — Network first, fallback para cache
+// FETCH — index.html SEMPRE da rede, resto network-first com cache fallback
 self.addEventListener('fetch', e => {
   const url = e.request.url;
-  if (
-    url.includes('firestore') ||
-    url.includes('firebase') ||
-    url.includes('googleapis') ||
-    url.includes('gstatic') ||
-    url.includes('google.com')
-  ) return;
 
+  // Nunca interceptar Firebase
+  if (url.includes('firestore') || url.includes('firebase') ||
+      url.includes('googleapis') || url.includes('gstatic') ||
+      url.includes('google.com')) return;
+
+  // index.html — SEMPRE da rede, nunca do cache
+  const isIndex = NEVER_CACHE.some(p => url.endsWith(p) || url.includes('index.html'));
+  if (isIndex) {
+    e.respondWith(
+      fetch(e.request, { cache: 'no-store' })
+        .catch(() => caches.match(e.request)) // fallback offline
+    );
+    return;
+  }
+
+  // Outros assets — network-first com cache
   e.respondWith(
     fetch(e.request)
       .then(response => {
