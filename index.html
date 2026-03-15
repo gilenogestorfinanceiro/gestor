@@ -2,9 +2,9 @@
 <html lang="pt-BR"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Gileno - Gestão Financeira</title>
+<title>BETA - Gileno Gestão Financeira</title>
 <meta name="description" content="Gileno - Gestão Financeira. Controle suas finanças pessoais com segurança na nuvem.">
-<meta property="og:title" content="Gileno - Gestão Financeira">
+<meta property="og:title" content="BETA - Gileno Gestão Financeira">
 <meta property="og:description" content="Controle suas finanças pessoais com segurança na nuvem. Gerencie contas, cartões, transferências e muito mais.">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://gilenogestorfinanceiro.github.io/gestor/og_banner.jpg">
@@ -44,11 +44,11 @@
 --purple:#7c3aed;--purple-bg:rgba(124,58,237,0.08);
 --shadow:0 4px 24px rgba(0,0,0,0.08);
 }
-html,body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+html,body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;min-height:-webkit-fill-available;overflow-x:hidden}html{height:-webkit-fill-available}
 button{font-family:var(--font);cursor:pointer;border:none;outline:none}
 input,select{font-family:var(--font);outline:none}
 
-.app{display:flex;flex-direction:column;min-height:100vh}
+.app{display:flex;flex-direction:column;min-height:100vh;min-height:-webkit-fill-available}
 .app-header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;backdrop-filter:blur(20px)}
 .app-logo{display:flex;align-items:center;gap:10px}
 .app-logo svg{width:28px;height:28px}
@@ -374,14 +374,14 @@ Entrar com Google
 </div>
 </div>
 
-<div class="app" id="appContainer" style="display: flex;">
+<div class="app" id="appContainer" style="display: flex; flex-direction: column; min-height: 100vh; min-height: -webkit-fill-available;">
 <header class="app-header">
 <div class="app-logo">
 <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAoACgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDwaiium8M+Go9SjN/qMhhsELd9pfaMsc9lUEZPqQBzVFHM5x1NHWvS7Txvo9hbzWuieBtLu7dSEae7QNIxPTA5Iz7k1yeqXcMEdxbxW0aSzEtJ5SjbHk525xzgcVMpWaSN6NHnjKcnZL8X0XqzAoooqzAK7Rrhf7B06CTmwW3WOVEcgyZdnxwOPmZc/wC7XF1rafrKW1obS5t/OhJOCrYIz1Hof0qJqX2TowzoJv26bXS3fz8i/dXeywZo32OluixsAA23kAe3Hfrz1rrLvxbqdn8NV0fUvKWT7MLeGJY9rJGRhQ3q2Mk+nFYmjeJPC+kI07aPc3V4q/uWlcEIex54/HBNczrGsXGtXrXE4CDJ2xr0X/E+9NRSMp1JTsnstkZ9FFFUQFFFFABRRRQAUUUUAf/Z" width="32" height="32" style="border-radius:6px">
 <span>Gileno - Gestão Financeira</span>
 </div>
 <div class="header-actions">
-<span id="headerUser" style="font-size:11px;color:var(--text3);margin-right:4px">👤 Gileno Paiva <span style="font-size:10px;color:var(--text3)">v2.9.37</span></span>
+<span id="headerUser" style="font-size:11px;color:var(--text3);margin-right:4px">👤 Gileno Paiva <span style="font-size:10px;color:var(--text3)">v2.9.43-BETA</span></span>
 <button class="btn-icon" onclick="openShareModal()" title="Compartilhar com amigos" style="color:var(--green);position:relative"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg></button>
 <button class="btn-icon" onclick="toggleTheme()" id="themeToggleBtn" title="Alternar tema claro/escuro"><span id="themeIcon">☀️</span></button>
 <button class="btn-icon" onclick="exportCSV()" title="Exportar CSV"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg></button>
@@ -406,447 +406,41 @@ Entrar com Google
 </button>
 </div>
 <div class="kpi-grid">
-<div class="kpi green"><div class="kpi-label">Receitas</div><div class="kpi-value kpi-val-hide" id="k1">R$ 16.958,69<div style="font-size:10px;margin-top:2px;font-weight:400">✅ R$ 10.342,69 · 🕐 R$ 6.616,00</div></div></div>
-<div class="kpi red"><div class="kpi-label">Despesas</div><div class="kpi-value kpi-val-hide" id="k2">R$ 10.586,78<div style="font-size:10px;margin-top:2px;font-weight:400">✅ R$ 7.451,23 · 🕐 R$ 8.063,52</div></div></div>
-<div class="kpi res-pos" id="kpiResult"><div class="kpi-label">Resultado</div><div class="kpi-value kpi-val-hide" id="k3">R$ 6.371,91</div></div>
-<div class="kpi orange"><div class="kpi-label">Cartões</div><div class="kpi-value kpi-val-hide" id="k4">R$ 4.927,97</div></div>
+<div class="kpi green"><div class="kpi-label">Receitas</div><div class="kpi-value kpi-val-hide" id="k1">R$ 0,00<div style="font-size:10px;margin-top:2px;font-weight:400">✅ R$ 0,00 · 🕐 R$ 0,00</div></div></div>
+<div class="kpi red"><div class="kpi-label">Despesas</div><div class="kpi-value kpi-val-hide" id="k2">R$ 0,00<div style="font-size:10px;margin-top:2px;font-weight:400">✅ R$ 0,00 · 🕐 R$ 0,00</div></div></div>
+<div class="kpi res-pos" id="kpiResult"><div class="kpi-label">Resultado</div><div class="kpi-value kpi-val-hide" id="k3">R$ 0,00</div></div>
+<div class="kpi orange"><div class="kpi-label">Cartões</div><div class="kpi-value kpi-val-hide" id="k4">R$ 0,00</div></div>
 </div>
 <div class="card">
 <div class="card-title"><div class="dot" style="background:var(--primary)"></div>Receitas vs Despesas (6 meses)</div>
-<div class="chart-bar-group" id="chartBars"><div class="chart-col"><div class="chart-bars-pair"><div class="chart-bar green" style="height:2px" title="Rec R$ 0,00"></div><div class="chart-bar red" style="height:2px" title="Desp R$ 0,00"></div></div><div class="chart-lbl">OUT/25</div></div><div class="chart-col"><div class="chart-bars-pair"><div class="chart-bar green" style="height:2px" title="Rec R$ 0,00"></div><div class="chart-bar red" style="height:2px" title="Desp R$ 0,00"></div></div><div class="chart-lbl">NOV/25</div></div><div class="chart-col"><div class="chart-bars-pair"><div class="chart-bar green" style="height:2px" title="Rec R$ 0,00"></div><div class="chart-bar red" style="height:2px" title="Desp R$ 0,00"></div></div><div class="chart-lbl">DEZ/25</div></div><div class="chart-col"><div class="chart-bars-pair"><div class="chart-bar green" style="height:2px" title="Rec R$ 0,00"></div><div class="chart-bar red" style="height:2px" title="Desp R$ 0,00"></div></div><div class="chart-lbl">JAN</div></div><div class="chart-col"><div class="chart-bars-pair"><div class="chart-bar green" style="height:110px" title="Rec R$ 20.680,84"></div><div class="chart-bar red" style="height:59.99341419400759px" title="Desp R$ 11.279,22"></div></div><div class="chart-lbl">FEV</div></div><div class="chart-col"><div class="chart-bars-pair"><div class="chart-bar green" style="height:90.20213395587413px" title="Rec R$ 16.958,69"></div><div class="chart-bar red" style="height:56.310372305960485px" title="Desp R$ 10.586,78"></div></div><div class="chart-lbl">MAR</div></div></div>
+<div class="chart-bar-group" id="chartBars"></div>
 </div>
 <div class="card">
 <div class="card-title"><div class="dot" style="background:var(--red)"></div>Despesas por Categoria</div>
 <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
 <canvas id="pieDesp" style="flex-shrink: 0; display: block; width: 220px; height: 220px;" width="440" height="440"></canvas>
-<div style="flex:1;min-width:200px" id="catBreakDesp"><div style="margin-bottom:2px">
-            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
-                <div style="width:12px;height:12px;border-radius:3px;background:#ef4444;flex-shrink:0"></div>
-                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
-                <span style="flex:1;font-size:13px;font-weight:600">Saúde</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 2.789,16</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">18%</span>
-            </div>
-            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#ef4444;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Plano de Saúde</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 1.076,99</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">39%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#ef4444;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Farmácia</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 882,27</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">32%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#ef4444;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Personal</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 725,00</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">26%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#ef4444;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Academia</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 79,90</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">3%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#ef4444;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Barbearia</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 25,00</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">1%</span>
-            </div></div>
-        </div><div style="margin-bottom:2px">
-            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
-                <div style="width:12px;height:12px;border-radius:3px;background:#f97316;flex-shrink:0"></div>
-                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
-                <span style="flex:1;font-size:13px;font-weight:600">Alimentação</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 2.460,37</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">16%</span>
-            </div>
-            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#f97316;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Restaurante</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 1.713,63</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">70%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#f97316;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Padaria</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 210,55</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">9%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#f97316;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Compras Amazon</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 183,06</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">7%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#f97316;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Cafe da Manha</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 118,25</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">5%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#f97316;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Lanches</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 103,18</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">4%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#f97316;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Delivery</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 71,70</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">3%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#f97316;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Supermercado</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 60,00</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">2%</span>
-            </div></div>
-        </div><div style="margin-bottom:2px">
-            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
-                <div style="width:12px;height:12px;border-radius:3px;background:#f59e0b;flex-shrink:0"></div>
-                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
-                <span style="flex:1;font-size:13px;font-weight:600">Filhos e Netos</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 2.394,91</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">15%</span>
-            </div>
-            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#f59e0b;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Leilane</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 1.204,66</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">50%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#f59e0b;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Breno</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 958,54</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">40%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#f59e0b;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Marcela</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 231,71</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">10%</span>
-            </div></div>
-        </div><div style="margin-bottom:2px">
-            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
-                <div style="width:12px;height:12px;border-radius:3px;background:#84cc16;flex-shrink:0"></div>
-                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
-                <span style="flex:1;font-size:13px;font-weight:600">Investimento</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 2.106,40</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">14%</span>
-            </div>
-            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#84cc16;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Cotas Agrodel Tatiana</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 2.106,40</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">100%</span>
-            </div></div>
-        </div><div style="margin-bottom:2px">
-            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
-                <div style="width:12px;height:12px;border-radius:3px;background:#10b981;flex-shrink:0"></div>
-                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
-                <span style="flex:1;font-size:13px;font-weight:600">Viagens</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 1.471,76</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">9%</span>
-            </div>
-            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#10b981;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Passagens Aereas</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 1.197,76</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">81%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#10b981;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Bancorbras</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 274,00</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">19%</span>
-            </div></div>
-        </div><div style="margin-bottom:2px">
-            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
-                <div style="width:12px;height:12px;border-radius:3px;background:#06b6d4;flex-shrink:0"></div>
-                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
-                <span style="flex:1;font-size:13px;font-weight:600">Sebastiana da Silva</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 1.072,58</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">7%</span>
-            </div>
-            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#06b6d4;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Salario Mensal</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 750,00</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">70%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#06b6d4;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">INSS 2026</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 178,31</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">17%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#06b6d4;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Celular</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 98,99</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">9%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#06b6d4;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Plano Funerário</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 45,28</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">4%</span>
-            </div></div>
-        </div><div style="margin-bottom:2px">
-            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
-                <div style="width:12px;height:12px;border-radius:3px;background:#6366f1;flex-shrink:0"></div>
-                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
-                <span style="flex:1;font-size:13px;font-weight:600">Despesas Porcino Costa</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 850,33</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">5%</span>
-            </div>
-            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#6366f1;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Condominio</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 750,43</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">88%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#6366f1;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Internet Brisa</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 99,90</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">12%</span>
-            </div></div>
-        </div><div style="margin-bottom:2px">
-            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
-                <div style="width:12px;height:12px;border-radius:3px;background:#8b5cf6;flex-shrink:0"></div>
-                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
-                <span style="flex:1;font-size:13px;font-weight:600">Presentes</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 714,62</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">5%</span>
-            </div>
-            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#8b5cf6;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Amor</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 616,25</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">86%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#8b5cf6;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Gileno</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 65,00</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">9%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#8b5cf6;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Diversos</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 33,37</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">5%</span>
-            </div></div>
-        </div><div style="margin-bottom:2px">
-            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
-                <div style="width:12px;height:12px;border-radius:3px;background:#ec4899;flex-shrink:0"></div>
-                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
-                <span style="flex:1;font-size:13px;font-weight:600">Moradia</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 500,00</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">3%</span>
-            </div>
-            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#ec4899;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Sem subcategoria</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 500,00</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">100%</span>
-            </div></div>
-        </div><div style="margin-bottom:2px">
-            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
-                <div style="width:12px;height:12px;border-radius:3px;background:#e11d48;flex-shrink:0"></div>
-                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
-                <span style="flex:1;font-size:13px;font-weight:600">Seguros</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 447,06</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">3%</span>
-            </div>
-            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#e11d48;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Seguro Viagem</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 244,71</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">55%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#e11d48;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Seguro de Vida</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 128,96</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">29%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#e11d48;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Plano Funerario SEMPRE</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 73,39</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">16%</span>
-            </div></div>
-        </div><div style="margin-bottom:2px">
-            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
-                <div style="width:12px;height:12px;border-radius:3px;background:#0ea5e9;flex-shrink:0"></div>
-                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
-                <span style="flex:1;font-size:13px;font-weight:600">Assinaturas</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 309,49</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">2%</span>
-            </div>
-            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#0ea5e9;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Streaming</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 269,59</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">87%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#0ea5e9;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Apps</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 39,90</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">13%</span>
-            </div></div>
-        </div><div style="margin-bottom:2px">
-            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
-                <div style="width:12px;height:12px;border-radius:3px;background:#a855f7;flex-shrink:0"></div>
-                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
-                <span style="flex:1;font-size:13px;font-weight:600">Comunicação</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 222,95</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">1%</span>
-            </div>
-            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#a855f7;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Celular</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 122,96</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">55%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#a855f7;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Internet</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 99,99</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">45%</span>
-            </div></div>
-        </div><div style="margin-bottom:2px">
-            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
-                <div style="width:12px;height:12px;border-radius:3px;background:#ef4444;flex-shrink:0"></div>
-                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
-                <span style="flex:1;font-size:13px;font-weight:600">Negocios</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 183,88</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">1%</span>
-            </div>
-            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#ef4444;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Hospedagem de Site</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 143,88</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">78%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#ef4444;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Registro de Dominio gilenogestão.com.br</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 40,00</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">22%</span>
-            </div></div>
-        </div><div style="margin-bottom:2px">
-            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
-                <div style="width:12px;height:12px;border-radius:3px;background:#f97316;flex-shrink:0"></div>
-                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
-                <span style="flex:1;font-size:13px;font-weight:600">Educação</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 149,06</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">1%</span>
-            </div>
-            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#f97316;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Sem subcategoria</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 149,06</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">100%</span>
-            </div></div>
-        </div><div style="margin-bottom:2px">
-            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
-                <div style="width:12px;height:12px;border-radius:3px;background:#f59e0b;flex-shrink:0"></div>
-                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
-                <span style="flex:1;font-size:13px;font-weight:600">Transporte</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 60,00</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">0%</span>
-            </div>
-            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#f59e0b;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Estacionamento</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 60,00</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">100%</span>
-            </div></div>
-        </div><div style="margin-bottom:2px">
-            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
-                <div style="width:12px;height:12px;border-radius:3px;background:#84cc16;flex-shrink:0"></div>
-                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
-                <span style="flex:1;font-size:13px;font-weight:600">Diversão</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 40,00</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">0%</span>
-            </div>
-            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#84cc16;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Festas</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 40,00</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">100%</span>
-            </div></div>
-        </div><div style="margin-bottom:2px">
-            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
-                <div style="width:12px;height:12px;border-radius:3px;background:#10b981;flex-shrink:0"></div>
-                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
-                <span style="flex:1;font-size:13px;font-weight:600">Estorno</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">-R$ 257,82</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">-2%</span>
-            </div>
-            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#10b981;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Sicredi Mossoró</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">-R$ 257,82</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">100%</span>
-            </div></div>
-        </div></div>
-</div>
-<div id="catDespTotal"><div style="display:flex;justify-content:space-between;align-items:center;padding:10px 8px;border-top:2px solid var(--border);margin-top:6px;font-weight:700"><span style="font-size:13px;color:var(--text)">📊 Total Despesas</span><span class="kpi-val-hide" style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--red)">R$ 15.514,75</span></div></div>
+<div style="flex:1;min-width:200px" id="catBreakDesp"></div>
+<div id="catDespTotal"><div style="display:flex;justify-content:space-between;align-items:center;padding:10px 8px;border-top:2px solid var(--border);margin-top:6px;font-weight:700"><span style="font-size:13px;color:var(--text)">📊 Total Despesas</span><span class="kpi-val-hide" style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--red)">R$ 0,00</span></div></div>
 <div class="empty" id="catEmpty" style="display:none"><p>Nenhuma despesa registrada</p></div>
 </div>
 <div class="card">
 <div class="card-title"><div class="dot" style="background:var(--green)"></div>Receitas por Categoria</div>
 <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
 <canvas id="pieRec" style="flex-shrink: 0; display: block; width: 220px; height: 220px;" width="440" height="440"></canvas>
-<div style="flex:1;min-width:200px" id="catBreakRec"><div style="margin-bottom:2px">
-            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
-                <div style="width:12px;height:12px;border-radius:3px;background:#10b981;flex-shrink:0"></div>
-                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
-                <span style="flex:1;font-size:13px;font-weight:600">Salário/Remuneração</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 10.342,69</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">61%</span>
-            </div>
-            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#10b981;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Pro Labore</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 10.342,69</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">100%</span>
-            </div></div>
-        </div><div style="margin-bottom:2px">
-            <div onclick="toggleCatSubs(this)" style="display:flex;align-items:center;gap:8px;padding:10px 8px;cursor:pointer;border-radius:var(--radius-sm);transition:background 0.2s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='transparent'">
-                <div style="width:12px;height:12px;border-radius:3px;background:#059669;flex-shrink:0"></div>
-                <span class="cat-arrow" style="font-size:10px;color:var(--text3);width:14px">▶</span>
-                <span style="flex:1;font-size:13px;font-weight:600">Aluguel</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700">R$ 6.616,00</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">39%</span>
-            </div>
-            <div style="display:none;padding:0 8px 8px 34px"><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#059669;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Otica Sol</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 2.107,00</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">32%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#059669;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Otica Limão com Mel</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 2.100,00</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">32%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#059669;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Industria Dsfrut</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 840,00</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">13%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#059669;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Predio Santos Dumont Primeiro Andar</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 810,00</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">12%</span>
-            </div><div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
-                <div style="width:8px;height:8px;border-radius:50%;background:#059669;opacity:0.6;flex-shrink:0"></div>
-                <span style="flex:1;font-size:12px;color:var(--text2)">Loja Dsfrut</span>
-                <span class="kpi-val-hide" style="font-family:var(--mono);font-size:12px;font-weight:600">R$ 759,00</span>
-                <span style="font-size:11px;color:var(--text3);min-width:35px;text-align:right">11%</span>
-            </div></div>
-        </div></div>
-</div>
-<div id="catRecTotal"><div style="display:flex;justify-content:space-between;align-items:center;padding:10px 8px;border-top:2px solid var(--border);margin-top:6px;font-weight:700"><span style="font-size:13px;color:var(--text)">📊 Total Receitas</span><span class="kpi-val-hide" style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--green)">R$ 16.958,69</span></div></div>
+<div style="flex:1;min-width:200px" id="catBreakRec"></div>
+<div id="catRecTotal"><div style="display:flex;justify-content:space-between;align-items:center;padding:10px 8px;border-top:2px solid var(--border);margin-top:6px;font-weight:700"><span style="font-size:13px;color:var(--text)">📊 Total Receitas</span><span class="kpi-val-hide" style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--green)">R$ 0,00</span></div></div>
 <div class="empty" id="catEmptyRec" style="display:none"><p>Nenhuma receita registrada</p></div>
 </div>
 <div class="card">
 <div class="card-title"><div class="dot" style="background:var(--green)"></div>Saldo das Contas</div>
-<div class="bank-list" id="bankList"><div class="bank-item"><span class="bank-name">Sicredi Mossoró</span><span class="bank-balance kpi-val-hide">R$ 16,30</span></div><div class="bank-item"><span class="bank-name">Banco do Brasil</span><span class="bank-balance kpi-val-hide">R$ 14,20</span></div><div class="bank-item"><span class="bank-name">BTG Pactual</span><span class="bank-balance kpi-val-hide">R$ 3.383,19</span></div><div class="bank-item"><span class="bank-name">C6 Bank</span><span class="bank-balance kpi-val-hide">R$ 21,94</span></div><div class="bank-item"><span class="bank-name">InfinityPay</span><span class="bank-balance kpi-val-hide">R$ 0,77</span></div><div class="bank-item"><span class="bank-name">Sicredi Solanea</span><span class="bank-balance kpi-val-hide">R$ 2,05</span></div><div class="bank-item"><span class="bank-name">XP Banco</span><span class="bank-balance kpi-val-hide">R$ 1,06</span></div><div class="bank-item"><span class="bank-name">Integralização Capital Mossoro</span><span class="bank-balance kpi-val-hide">R$ 6.912,11</span></div><div class="bank-item"><span class="bank-name">NOMAD (USA)</span><span class="bank-balance kpi-val-hide">R$ 166,60</span></div><div class="bank-item"><span class="bank-name">SICREDINVEST MOSSORO</span><span class="bank-balance kpi-val-hide">R$ 25.882,62</span></div><div class="bank-item"><span class="bank-name">C6 Banck Investimento</span><span class="bank-balance kpi-val-hide">R$ 58.080,65</span></div><div class="bank-item"><span class="bank-name">XP Banck Investimento</span><span class="bank-balance kpi-val-hide">R$ 6.714,69</span></div><div class="bank-item"><span class="bank-name">SICREDINVEST SOLANEA</span><span class="bank-balance kpi-val-hide">R$ 27.326,75</span></div><div class="bank-item"><span class="bank-name">BTG Pactual OCTO</span><span class="bank-balance kpi-val-hide">R$ 77.049,95</span></div><div class="bank-item"><span class="bank-name">BTG Pactual OCTO/Internacional</span><span class="bank-balance kpi-val-hide">R$ 10,64</span></div><div class="bank-item"><span class="bank-name">Integralização Capital Solanea</span><span class="bank-balance kpi-val-hide">R$ 620,00</span></div><div class="bank-item"><span class="bank-name">CONTA EMPRESTIMOS</span><span class="bank-balance kpi-val-hide">R$ 80.558,13</span></div><div class="bank-item"><span class="bank-name">Investimentos BRINCANTO</span><span class="bank-balance kpi-val-hide">R$ 50.000,00</span></div><div class="bank-item"><span class="bank-name">Investimentos COTAS VERUSCHKA</span><span class="bank-balance kpi-val-hide">R$ 10.000,00</span></div><div class="bank-item"><span class="bank-name">Investimentos COTAS TATIANA</span><span class="bank-balance kpi-val-hide">R$ 20.000,00</span></div><div class="bank-item" style="border-top:2px solid var(--border);margin-top:6px;padding-top:8px;font-weight:700"><span class="bank-name">💰 Total das Contas</span><span class="kpi-val-hide" style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--green)">R$ 366.761,65</span></div></div>
+<div class="bank-list" id="bankList"></div>
 </div>
 <div class="card" id="dashAgendaCard">
 <div class="card-title" style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;align-items:center;gap:8px"><div class="dot" style="background:var(--purple)"></div>Próximos Compromissos</div><button onclick="goPage('agenda')" style="background:none;border:none;color:var(--primary);font-size:11px;cursor:pointer;font-family:var(--font)">Ver todos →</button></div>
-<div id="dashAgendaList"><div style="padding:8px 12px;background:var(--red-bg);border-radius:var(--radius-sm);margin-bottom:8px;font-size:12px;color:var(--red);cursor:pointer" onclick="goPage('agenda')">⚠️ 5 compromissos vencidos</div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="goPage('agenda')"><div style="width:4px;height:38px;border-radius:2px;background:#10b981;flex-shrink:0"></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🔔 Reunião sobre Tributação</div><div style="font-size:11px;color:var(--text3)">10/03 às 18:45 · nenhum</div></div></div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="goPage('agenda')"><div style="width:4px;height:38px;border-radius:2px;background:#3b82f6;flex-shrink:0"></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">💰 Aluguel Loja Dsfrut MARÇO 2026 - R$ 1.518,00 (L)</div><div style="font-size:11px;color:var(--text3)">10/03 · conta</div></div><div class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--green);white-space:nowrap;text-align:right">R$ 759,00</div></div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="goPage('agenda')"><div style="width:4px;height:38px;border-radius:2px;background:#ef4444;flex-shrink:0"></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">💸 Conta Celular CLARO Gileno</div><div style="font-size:11px;color:var(--text3)">10/03 às 08:00 · conta</div></div><div class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--red);white-space:nowrap;text-align:right">− R$ 122,96</div></div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="goPage('agenda')"><div style="width:4px;height:38px;border-radius:2px;background:#ef4444;flex-shrink:0"></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">💸 Conta Celular CLARO Breno</div><div style="font-size:11px;color:var(--text3)">10/03 às 08:00 · conta</div></div><div class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--red);white-space:nowrap;text-align:right">− R$ 100,00</div></div><div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="goPage('agenda')"><div style="width:4px;height:38px;border-radius:2px;background:#ef4444;flex-shrink:0"></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">💸 Conta Celular CLARO Leila</div><div style="font-size:11px;color:var(--text3)">10/03 às 08:00 · conta</div></div><div class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--red);white-space:nowrap;text-align:right">− R$ 100,00</div></div></div>
+<div id="dashAgendaList"></div>
 <div id="dashAgendaEmpty" style="display:none;text-align:center;padding:12px;color:var(--text3);font-size:12px">📅 Nenhum compromisso próximo</div>
+</div>
+</div>
 </div>
 </div>
 
@@ -1294,7 +888,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.37
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.43
 </div>
 
 <!-- BOTTOM NAV -->
@@ -1479,12 +1073,12 @@ function toggleValVis(){
 
 // Firebase Init
 const firebaseConfig={
-    apiKey:"AIzaSyDNq64Kqr2kt1baYlgPduSo5LbTsfdxdWQ",
-    authDomain:"gestor-financeiro-pessoa-90a13.firebaseapp.com",
-    projectId:"gestor-financeiro-pessoa-90a13",
-    storageBucket:"gestor-financeiro-pessoa-90a13.firebasestorage.app",
-    messagingSenderId:"465890133373",
-    appId:"1:465890133373:web:ac58f801c60992b2b83814"
+    apiKey:"AIzaSyDPt3PE5a6XHNKfNDlfVvWqwT66_55hOF0",
+    authDomain:"gestor-financeiro-beta.firebaseapp.com",
+    projectId:"gestor-financeiro-beta",
+    storageBucket:"gestor-financeiro-beta.firebasestorage.app",
+    messagingSenderId:"370648378153",
+    appId:"1:370648378153:web:98904d18bb9b19d1216538"
 };
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth();
@@ -1539,10 +1133,10 @@ async function runAutoBackup(){
         const lastBk=bkSnap.exists&&bkSnap.data().timestamp?bkSnap.data().timestamp.toDate():null;
         const now=new Date();
         if(!lastBk||now-lastBk>7200000){
-            const src=JSON.stringify(D); // ✅ FIX v2.9.37: salva dados D, não HTML
+            const src=JSON.stringify(D); // ✅ FIX v2.9.42: salva dados D, não HTML
             const chunks=[];const chunkSize=900000;
             for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
-            const version='v2.9.37';
+            const version='v2.9.43';
             await bkRef.set({version:version,timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'auto',uid:currentUid||''});
             for(let i=0;i<chunks.length;i++)await db.collection('backups').doc('backup_auto_chunk_'+i).set({data:chunks[i],index:i});
             console.log('✅ Backup automático salvo ('+chunks.length+' chunks, '+Math.round(src.length/1024)+'KB)');
@@ -1582,7 +1176,7 @@ async function runManualBackup(){
         const chunks=[];const chunkSize=900000;
         for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
         const bkRef=db.collection('backups').doc('backup_manual');
-        await bkRef.set({version:'v2.9.37',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'manual',uid:currentUid||''});
+        await bkRef.set({version:'v2.9.43',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'manual',uid:currentUid||''});
         for(let i=0;i<chunks.length;i++)await db.collection('backups').doc('backup_manual_chunk_'+i).set({data:chunks[i],index:i});
         toast('✅ Backup manual salvo! ('+Math.round(src.length/1024)+'KB)');
     }catch(e){toast('❌ Erro no backup manual: '+e.message)}
@@ -1656,14 +1250,14 @@ auth.onAuthStateChanged(async function(user){
         const isAdmin=user.email&&user.email.toLowerCase()==='gilenopaivalima@gmail.com';
         if(isAdmin&&document.getElementById('cfgBrapiCard'))document.getElementById('cfgBrapiCard').style.display='block';
         document.getElementById('loginScreen').style.display='none';
-        document.getElementById('appContainer').style.display='flex';
+        document.getElementById('appContainer').style.cssText='display:flex;flex-direction:column;min-height:100vh;min-height:-webkit-fill-available';
         const _verMH=document.body.innerHTML.match(/·\s*v([\d.]+)/);
         const _appVerH=_verMH?'v'+_verMH[1]:'';
         document.getElementById('headerUser').innerHTML='👤 '+currentUser+(_appVerH?' <span style="font-size:10px;color:var(--text3)">'+_appVerH+'</span>':'');
         await loadFromCloud();
         applyTheme();
         if(!D.userName){D.userName=currentUser;save()}
-        refresh();
+        goPage('dash');
         // Track user activity for admin panel
         try{
             const ua=navigator.userAgent;
@@ -1710,14 +1304,34 @@ function load(){return D}
 
 function save(){
     if(!currentUid)return;
-    // Debounce: save to cloud after 1 second of inactivity
+    // Debounce: save to cloud after 2 seconds of inactivity
+    // IMPORTANTE: 2s para garantir que múltiplas operações em sequência não percam dados
     if(saveTimeout) clearTimeout(saveTimeout);
     saveTimeout=setTimeout(async function(){
+        saveTimeout=null;
         try{
             await db.collection('users').doc(currentUid).set({data:JSON.parse(JSON.stringify(D)),updated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
         }catch(e){console.error('Save error:',e);toast('⚠️ Erro ao salvar na nuvem',true)}
-    },1000);
+    },2000);
 }
+
+// Flush pendente antes de fechar/navegar (evita perda de dados)
+window.addEventListener('beforeunload', function(){
+    if(saveTimeout && currentUid){
+        clearTimeout(saveTimeout);
+        saveTimeout=null;
+        // Usa sendBeacon para garantir envio mesmo durante unload
+        const payload=JSON.stringify({data:D,updated:new Date().toISOString()});
+        try{
+            navigator.sendBeacon&&navigator.sendBeacon(
+                'https://firestore.googleapis.com/v1/projects/gestor-financeiro-beta/databases/(default)/documents/users/'+currentUid+'?updateMask.fieldPaths=data',
+                new Blob([payload],{type:'application/json'})
+            );
+        }catch(_){}
+        // Fallback: saveImmediate síncrono
+        db.collection('users').doc(currentUid).set({data:JSON.parse(JSON.stringify(D)),updated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}).catch(()=>{});
+    }
+});
 
 async function saveImmediate(){
     // Save direto, sem debounce — usar apenas em situações críticas (ex: limpeza de migração)
@@ -2865,12 +2479,22 @@ function confirmarEfetivar(id){
     const tx=D.tx.find(t=>t.id===id);
     if(!tx)return;
     const novaData=document.getElementById('efetivarData').value;
-    if(novaData)tx.dt=novaData;
+    if(novaData){
+        tx.dt=novaData;
+        // Atualizar m e y com base na nova data para manter consistência
+        tx.m=parseInt(novaData.split('-')[1])-1;
+        tx.y=parseInt(novaData.split('-')[0]);
+    }
     tx.st='efetivado';
     // Marcar evento de agenda vinculado como done
     if(D.ag){
-        const agEv=D.ag.find(e=>e.txId===id);
-        if(agEv){agEv.done=true;agEv.date=novaData||agEv.date;}
+        // Busca pelo txId OU pelo id do evento (faturas agendadas usam agfat_tx_*)
+        const fatAgId=id.replace('agfat_tx_','agfat_');
+        const agEv=D.ag.find(e=>e.txId===id||e.id===fatAgId);
+        if(agEv){
+            agEv.done=true;
+            agEv.date=novaData||agEv.date;
+        }
     }
     save();rExt();
     cancelEfetivar();
@@ -3386,8 +3010,24 @@ function importJSON(e){
     const file=e.target.files[0];if(!file)return;
     const reader=new FileReader();
     reader.onload=function(ev){
-        try{D=migrateData(JSON.parse(ev.target.result));save();refresh();toast('✅ Dados importados com sucesso!')}
-        catch(err){toast('❌ Erro ao importar arquivo',true)}
+        try{
+            const parsed=JSON.parse(ev.target.result);
+            // Fix segurança v2.9.43: validar estrutura mínima antes de qualquer coisa
+            const temEstrutura=(parsed && typeof parsed==='object' && !Array.isArray(parsed));
+            const temCampos=(Array.isArray(parsed.tx)||Array.isArray(parsed.cp)||parsed.bs);
+            if(!temEstrutura||!temCampos){
+                toast('❌ Arquivo inválido: não é um backup do Gestor Financeiro',true);
+                return;
+            }
+            // Fix segurança v2.9.43: confirmação dupla antes de sobrescrever dados
+            const txCount=(D.tx||[]).length;
+            const cpCount=(D.cp||[]).length;
+            const aviso=`⚠️ Importar este backup vai SUBSTITUIR todos os seus dados atuais!\n\n📊 Dados atuais: ${txCount} lançamentos, ${cpCount} compras no cartão\n\nEsta ação não pode ser desfeita. Confirma?`;
+            if(!confirm(aviso))return;
+            if(!confirm('⚠️ SEGUNDA CONFIRMAÇÃO: Seus dados atuais serão perdidos. Tem certeza absoluta?'))return;
+            D=migrateData(parsed);save();refresh();toast('✅ Dados importados com sucesso!');
+        }
+        catch(err){toast('❌ Erro ao importar arquivo: '+err.message,true)}
     };reader.readAsText(file);
     e.target.value='';
 }
@@ -4126,16 +3766,25 @@ function sincronizarFaturasEmAberto(){
         _next
     ];
 
-    // === LIMPEZA NUCLEAR — remove QUALQUER evento/tx de fatura não-paga ===
-    // Constrói lista de títulos possíveis para todos os cartões (qualquer variação)
+    // === LIMPEZA SELETIVA — remove apenas eventos de fatura NÃO-PAGOS ===
+    // Preserva: done=true, userEdited=true, pagamentos já efetivados
     const _titulosFatura=new Set();
     getCartoes().forEach(c=>{ _titulosFatura.add('Fatura '+c); });
+
+    // Salvar estado done dos eventos de fatura antes de limpar (para restaurar ao recriar)
+    const _doneMap={};
+    D.ag.forEach(e=>{
+        if(e.isFaturaEvent || (e.id&&(e.id.startsWith('venc_')||e.id.startsWith('agfat_')))){
+            if(e.done) _doneMap[e.id]=true;
+        }
+    });
 
     const _agAntes=D.ag.length, _txAntes=D.tx.length;
 
     D.ag=D.ag.filter(e=>{
         if(e.done) return true; // preserva pagos/confirmados
-        if(e.isFaturaEvent) return false; // flag nova
+        if(e.userEdited) return true; // preserva eventos editados manualmente pelo usuário
+        if(e.isFaturaEvent) return false; // flag nova — recriar
         if(e.id && e.id.startsWith('venc_')) return false; // legados formato antigo (venc_*)
         if(e.id && e.id.startsWith('agfat_')) return false; // formato novo não-pago
         if(e.title && _titulosFatura.has(e.title.trim())) return false; // título exato
@@ -4176,7 +3825,7 @@ function sincronizarFaturasEmAberto(){
                 faturaAgendada:true
             });
 
-            // Evento na agenda
+            // Evento na agenda — preserva done se já estava marcado
             D.ag.push({
                 id:agId,title,date:dateStr,
                 time:'08:00',type:'pagamento',
@@ -4185,7 +3834,7 @@ function sincronizarFaturasEmAberto(){
                 cat:'Cartão Crédito',sub:card,
                 color:'#cc2222',repeat:'none',
                 notes:`Vencimento da fatura de ${card} — ${MN[m]}/${y}`,
-                done:false,txId,
+                done:_doneMap[agId]||false,txId,
                 isFaturaEvent:true
             });
         });
@@ -4267,7 +3916,29 @@ function saveAgenda(){
     };
     if(agEditId){
         const idx=D.ag.findIndex(e=>e.id===agEditId);
-        if(idx>=0){ev.done=D.ag[idx].done;ev.txId=D.ag[idx].txId;D.ag[idx]=ev}
+        if(idx>=0){
+            ev.done=D.ag[idx].done;
+            ev.txId=D.ag[idx].txId;
+            ev.userEdited=true; // flag: usuário editou manualmente — não apagar na sincronização
+            D.ag[idx]=ev;
+            // Sincronizar alterações na tx vinculada (valor, data, categoria)
+            if(ev.txId){
+                const tx=D.tx.find(t=>t.id===ev.txId);
+                if(tx){
+                    tx.v=ev.valor||tx.v;
+                    tx.dt=ev.date||tx.dt;
+                    tx.desc=ev.title||tx.desc;
+                    tx.cat=ev.cat||tx.cat;
+                    tx.sub=ev.sub||tx.sub;
+                    tx.banco=ev.banco||tx.banco;
+                    // Recalcular m e y com base na nova data
+                    if(ev.date){
+                        tx.m=parseInt(ev.date.split('-')[1])-1;
+                        tx.y=parseInt(ev.date.split('-')[0]);
+                    }
+                }
+            }
+        }
     } else {
         D.ag.push(ev);
         // Auto-create pending transaction for payments/receipts
@@ -4441,6 +4112,10 @@ function renderAgEvent(e,isOverdue){
             ${e.notes?'<div style="font-size:11px;color:var(--text3);margin-top:2px;font-style:italic">'+e.notes+'</div>':''}
             ${isOverdue?'<div style="font-size:10px;color:var(--red);margin-top:2px">⚠️ Vencido</div>':''}
         </div>
+        ${e.isFaturaEvent
+            ? `<button onclick="openAgendaEdit('${e.id}')" title="Pagar fatura" style="background:none;border:none;color:var(--primary);font-size:15px;cursor:pointer;padding:4px" >💳</button>`
+            : `<button onclick="openAgendaEdit('${e.id}')" title="Editar compromisso" style="background:none;border:none;color:var(--primary);font-size:15px;cursor:pointer;padding:4px">✏️</button>`
+        }
         <button onclick="exportICS('${e.id}')" title="Adicionar ao Calendário" style="background:none;border:none;color:var(--blue);font-size:16px;cursor:pointer;padding:4px">📅</button>
         <button onclick="delAgenda('${e.id}')" style="background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px">&times;</button>
     </div>`;
@@ -4525,6 +4200,31 @@ function selectAgDay(dateStr){
     agSelectedDay=(agSelectedDay===dateStr)?null:dateStr;
     rAgenda();
 }
+
+// ============================================================
+// SERVICE WORKER — Auto-update sem precisar de ?v=XXXX manual
+// ============================================================
+(function registerSW(){
+    if(!('serviceWorker' in navigator)) return;
+
+    navigator.serviceWorker.register('./sw.js')
+        .then(reg => {
+            console.log('[App] Service Worker registrado:', reg.scope);
+        })
+        .catch(err => console.warn('[App] SW erro:', err));
+
+    // Ouvir notificação de nova versão enviada pelo SW
+    navigator.serviceWorker.addEventListener('message', function(event){
+        if(event.data && event.data.type === 'NEW_VERSION'){
+            const novaVersao = event.data.version;
+            console.log('[App] Nova versão detectada:', novaVersao, '— recarregando...');
+            // Aguarda 1s para garantir que o SW terminou de cachear
+            setTimeout(function(){
+                window.location.reload(true);
+            }, 1000);
+        }
+    });
+})();
 
 </script>
 
