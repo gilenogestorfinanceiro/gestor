@@ -365,8 +365,7 @@ function renderSugestoes(){
             <div id="resposta-box-${s.id}" style="display:none;margin-top:12px">
                 <textarea id="resposta-txt-${s.id}" placeholder="Digite sua resposta para ${s.user||'o usuário'}..." style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-family:inherit;resize:vertical;min-height:80px"></textarea>
                 <div style="display:flex;gap:8px;margin-top:8px">
-                    <button onclick="enviarResposta('${s.id}','${s.email||''}','${(s.user||'usuario').replace(/'/g,'')}','${s.texto.substring(0,50).replace(/'/g,'').replace(/
-/g,' ')}')" style="background:var(--green);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:inherit">📤 Enviar resposta</button>
+                    <button onclick="enviarResposta('${s.id}','${s.email||''}','${(s.user||'usuario').replace(/'/g,'')}','${s.texto.substring(0,50).replace(/'/g,'').split('\n').join(' ')}')" style="background:var(--green);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:inherit">📤 Enviar resposta</button>
                     <button onclick="toggleResposta('${s.id}')" style="background:none;border:1px solid var(--border);border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;color:var(--text3);font-family:inherit">Cancelar</button>
                 </div>
             </div>
