@@ -1,10 +1,10 @@
 // Gileno — Gestão Financeira | Service Worker
 // ⚠️ IMPORTANTE: Sempre incrementar CACHE_VERSION junto com a versão do index.html
-const CACHE_VERSION = 'v2.9.45';
+const CACHE_VERSION = 'v2.9.46';
 const CACHE_NAME = `gestor-cache-${CACHE_VERSION}`;
 
-// NUNCA cachear index.html e admin.html — sempre buscar da rede para garantir versão atual
-const NEVER_CACHE = ['/', './index.html', '/gestor/beta/', '/gestor/beta/index.html', '/gestor/admin.html', 'admin.html'];
+// NUNCA cachear index.html — sempre buscar da rede para garantir versão atual
+const NEVER_CACHE = ['/', './index.html', '/gestor/beta/', '/gestor/beta/index.html'];
 
 // INSTALAÇÃO — skipWaiting imediato, sem cachear index.html
 self.addEventListener('install', e => {
@@ -44,7 +44,7 @@ self.addEventListener('fetch', e => {
       url.includes('google.com')) return;
 
   // index.html — SEMPRE da rede, nunca do cache
-  const isIndex = NEVER_CACHE.some(p => url.endsWith(p) || url.includes('index.html') || url.includes('admin.html'));
+  const isIndex = NEVER_CACHE.some(p => url.endsWith(p) || url.includes('index.html'));
   if (isIndex) {
     e.respondWith(
       fetch(e.request, { cache: 'no-store' })
