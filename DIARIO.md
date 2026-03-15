@@ -1,10 +1,10 @@
 # Diário de Bordo Técnico — Gileno Gestão Financeira
-**Atualizado em:** 12/03/2026  
-**Versão atual:** Beta v2.9.43 | Produção v2.9.37
+**Atualizado em:** 15/03/2026 — 09:00  
+**Versão atual:** Beta v2.9.44 | Produção v2.9.43
 
 ---
 
-## INFORMAÇÕES DO PROJETO
+## 🗂 INFORMAÇÕES DO PROJETO
 
 | Item | Valor |
 |---|---|
@@ -14,103 +14,97 @@
 | URL Beta | https://gilenogestorfinanceiro.github.io/gestor/beta/ |
 | Firebase Produção | `gestor-financeiro-pessoa-90a13` (Blaze) |
 | Firebase Beta | `gestor-financeiro-beta` (Spark) |
+| UID Gileno Produção | `9NWXXOwHHUSrxEg7Ygw226zsuHj1` |
 | UID Gileno Beta | `WPt1n2dZSGNxpOA2azPWgpRWk5u1` |
+| GitHub PAT | *(armazenado localmente — não commitar)* |
 
 ---
 
-## CORREÇÕES v2.9.43-BETA
+## SESSÃO 15/03/2026 — Promoção + Reset + v2.9.44
 
-### Fix 1 — importJSON: confirmação dupla antes de sobrescrever dados (SEGURANÇA)
-- Antes: clicava no arquivo e dados eram substituídos instantaneamente sem aviso
-- Agora: mostra quantos lançamentos serão perdidos + exige 2 confirmações
-- Mensagem 1: "X lançamentos e Y compras serão perdidos. Confirma?"
-- Mensagem 2: "SEGUNDA CONFIRMAÇÃO: Tem certeza absoluta?"
+### O que foi feito
 
-### Fix 2 — importJSON: validação de estrutura mínima (SEGURANÇA)
-- Antes: qualquer .json era aceito, podendo corromper D silenciosamente
-- Agora: valida que o arquivo tem pelo menos tx, cp ou bs antes de prosseguir
-- Arquivo inválido exibe: "Arquivo inválido: não é um backup do Gestor Financeiro"
+1. **Beta v2.9.43 promovido para produção** ✅
+2. **Dados do Gileno zerados em produção** (tx, cp, bs) — categorias mantidas ✅
+3. **v2.9.44 desenvolvida no beta** com duas correções críticas ✅
 
 ---
 
-## CORREÇÕES v2.9.42-BETA
+## O QUE MUDOU — v2.9.44 vs v2.9.43
 
-### Fix 1 — Botão lápis explícito na Agenda
-### Fix 2 — Perda de dados por debounce (1s → 2s + flush beforeunload)
-### Fix 3 — sincronizarFaturasEmAberto protegia edições com userEdited + _doneMap
-### Fix 4 — Edição de evento sincroniza tx vinculada
-### Fix 5 — confirmarEfetivar com nova data atualiza tx.m e tx.y
-### Fix 6 — Auto-update sem ?v=XXXX (Service Worker com postMessage NEW_VERSION)
+### 1. Backup automático para TODOS os usuários ✅
+**Antes:** backup automático rodava apenas para o admin (Gileno).
+**Depois:** todos os usuários têm backup automático a cada 2h.
 
----
-
-## AUTO-UPDATE — COMO FUNCIONA (IMPORTANTE)
-
+### 2. Backup isolado por UID ✅
+**Antes:** todos os backups salvavam no mesmo path `backups/backup_auto` — um usuário sobrescrevia o do outro.
+**Depois:** cada usuário salva em `backups/{uid}/auto/meta` e `backups/{uid}/auto/chunk_X`.
+Estrutura:
 ```
-1. Você sobe nova versão no GitHub (index.html + sw.js com CACHE_VERSION nova)
-2. Usuário abre o app → SW detecta versão diferente no servidor
-3. SW baixa os arquivos novos em background (Network-first)
-4. SW envia mensagem { type: 'NEW_VERSION' } para o app
-5. App recarrega automaticamente após 1 segundo
-6. Usuário vê a versão nova sem fazer nada
+backups/
+├── {uid_gileno}/auto/meta + chunk_0...
+├── {uid_usuario2}/auto/meta + chunk_0...
+└── {uid_usuario3}/auto/meta + chunk_0...
 ```
 
-REGRA OBRIGATÓRIA: sempre mudar CACHE_VERSION no sw.js junto com a versão do index.html.
+### 3. Botão "Responder" sempre visível no painel admin ✅
+**Antes:** botão só aparecia se a sugestão tinha email cadastrado.
+**Depois:** botão aparece sempre — admin pode responder qualquer sugestão.
 
 ---
 
-## ANÁLISE DE SEGURANÇA — PRODUÇÃO (12/03/2026)
+## BUGS RESOLVIDOS ACUMULADOS
 
-| Vulnerabilidade | Severidade | Status |
+| Bug | Versão | Status |
 |---|---|---|
-| importJSON sem confirmação | CRÍTICO | ✅ Corrigido v2.9.43 |
-| importJSON sem validação de estrutura | MÉDIO | ✅ Corrigido v2.9.43 |
-| API Key Firebase visível no código | INFO | ✅ Normal Firebase — protegido pelas Rules |
-| sincronizarFaturasEmAberto limpeza nuclear | MÉDIO | ✅ Mitigado v2.9.42 — refactor planejado v2.10.0 |
-| clearAll sem confirmação | CRÍTICO | ✅ Já tinha dupla confirmação |
+| Tela preta (páginas além do Painel) | v2.9.41 | ✅ Resolvido |
+| Botão ✏️ explícito na Agenda | v2.9.42 | ✅ Resolvido |
+| debounce 1s→2s + flush beforeunload | v2.9.42 | ✅ Resolvido |
+| sincronizarFaturasEmAberto flag userEdited | v2.9.42 | ✅ Resolvido |
+| saveAgenda sincroniza tx vinculada | v2.9.42 | ✅ Resolvido |
+| confirmarEfetivar atualiza tx.m e tx.y | v2.9.42 | ✅ Resolvido |
+| Auto-update SW com postMessage NEW_VERSION | v2.9.42 | ✅ Resolvido |
+| importJSON sem confirmação | v2.9.43 | ✅ Resolvido |
+| importJSON sem validação de estrutura | v2.9.43 | ✅ Resolvido |
+| SW cacheando index.html (ciclo vicioso) | v2.9.43 | ✅ Resolvido |
+| Flash com dados antigos no Dashboard | v2.9.43 | ✅ Resolvido |
+| Backup só para admin | v2.9.44 | ✅ Resolvido |
+| Backup sem isolamento por UID | v2.9.44 | ✅ Resolvido |
+| Botão "Responder" ausente em sugestões | v2.9.44 | ✅ Resolvido |
+
+---
+
+## BUGS PENDENTES
+
+| Bug | Prioridade |
+|---|---|
+| SW de produção intercepta /beta/ no iPhone | Média |
+| Sugestão Patricio Mackson (recebimento parcial) | Baixa |
+| Backup "Baixar" exporta HTML em vez de JSON | Média |
 
 ---
 
 ## DÉBITO TÉCNICO — v2.10.0 (planejado)
 
-Refatorar sincronizarFaturasEmAberto de "apaga tudo e recria" para upsert por chave.
-Impacto alto — requer versão dedicada com testes completos.
-
----
-
-## BUGS RESOLVIDOS
-
-| Bug | Versão | Status |
-|---|---|---|
-| Tela preta nas páginas | v2.9.41 | ✅ OK |
-| FirebaseError userActivity | v2.9.41 | ✅ OK |
-| API Key Firebase Beta exposta | v2.9.41 | ✅ OK |
-| Botão lápis sumiu da Agenda | v2.9.42 | ✅ OK |
-| Atualizações perdidas (debounce) | v2.9.42 | ✅ OK |
-| sincronizar() apagava edições | v2.9.42 | ✅ OK |
-| Edição de evento não atualizava tx | v2.9.42 | ✅ OK |
-| confirmarEfetivar perdia m/y | v2.9.42 | ✅ OK |
-| Cache manual ?v=XXXX necessário | v2.9.42 | ✅ OK — auto-update |
-| importJSON sem confirmação | v2.9.43 | ✅ OK |
-| importJSON sem validação | v2.9.43 | ✅ OK |
+Refatorar `sincronizarFaturasEmAberto()` de "apaga tudo e recria" para **upsert por chave**.  
+Impacto alto — requer versão dedicada com testes completos.  
+**Nunca tocar nessa função sem dry-run e confirmação dupla.**
 
 ---
 
 ## PRÓXIMOS PASSOS
 
-1. Testes completos no beta v2.9.43
-2. Validar fluxo: Cartão → Agenda → Efetivar → Extrato
-3. Validar edição de evento de agenda
-4. Validar auto-update (subir versão e ver se recarrega sozinho)
-5. Responder sugestão Patricio Mackson (recebimento parcial)
-6. Corrigir bug botão Responder em sugestões não lidas
-7. Quando testes OK → promover para produção v2.9.43 (produção atual: v2.9.37)
-8. Planejar v2.10.0 com refatoração do sincronizarFaturasEmAberto
+1. Testar v2.9.44 no beta (backup automático para todos, botão responder)
+2. Promover v2.9.44 para produção
+3. Gileno relança dados manualmente a partir de janeiro/2026
+4. Corrigir bug "Baixar" backup (exporta HTML em vez de JSON)
+5. Responder sugestão Patricio Mackson
 
 ---
 
 ## COMO FAZER DEPLOY
 
+### Beta
 ```bash
 cd ~/gestor
 git pull
@@ -118,17 +112,61 @@ cp ~/Downloads/index.html beta/index.html
 cp ~/Downloads/sw.js beta/sw.js
 cp ~/Downloads/DIARIO.md DIARIO.md
 git add beta/index.html beta/sw.js DIARIO.md
-git commit -m "descricao - vX.X.XX-BETA"
+git commit -m "descrição - vX.X.XX-BETA"
 git push
 ```
+
+### Produção (promoção do beta)
+```bash
+cd ~/gestor
+git pull
+cp beta/index.html index.html
+cp beta/sw.js sw.js
+git add index.html sw.js DIARIO.md
+git commit -m "promover vX.X.XX para producao"
+git push
+```
+
+### Admin (quando mudar)
+```bash
+git add admin.html
+git commit -m "fix admin - descrição"
+git push
+```
+
+**Checklist obrigatório:**
+- SEMPRE mudar `CACHE_VERSION` no `sw.js` junto com a versão
+- NUNCA cachear `index.html` no SW (`cache: 'no-store'`)
+- `skipWaiting()` fora do `.then()` na instalação
+- Testar no beta ANTES de promover para produção
+- NUNCA commitar tokens/secrets no DIARIO.md
 
 ---
 
 ## REGRAS ANTI-CASCATA
 
 - NUNCA operações destrutivas sem dry-run e confirmação dupla
-- NUNCA save() dentro de funções que iteram arrays
-- SEMPRE flags de proteção antes de limpar dados (userEdited, done)
-- SEMPRE sincronizar campos derivados (m, y) ao alterar datas
-- SEMPRE mudar CACHE_VERSION no sw.js junto com a versão do index.html
+- NUNCA `save()` dentro de funções que iteram arrays
+- SEMPRE flags de proteção antes de limpar dados (`userEdited`, `done`)
+- SEMPRE sincronizar campos derivados (`m`, `y`) ao alterar datas
 - NUNCA editar direto em produção — sempre passar pelo beta
+
+---
+
+## ARQUITETURA RESUMIDA
+
+- Stack: HTML/CSS/JS puro, Firebase Firestore, GitHub Pages, Service Worker
+- Arquivo único: `beta/index.html` (sem frameworks)
+- Dados centralizados no objeto `D`, persistido no Firestore
+- Funções principais: `goPage()`, `refresh()`, `rDash()`, `rExt()`, `rAgenda()`, `rCard()`, `loadFromCloud()`, `save()`
+- Páginas: `page-dash`, `page-ext`, `page-add`, `page-agenda`, `page-card`, `page-cfg`, `page-invest`, `page-sobre`, `page-sug`
+
+---
+
+## Firebase Beta Credentials
+
+```javascript
+apiKey: "AIzaSyDPt3PE5a6XHNKfNDlfVvWqwT66_55hOF0"
+authDomain: "gestor-financeiro-beta.firebaseapp.com"
+projectId: "gestor-financeiro-beta"
+```
