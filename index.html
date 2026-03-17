@@ -1288,7 +1288,6 @@ async function loadFromCloud(){
         if(doc.exists){
             D=migrateData(doc.data().data||{});
             sincronizarFaturasEmAberto();
-            await saveImmediate(); // salva imediatamente — não pode usar debounce aqui
         } else {
             D=migrateData({tx:[],cp:[],bs:{...DSALDOS},ca:{...DCARDS},catsD:[...CATS_D_DEFAULT],catsR:[...CATS_R_DEFAULT],subCats:{...SUBCATS_DEFAULT},bancos:[...BANCOS_DEFAULT],cartoes:[...CARTOES_DEFAULT],vencs:[...VENCS_DEFAULT]});
         }
