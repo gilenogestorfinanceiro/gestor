@@ -381,7 +381,7 @@ Entrar com Google
 <span>Gileno - Gestão Financeira</span>
 </div>
 <div class="header-actions">
-<span id="headerUser" style="font-size:11px;color:var(--text3);margin-right:4px">👤 Gileno Paiva <span style="font-size:10px;color:var(--text3)">v2.9.46-BETA</span></span>
+<span id="headerUser" style="font-size:11px;color:var(--text3);margin-right:4px">👤 Gileno Paiva <span style="font-size:10px;color:var(--text3)">v2.9.45-BETA</span></span>
 <button class="btn-icon" onclick="openShareModal()" title="Compartilhar com amigos" style="color:var(--green);position:relative"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg></button>
 <button class="btn-icon" onclick="toggleTheme()" id="themeToggleBtn" title="Alternar tema claro/escuro"><span id="themeIcon">☀️</span></button>
 <button class="btn-icon" onclick="exportCSV()" title="Exportar CSV"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg></button>
@@ -888,7 +888,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.46
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.45
 </div>
 
 <!-- BOTTOM NAV -->
@@ -1136,7 +1136,7 @@ async function runAutoBackup(){
             const src=JSON.stringify(D);
             const chunks=[];const chunkSize=900000;
             for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
-            const version='v2.9.46';
+            const version='v2.9.45';
             await bkRef.set({version:version,timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'auto',uid:currentUid||''});
             for(let i=0;i<chunks.length;i++)await db.collection('backups').doc(currentUid).collection('auto').doc('chunk_'+i).set({data:chunks[i],index:i});
             console.log('✅ Backup automático salvo ('+chunks.length+' chunks, '+Math.round(src.length/1024)+'KB)');
@@ -1560,22 +1560,11 @@ function rDash(){
     // Dashboard Agenda Widget
     const todayStr2=new Date().toISOString().split('T')[0];
     const agUpcoming=(D.ag||[]).filter(e=>!e.done&&e.date>=todayStr2).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
-    const agOverdueList=(D.ag||[]).filter(e=>!e.done&&e.date<todayStr2).sort((a,b)=>a.date.localeCompare(b.date));
-    const agOverdue=agOverdueList.length;
+    const agOverdue=(D.ag||[]).filter(e=>!e.done&&e.date<todayStr2).length;
     if(agUpcoming.length||agOverdue){
         $('dashAgendaEmpty').style.display='none';
         let agHtml='';
         if(agOverdue) agHtml+=`<div style="padding:8px 12px;background:var(--red-bg);border-radius:var(--radius-sm);margin-bottom:8px;font-size:12px;color:var(--red);cursor:pointer" onclick="goPage('agenda')">⚠️ ${agOverdue} compromisso${agOverdue>1?'s':''} vencido${agOverdue>1?'s':''}</div>`;
-        agOverdueList.forEach(e=>{
-            const dt=new Date(e.date+'T12:00:00');
-            const dayLabel=dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
-            const typeIcon={pagamento:'💸',lembrete:'🔔',recebimento:'💰'}[e.type]||'📅';
-            const isRec=e.type==='recebimento';
-            const isPag=e.type==='pagamento';
-            const valorColor=isRec?'var(--green)':isPag?'var(--red)':'var(--text)';
-            const valorDisplay=e.valor?`<div class="kpi-val-hide" style="font-family:var(--mono);font-size:13px;font-weight:700;color:${valorColor};white-space:nowrap;text-align:right">${isPag?'− ':''}${fmt(e.valor)}</div>`:'';
-            agHtml+=`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;opacity:0.75" onclick="goPage('agenda')"><div style="width:4px;height:38px;border-radius:2px;background:var(--red);flex-shrink:0"></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${typeIcon} ${e.title}</div><div style="font-size:11px;color:var(--red)">⚠️ Vencido · ${dayLabel}${e.destino?' · '+e.destino:''}</div></div>${valorDisplay}</div>`;
-        });
         agUpcoming.forEach(e=>{
             const dt=new Date(e.date+'T12:00:00');
             const isToday=e.date===todayStr2;
@@ -3767,11 +3756,13 @@ function sincronizarFaturasEmAberto(){
     const vencs=getVencs();
     // Verifica mês anterior, atual e próximo
     // Necessário para cartões com vencimento futuro no mês atual (fatura do mês anterior ainda em aberto)
+    const _prev=cMonth===0?{m:11,y:cYear-1}:{m:cMonth-1,y:cYear};
     const _next=cMonth===11?{m:0,y:cYear+1}:{m:cMonth+1,y:cYear};
-    // Verifica todos os meses desde janeiro do ano atual até o próximo mês
-    const meses=[];
-    for(let _m=0;_m<=cMonth;_m++) meses.push({m:_m,y:cYear});
-    meses.push(_next);
+    const meses=[
+        _prev,
+        {m:cMonth,y:cYear},
+        _next
+    ];
 
     // === LIMPEZA SELETIVA — remove apenas eventos de fatura NÃO-PAGOS ===
     // Preserva: done=true, userEdited=true, pagamentos já efetivados
