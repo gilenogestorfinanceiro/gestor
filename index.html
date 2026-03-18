@@ -391,6 +391,7 @@ Entrar com Google
 
 <main class="main">
 
+<div id="debugInfo" style="background:#ff0;color:#000;padding:8px;font-size:11px;position:fixed;top:0;left:0;right:0;z-index:9999;font-family:monospace"></div>
 <!-- DASHBOARD -->
 <div class="page active" id="page-dash">
 <div id="appUserHeader" style="text-align:center;margin-bottom:8px;font-size:13px;color:var(--text3)">👤 Gileno Paiva</div>
@@ -1499,6 +1500,7 @@ function refresh(){
 }
 
 function rDash(){
+var _di=document.getElementById("debugInfo");if(_di){_di.innerHTML="tx:"+Array.isArray(D.tx)+"|len:"+(D.tx?D.tx.length:0)+"|mTx("+cMonth+","+cYear+"):"+mTx(cMonth,cYear).length+"|uid:"+(currentUid?currentUid.slice(0,8):"?")+"|v:diag";}
     if(D.userName) $('appUserHeader').textContent='👤 '+D.userName;
     const r=mRec(cMonth,cYear),d=mDesp(cMonth,cYear),res=r-d,ct=mCardT(cMonth,cYear);
     const txM=mTx(cMonth,cYear);
