@@ -391,7 +391,6 @@ Entrar com Google
 
 <main class="main">
 
-<div id="debugInfo" style="background:#ff0;color:#000;padding:8px;font-size:11px;position:fixed;top:0;left:0;right:0;z-index:9999;font-family:monospace"></div>
 <!-- DASHBOARD -->
 <div class="page active" id="page-dash">
 <div id="appUserHeader" style="text-align:center;margin-bottom:8px;font-size:13px;color:var(--text3)">👤 Gileno Paiva</div>
@@ -1074,12 +1073,12 @@ function toggleValVis(){
 
 // Firebase Init
 const firebaseConfig={
-    apiKey:"AIzaSyDPt3PE5a6XHNKfNDlfVvWqwT66_55hOF0",
-    authDomain:"gestor-financeiro-beta.firebaseapp.com",
-    projectId:"gestor-financeiro-beta",
-    storageBucket:"gestor-financeiro-beta.firebasestorage.app",
-    messagingSenderId:"370648378153",
-    appId:"1:370648378153:web:98904d18bb9b19d1216538"
+    apiKey:"AIzaSyDNq64Kqr2kt1baYlgPduSo5LbTsfdxdWQ",
+    authDomain:"gestor-financeiro-pessoa-90a13.firebaseapp.com",
+    projectId:"gestor-financeiro-pessoa-90a13",
+    storageBucket:"gestor-financeiro-pessoa-90a13.firebasestorage.app",
+    messagingSenderId:"465890133373",
+    appId:"1:465890133373:web:ac58f801c60992b2b83814"
 };
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth();
@@ -1500,7 +1499,6 @@ function refresh(){
 }
 
 function rDash(){
-var _di=document.getElementById("debugInfo");if(_di){_di.innerHTML="tx:"+Array.isArray(D.tx)+"|len:"+(D.tx?D.tx.length:0)+"|mTx("+cMonth+","+cYear+"):"+mTx(cMonth,cYear).length+"|uid:"+(currentUid?currentUid.slice(0,8):"?")+"|v:diag";}
     if(D.userName) $('appUserHeader').textContent='👤 '+D.userName;
     const r=mRec(cMonth,cYear),d=mDesp(cMonth,cYear),res=r-d,ct=mCardT(cMonth,cYear);
     const txM=mTx(cMonth,cYear);
