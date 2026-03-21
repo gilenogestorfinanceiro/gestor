@@ -5,6 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Painel Admin · Gileno Gestão Financeira</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+async function exportAllUsersData(){
+    const st=document.getElementById('bkStatus');
+    st.style.display='block';st.textContent='Exportando dados...';st.style.color='var(--amber)';
+    try{
+        const snap=await db.collection('users').get();
+        const allData={};
+        snap.forEach(doc=>{allData[doc.id]=doc.data();});
+        const json=JSON.stringify(allData,null,2);
+        const blob=new Blob([json],{type:'application/json'});
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement('a');
+        a.href=url;a.download='backup_dados_'+new Date().toISOString().slice(0,10)+'.json';
+        document.body.appendChild(a);a.click();document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        st.textContent='Dados exportados! ('+snap.size+' usuarios, '+Math.round(json.length/1024)+'KB)';st.style.color='var(--green)';
+    }catch(e){
+        st.textContent='Erro: '+e.message;st.style.color='var(--red)';
+    }
+}
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -152,19 +172,24 @@ Entrar com Google
 
 <div style="display:flex;gap:12px;flex-wrap:wrap">
 <button onclick="downloadBackup('auto')" style="flex:1;min-width:200px;padding:14px 20px;background:var(--green);border:none;border-radius:var(--radius-sm);color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
-⬇️ Baixar Automático
+⬇️ Baixar Código-Fonte (Auto)
 </button>
 <button onclick="downloadBackup('manual')" style="flex:1;min-width:200px;padding:14px 20px;background:var(--blue);border:none;border-radius:var(--radius-sm);color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
-⬇️ Baixar Manual
+⬇️ Baixar Código-Fonte (Manual)
 </button>
 </div>
 
 <div style="margin-top:12px">
 <button onclick="forceBackupNow()" style="width:100%;padding:14px 20px;background:var(--blue);border:none;border-radius:var(--radius-sm);color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
-🔄 Forçar Backup Manual Agora
+🔄 Forçar Backup Código-Fonte
 </button>
 </div>
 
+<div style="margin-top:12px">
+<button onclick="exportAllUsersData()" style="width:100%;padding:14px 20px;background:var(--red);border:none;border-radius:var(--radius-sm);color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+Exportar Dados dos Usuários (JSON)
+</button>
+</div>
 <div id="bkStatus" style="margin-top:16px;padding:12px;background:var(--surface2);border-radius:var(--radius-sm);font-size:13px;color:var(--text2);display:none"></div>
 
 <div style="margin-top:20px;padding:16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm)">
