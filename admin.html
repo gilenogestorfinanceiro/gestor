@@ -212,7 +212,7 @@ function doAdminLogin(){
     const provider=new firebase.auth.GoogleAuthProvider();
     const err=document.getElementById('loginError');
     auth.signInWithPopup(provider).then(result=>{
-        if(result.user.email.toLowerCase()!==ADMIN_EMAIL){
+        if(result.user.email.toLowerCase()!==ADMIN_EMAIL || result.user.uid!==ADMIN_UID){
             err.style.display='block';err.textContent='⛔ Acesso não autorizado';
             auth.signOut();
         } else {
@@ -225,7 +225,7 @@ function doAdminLogin(){
 }
 
 auth.onAuthStateChanged(user=>{
-    if(user && user.email.toLowerCase()===ADMIN_EMAIL){
+    if(user && user.email.toLowerCase()===ADMIN_EMAIL && user.uid===ADMIN_UID){
         document.getElementById('loginScreen').style.display='none';
         document.getElementById('adminPanel').style.display='block';
         loadAll();
@@ -495,6 +495,7 @@ async function enviarResposta(id,email,user,textoOriginal){
 
 async function delSug(id){
     if(!confirm('Excluir esta sugestão?'))return;
+    if(!confirm('DEFINITIVO — esta ação não pode ser desfeita. Confirma exclusão?'))return;
     await db.collection('sugestoes').doc(id).delete();
     allSugs=allSugs.filter(x=>x.id!==id);
     renderSugestoes();renderKPIs();
