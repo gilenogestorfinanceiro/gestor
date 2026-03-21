@@ -86,7 +86,7 @@ Entrar com Google
 <div class="header">
 <h1>⚙️ <span>Painel do Gestor</span></h1>
 <div style="display:flex;gap:8px;align-items:center">
-<button class="refresh-btn" onclick="loadAll()">🔄 Atualizar</button>
+<span style="color:var(--text2);font-size:0.75rem;margin-right:10px">admin v1.1.0</span><button class="refresh-btn" onclick="loadAll()">🔄 Atualizar</button>
 <button class="logout" onclick="doLogout()">Sair</button>
 </div>
 </div>
@@ -192,6 +192,7 @@ Exportar Dados dos Usuários (JSON)
 <script>
 // ADMIN EMAIL - only this email can access
 const ADMIN_EMAIL = 'gilenopaivalima@gmail.com';
+const ADMIN_UID = '9NWXXOwHHUSrxEg7Ygw226zsuHj1';
 
 const firebaseConfig={
     apiKey:"AIzaSyDNq64Kqr2kt1baYlgPduSo5LbTsfdxdWQ",
