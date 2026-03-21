@@ -86,7 +86,7 @@ Entrar com Google
 <div class="header">
 <h1>⚙️ <span>Painel do Gestor</span></h1>
 <div style="display:flex;gap:8px;align-items:center">
-<span style="color:var(--text2);font-size:0.75rem;margin-right:10px">admin v1.1.0</span><button class="refresh-btn" onclick="loadAll()">🔄 Atualizar</button>
+<span style="color:var(--text2);font-size:0.75rem;margin-right:10px">admin v1.2.0</span><button class="refresh-btn" onclick="loadAll()">🔄 Atualizar</button>
 <button class="logout" onclick="doLogout()">Sair</button>
 </div>
 </div>
@@ -136,6 +136,11 @@ Entrar com Google
 <div id="metricsList"></div>
 </div>
 
+<div id="tabLogs" class="section" style="display:none">
+<div class="section-title">📋 Log de Atividades do Admin</div>
+<div style="margin-bottom:10px"><button class="refresh-btn" onclick="loadLogs()" style="font-size:12px;padding:6px 12px">🔄 Atualizar Logs</button> <span id="logCount" style="color:var(--text2);font-size:0.85rem"></span></div>
+<div id="logList" style="font-size:0.85rem"></div>
+</div>
 <div id="tabBackup" class="section" style="display:none">
 <div class="section-title">💾 Backup do Sistema</div>
 
@@ -230,6 +235,7 @@ auth.onAuthStateChanged(user=>{
         document.getElementById('loginScreen').style.display='none';
         document.getElementById('adminPanel').style.display='block';
         loadAll();
+        logAdmin('LOGIN','Acesso ao painel admin');
     } else {
         document.getElementById('loginScreen').style.display='block';
         document.getElementById('adminPanel').style.display='none';
@@ -422,7 +428,9 @@ function setTab(tab,el){
     document.getElementById('tabSugestoes').style.display=tab==='sugestoes'?'block':'none';
     document.getElementById('tabMetricas').style.display=tab==='metricas'?'block':'none';
     document.getElementById('tabBackup').style.display=tab==='backup'?'block':'none';
+    document.getElementById('tabLogs').style.display=tab==='logs'?'block':'none';
     if(tab==='backup')loadBackupInfo();
+    if(tab==='logs')loadLogs();
 }
 
 function filterSug(mode,el){
@@ -498,8 +506,41 @@ async function delSug(id){
     if(!confirm('Excluir esta sugestão?'))return;
     if(!confirm('DEFINITIVO — esta ação não pode ser desfeita. Confirma exclusão?'))return;
     await db.collection('sugestoes').doc(id).delete();
+    logAdmin('EXCLUIR_SUGESTAO','ID: '+id);
     allSugs=allSugs.filter(x=>x.id!==id);
     renderSugestoes();renderKPIs();
+}
+
+// === LOG ADMIN ===
+async function logAdmin(action, details=''){
+    try{
+        const user=auth.currentUser;
+        if(!user)return;
+        await db.collection('admin_logs').add({
+            email:user.email,
+            uid:user.uid,
+            action:action,
+            details:details,
+            userAgent:navigator.userAgent,
+            timestamp:firebase.firestore.FieldValue.serverTimestamp()
+        });
+    }catch(e){console.error('logAdmin erro:',e);}
+}
+
+async function loadLogs(){
+    const snap=await db.collection('admin_logs').orderBy('timestamp','desc').limit(50).get();
+    const el=document.getElementById('logList');
+    document.getElementById('logCount').textContent=snap.size+' registros (max 50)';
+    if(snap.empty){el.innerHTML='<div style="color:var(--text2);padding:20px;text-align:center">Nenhum log registrado</div>';return;}
+    let html='<table style="width:100%;border-collapse:collapse"><tr style="border-bottom:1px solid var(--border)"><th style="text-align:left;padding:8px;color:var(--text2)">Data/Hora</th><th style="text-align:left;padding:8px;color:var(--text2)">Acao</th><th style="text-align:left;padding:8px;color:var(--text2)">Detalhes</th><th style="text-align:left;padding:8px;color:var(--text2)">Agente</th></tr>';
+    snap.forEach(doc=>{
+        const d=doc.data();
+        const ts=d.timestamp?d.timestamp.toDate().toLocaleString('pt-BR'):'--';
+        const ua=d.userAgent?(d.userAgent.length>40?d.userAgent.substring(0,40)+'...':d.userAgent):'--';
+        html+='<tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;white-space:nowrap">'+ts+'</td><td style="padding:6px 8px;font-weight:600">'+d.action+'</td><td style="padding:6px 8px;color:var(--text2)">'+( d.details||'--')+'</td><td style="padding:6px 8px;color:var(--text3);font-size:0.75rem">'+ua+'</td></tr>';
+    });
+    html+='</table>';
+    el.innerHTML=html;
 }
 
 // Auto-refresh every 60 seconds
@@ -600,6 +641,7 @@ function doDownloadFile(src,version){
 }
 
 async function forceBackupNow(){
+    logAdmin("BACKUP_FORCADO","Backup manual do codigo-fonte");
     const st=document.getElementById('bkStatus');
     st.style.display='block';st.textContent='⏳ Buscando código-fonte do app...';st.style.color='var(--amber)';
     try{
@@ -631,6 +673,7 @@ async function forceBackupNow(){
     }
 }
 async function exportAllUsersData(){
+    logAdmin("EXPORTAR_DADOS","Exportacao JSON de todos os usuarios");
     const st=document.getElementById("bkStatus");
     st.style.display="block";st.textContent="Exportando dados...";st.style.color="var(--amber)";
     try{
