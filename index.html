@@ -381,7 +381,7 @@ Entrar com Google
 <span>Gileno - Gestão Financeira</span>
 </div>
 <div class="header-actions">
-<span id="headerUser" style="font-size:11px;color:var(--text3);margin-right:4px">👤 Gileno Paiva <span style="font-size:10px;color:var(--text3)">v2.9.51</span></span>
+<span id="headerUser" style="font-size:11px;color:var(--text3);margin-right:4px">👤 Gileno Paiva <span style="font-size:10px;color:var(--text3)">v2.9.52</span></span>
 <button class="btn-icon" onclick="openShareModal()" title="Compartilhar com amigos" style="color:var(--green);position:relative"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg></button>
 <button class="btn-icon" onclick="toggleTheme()" id="themeToggleBtn" title="Alternar tema claro/escuro"><span id="themeIcon">☀️</span></button>
 <button class="btn-icon" onclick="exportCSV()" title="Exportar CSV"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg></button>
@@ -888,7 +888,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.51
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.52
 </div>
 
 <!-- BOTTOM NAV -->
@@ -1136,7 +1136,7 @@ async function runAutoBackup(){
             const src=JSON.stringify(D);
             const chunks=[];const chunkSize=900000;
             for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
-            const version='v2.9.51';
+            const version='v2.9.52';
             await bkRef.set({version:version,timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'auto',uid:currentUid||''});
             for(let i=0;i<chunks.length;i++)await db.collection('backups').doc(currentUid).collection('auto').doc('chunk_'+i).set({data:chunks[i],index:i});
             console.log('✅ Backup automático salvo ('+chunks.length+' chunks, '+Math.round(src.length/1024)+'KB)');
@@ -1176,7 +1176,7 @@ async function runManualBackup(){
         const chunks=[];const chunkSize=900000;
         for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
         const bkRef=db.collection('backups').doc(currentUid).collection('manual').doc('meta');
-        await bkRef.set({version:'v2.9.51',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'manual',uid:currentUid||''});
+        await bkRef.set({version:'v2.9.52',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'manual',uid:currentUid||''});
         for(let i=0;i<chunks.length;i++)await db.collection('backups').doc(currentUid).collection('manual').doc('chunk_'+i).set({data:chunks[i],index:i});
         toast('✅ Backup manual salvo! ('+Math.round(src.length/1024)+'KB)');
     }catch(e){toast('❌ Erro no backup manual: '+e.message)}
@@ -4285,7 +4285,10 @@ Copiar link
 <h3 style="color:var(--text);font-size:14px;margin:16px 0 8px">4. Compartilhamento de Dados</h3>
 <p style="margin-bottom:12px"><strong style="color:var(--green)">Não compartilhamos, vendemos ou transferimos seus dados pessoais a terceiros</strong>, sob nenhuma circunstância. O único acesso externo é ao serviço de infraestrutura (Firebase/Google Cloud), que atua como operador dos dados nos termos da LGPD.</p>
 
-<h3 style="color:var(--text);font-size:14px;margin:16px 0 8px">5. Seus Direitos (Art. 18 da LGPD)</h3>
+<h3 style="color:var(--text);font-size:14px;margin:16px 0 8px">5. Acesso Administrativo e Tratamento de Dados</h3>
+<p style="margin-bottom:12px">Para fins de suporte tecnico, manutencao do sistema e garantia da integridade dos dados, o administrador da plataforma pode acessar informacoes dos usuarios cadastrados, incluindo nome, e-mail, data do ultimo acesso e tipo de dispositivo. Os dados financeiros registrados pelos usuarios sao acessiveis ao administrador exclusivamente para resolucao de problemas tecnicos e restauracao de backups, nao sendo compartilhados com terceiros em nenhuma hipotese. Todas as acoes administrativas sao registradas em log de auditoria. O tratamento desses dados tem como base legal o legitimo interesse do controlador para garantir a seguranca e o funcionamento adequado do servico, conforme o Art. 7, inciso IX, da Lei Geral de Protecao de Dados (Lei 13.709/2018 — LGPD).</p>
+
+<h3 style="color:var(--text);font-size:14px;margin:16px 0 8px">6. Seus Direitos (Art. 18 da LGPD)</h3>
 <p style="margin-bottom:8px">Você tem direito a:</p>
 <p style="margin-bottom:4px">• <strong style="color:var(--text)">Acesso:</strong> visualizar todos os seus dados a qualquer momento pelo aplicativo</p>
 <p style="margin-bottom:4px">• <strong style="color:var(--text)">Correção:</strong> editar ou corrigir qualquer informação diretamente no app</p>
@@ -4293,14 +4296,14 @@ Copiar link
 <p style="margin-bottom:4px">• <strong style="color:var(--text)">Portabilidade:</strong> exportar seus dados a qualquer momento via backup (JSON/CSV)</p>
 <p style="margin-bottom:12px">• <strong style="color:var(--text)">Revogação do consentimento:</strong> deixar de usar o aplicativo a qualquer momento</p>
 
-<h3 style="color:var(--text);font-size:14px;margin:16px 0 8px">6. Retenção de Dados</h3>
+<h3 style="color:var(--text);font-size:14px;margin:16px 0 8px">7. Retencao de Dados</h3>
 <p style="margin-bottom:12px">Seus dados permanecem armazenados enquanto sua conta estiver ativa. Caso solicite a exclusão, todos os dados serão removidos de forma definitiva e irreversível no prazo de até 30 dias.</p>
 
-<h3 style="color:var(--text);font-size:14px;margin:16px 0 8px">7. Responsável pelo Tratamento</h3>
+<h3 style="color:var(--text);font-size:14px;margin:16px 0 8px">8. Responsavel pelo Tratamento</h3>
 <p style="margin-bottom:4px"><strong style="color:var(--text)">Controlador:</strong> Gileno Paiva Lima</p>
 <p style="margin-bottom:12px"><strong style="color:var(--text)">Contato:</strong> <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6e0907020b00011e0f07180f0207030f2e09030f0702400d0103">[email&nbsp;protected]</a></p>
 
-<h3 style="color:var(--text);font-size:14px;margin:16px 0 8px">8. Alterações nesta Política</h3>
+<h3 style="color:var(--text);font-size:14px;margin:16px 0 8px">9. Alteracoes nesta Politica</h3>
 <p style="margin-bottom:12px">Esta política pode ser atualizada periodicamente. Eventuais alterações serão comunicadas através do próprio aplicativo.</p>
 
 <p style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)">Última atualização: Fevereiro de 2026</p>
