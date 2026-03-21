@@ -1,48 +1,64 @@
 # Diário de Bordo Técnico — Gestor Financeiro
-**Atualizado em:** 21/03/2026 — 10:30  
-**Versão atual:** Produção v2.9.51 | Beta v2.9.46  
-**Status:** ✅ ESTÁVEL — Sprint 1 do admin em andamento
+**Atualizado em:** 21/03/2026 — 12:00  
+**Versão atual:** Produção v2.9.52 | Admin v1.2.0  
+**Status:** ✅ ESTÁVEL — Sprints 1, 2 e 3 do admin concluídos
 
 ---
 
-## SESSÃO 21/03/2026 — Auditoria Admin + Sprint 1 Correções
+## SESSÃO 21/03/2026 — Sprints Admin Completos
 
-### O que foi feito hoje
+### Sprint 1 — FUNCIONALIDADE (concluído ✅)
 
-#### 1. Auditoria completa do admin.html (626 linhas)
-Relatório PDF gerado e entregue à gerência com:
-- 5 vulnerabilidades identificadas (V1-V5)
-- 4 bugs funcionais (B1-B4)
-- 7 recomendações priorizadas (R1-R7)
-- Descoberta principal: sistema de backup do admin faz backup do CÓDIGO-FONTE (index.html), NÃO dos dados dos usuários
+| # | Tarefa | Status |
+|---|---|---|
+| R1 | Botão "Exportar Dados dos Usuários (JSON)" no admin | ✅ Testado (24 usuários, JSON real) |
+| R2 | Renomear botões "Baixar" para "Baixar Código-Fonte" | ✅ Testado |
+| B1 | doDownloadFile() — resolvido via rename | ✅ Concluído |
+| - | Forçar Backup Código-Fonte | ✅ Testado (v2.9.51, 259KB) |
+| - | Baixar Código-Fonte (Manual) | ✅ Testado (HTML legítimo) |
+| - | Baixar Código-Fonte (Auto) | ⚠️ Backup antigo contém dados, não código (auto-corrige no próximo ciclo) |
 
-#### 2. Sprint 1 executado (parcialmente)
-Três alterações no admin.html:
+### Sprint 2 — SEGURANÇA (concluído ✅)
 
-**[R2] Renomear botões — CONCLUÍDO ✅**
-- "Baixar Automático" → "Baixar Código-Fonte (Auto)" (linha 175)
-- "Baixar Manual" → "Baixar Código-Fonte (Manual)" (linha 178)
-- "Forçar Backup Manual Agora" → "Forçar Backup Código-Fonte" (linha 184)
+| # | Tarefa | Status |
+|---|---|---|
+| R3 | Verificação de UID fixo (ADMIN_UID) além do email | ✅ Testado (login OK) |
+| B4 | Confirmação dupla ao excluir sugestão | ✅ Testado (2 confirms) |
+| - | Versão visível no header do admin | ✅ "admin v1.2.0" |
 
-**[R1] Botão "Exportar Dados dos Usuários (JSON)" — CONCLUÍDO ✅**
-- Botão vermelho inserido na seção Backup (linha 171, onclick="exportAllUsersData()")
-- Função exportAllUsersData() inserida dentro do script (linha 631)
-- Lê db.collection('users').get(), exporta todos docs como JSON
-- Nomeia arquivo: backup_dados_YYYY-MM-DD.json
-- Blob type: application/json
+**Commits Sprint 2:**
+- 2c8367a: admin Sprint 2 - verificacao UID + confirmacao dupla
+- f5434b4: admin v1.1.0 - fix ADMIN_UID, versao visivel no header
 
-**Deploy:** Dois commits no admin.html:
-- 733c315: "admin: renomear botoes backup, adicionar exportar dados JSON" (função no lugar errado)
-- 468bfa1: "admin: fix exportAllUsersData dentro do script" (correção posicionamento)
+### Sprint 3 — MONITORAMENTO E CONFORMIDADE (concluído ✅)
 
-#### 3. PENDENTE — Testar botão "Exportar Dados"
-O botão foi deployado mas ainda NÃO foi testado no navegador. Na sessão anterior, a primeira versão mostrou código como texto (função fora do script). A correção (468bfa1) deve resolver. PRECISA TESTAR:
-1. Abrir https://gilenogestorfinanceiro.github.io/gestor/admin.html
-2. Logar com conta admin (gilenopaivalima@gmail.com)
-3. Ir na aba Backup
-4. Clicar no botão vermelho "Exportar Dados dos Usuários (JSON)"
-5. Verificar se baixa arquivo backup_dados_2026-03-21.json com dados reais (não HTML)
-6. Abrir o arquivo e confirmar que contém objetos com tx, cp, ag, bancos etc.
+**R5 — Log de acesso ao admin ✅**
+- Função `logAdmin(action, details)` grava na coleção `admin_logs` do Firestore
+- Registra: email, uid, action, details, userAgent, timestamp (serverTimestamp)
+- Pontos de log: LOGIN, ACESSO_NEGADO, BACKUP_FORCADO, EXPORTAR_DADOS, EXCLUIR_SUGESTAO
+- Nova aba "📋 Logs" no admin com tabela dos últimos 50 registros
+- Firestore Rules atualizadas: `admin_logs` com read/write restrito ao admin email
+- Testado: registro de LOGIN aparece corretamente na aba Logs
+
+**R7 — Política de privacidade atualizada ✅**
+- Nova seção "5. Acesso Administrativo e Tratamento de Dados" inserida no modal LGPD do index.html
+- Cobre: acesso admin para suporte, não compartilhamento, log de auditoria, base legal LGPD Art. 7 IX
+- Seções subsequentes renumeradas (5→6 Direitos, 6→7 Retenção, 7→8 Responsável, 8→9 Alterações)
+- Deploy: v2.9.52 (index.html + sw.js)
+
+**R4 — Avaliação das Firestore Rules ✅**
+- Rules estão bem estruturadas, sem modo teste permissivo
+- Cada usuário só acessa seus próprios dados (users/{uid})
+- Admin tem leitura a todos os usuários (necessário para painel)
+- Sugestões: create para qualquer autenticado, read/update/delete para admin
+- Backups: restrito ao admin
+- admin_logs: restrito ao admin (NOVA, publicada 21/03 11:50)
+- Nenhuma correção necessária nas rules existentes
+
+**Commits Sprint 3:**
+- a74aa93: admin v1.2.0 - Sprint 3 R5 log de atividades com aba Logs
+- 252d84d: admin - fix botao Logs na barra de abas
+- 9a526de: v2.9.52 - LGPD secao Acesso Administrativo na politica de privacidade
 
 ---
 
@@ -56,28 +72,15 @@ O botão foi deployado mas ainda NÃO foi testado no navegador. Na sessão anter
 | v2.9.48 | a35f115 | Proteção anti-sobrescrita (_loadedFromCloud, _loadFailed), corrigir sendBeacon URL | ✅ Ativo |
 | v2.9.49 | 095a37a | Guarda de projectId no onAuthStateChanged | ✅ Ativo |
 | v2.9.50 | 6fce031 | sincronizarFaturasEmAberto desde janeiro (CAUSOU DUPLICATAS) | Revertido |
-| v2.9.51 | 9aa2689 | Reverter v2.9.50 para 3 meses (estável) | ✅ Em produção |
+| v2.9.51 | 9aa2689 | Reverter v2.9.50 para 3 meses (estável) | ✅ Substituído por v2.9.52 |
+| v2.9.52 | 9a526de | LGPD Acesso Administrativo na política de privacidade | ✅ Em produção |
 
 ### Proteções implementadas (v2.9.48-v2.9.49)
 - window._loadedFromCloud — save() só executa se loadFromCloud() completou com sucesso
 - window._loadFailed — se load falhar, save() é bloqueado na sessão inteira
-- Guardas em save() (linha 1303) e beforeunload (linha 1335)
+- Guardas em save() e beforeunload
 - sendBeacon URL corrigida de gestor-financeiro-beta para gestor-financeiro-pessoa-90a13
 - Guarda de projectId no onAuthStateChanged: se projeto errado, signOut + limpa caches + reload
-
-### Migração Beta → Produção (concluída)
-- 6 docs no Beta, 24 docs em Produção
-- Apenas Gileno tinha dados reais no Beta (3 tx, 45 cp, 17 ag)
-- Decisão gerencial: NÃO migrar em massa
-- Dados do Gileno restaurados do backup: gs://gestor-financeiro-pessoa-90a13.firebasestorage.app/backups-manuais/backup_gileno_beta_20260318.json
-- Luan confirmou 159 tx visíveis ✅
-
-### Melhoria v2.9.46 (agenda desde janeiro) — PERDIDA
-- sincronizarFaturasEmAberto() deveria varrer desde janeiro do ano corrente
-- Melhoria estava no beta (v2.9.46) mas se perdeu quando produção foi sobrescrita no incidente
-- Tentativa de reimplementar (v2.9.50) causou duplicatas de faturas
-- Revertida na v2.9.51
-- Requer refactor completo para upsert por chave (v2.10.0)
 
 ---
 
@@ -102,39 +105,24 @@ O botão foi deployado mas ainda NÃO foi testado no navegador. Na sessão anter
 
 ## COMMITS RECENTES
 
-| Commit | Descrição | Arquivo | Status |
+| Commit | Descrição | Arquivo(s) | Status |
 |---|---|---|---|
-| 468bfa1 | fix exportAllUsersData dentro do script | admin.html | ✅ Testar |
-| 733c315 | renomear botoes backup, adicionar exportar dados JSON | admin.html | Substituído por 468bfa1 |
-| 9aa2689 | v2.9.51: reverter para 3 meses (estável) | index.html, sw.js | ✅ Em produção |
-| 6fce031 | v2.9.50: desde janeiro (duplicatas) | index.html, sw.js | Revertido |
-| 095a37a | v2.9.49: guarda projectId | index.html, sw.js | ✅ Ativo |
-| a35f115 | v2.9.48: proteção anti-sobrescrita | index.html, sw.js | ✅ Ativo |
-| 39b7f60 | v2.9.47: credenciais Firebase | index.html | ✅ Ativo |
+| 9a526de | v2.9.52: LGPD secao Acesso Administrativo | index.html, sw.js | ✅ Em produção |
+| 252d84d | admin: fix botao Logs na barra de abas | admin.html | ✅ Ativo |
+| a74aa93 | admin v1.2.0: Sprint 3 R5 log de atividades | admin.html | ✅ Ativo |
+| f5434b4 | admin v1.1.0: fix ADMIN_UID, versao no header | admin.html | ✅ Ativo |
+| 2c8367a | admin Sprint 2: verificacao UID + confirmacao dupla | admin.html | ✅ Ativo |
+| 468bfa1 | admin: fix exportAllUsersData dentro do script | admin.html | ✅ Ativo |
+| 733c315 | admin: renomear botoes backup, exportar dados JSON | admin.html | Substituído |
+| 9aa2689 | v2.9.51: reverter para 3 meses (estável) | index.html, sw.js | Substituído por v2.9.52 |
 
 ---
 
-## PLANO DE CORREÇÕES ADMIN — ESTADO ATUAL
+## PLANO DE CORREÇÕES ADMIN — ESTADO FINAL
 
-### Sprint 1 — CRÍTICO (em andamento)
-| # | Tarefa | Status |
-|---|---|---|
-| R1 | Botão "Exportar Dados (JSON)" no admin | ✅ Código pronto, TESTAR |
-| R2 | Renomear botões "Baixar" para "Baixar Código-Fonte" | ✅ Concluído |
-| B1 | doDownloadFile() — não precisa corrigir (é para código, rótulo resolve) | ✅ Resolvido via rename |
-
-### Sprint 2 — SEGURANÇA (próximo)
-| # | Tarefa | Status |
-|---|---|---|
-| R3 | Verificação de UID fixo além do email no admin | Pendente |
-| B4 | Confirmação dupla ao excluir sugestão | Pendente |
-
-### Sprint 3 — MONITORAMENTO (futuro)
-| # | Tarefa | Status |
-|---|---|---|
-| R5 | Log de acesso ao admin | Pendente |
-| R7 | Documentar acesso a dados na política de privacidade | Pendente |
-| R4 | Avaliar Firestore Rules mais restritivas | Pendente |
+### Sprint 1 — FUNCIONALIDADE ✅ CONCLUÍDO
+### Sprint 2 — SEGURANÇA ✅ CONCLUÍDO
+### Sprint 3 — MONITORAMENTO ✅ CONCLUÍDO
 
 ---
 
@@ -158,11 +146,41 @@ Nunca tocar nessa função sem dry-run e confirmação dupla.
 
 ## PRÓXIMOS PASSOS (ordem de prioridade)
 
-1. TESTAR botão "Exportar Dados" no admin (deploy 468bfa1)
-2. Sprint 2 admin: verificação UID + confirmação dupla sugestão
-3. Refactor sincronizarFaturasEmAberto() para upsert (v2.10.0)
-4. Responder sugestão Patricio Mackson
-5. Gileno lançar dados manualmente a partir de janeiro/2026
+1. Verificar política de privacidade no app (v2.9.52 — nova seção visível)
+2. Refactor sincronizarFaturasEmAberto() para upsert (v2.10.0)
+3. Responder sugestão Patricio Mackson
+4. Gileno lançar dados manualmente a partir de janeiro/2026
+5. Migração gradual Next.js + Supabase (planejamento)
+
+---
+
+## FIRESTORE RULES (publicadas 21/03/2026 11:50)
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && request.auth.token.email == 'gilenopaivalima@gmail.com';
+    }
+    match /userActivity/{userId} {
+      allow write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null;
+    }
+    match /sugestoes/{docId} {
+      allow create: if request.auth != null;
+      allow read, update, delete: if request.auth != null && request.auth.token.email == 'gilenopaivalima@gmail.com';
+    }
+    match /backups/{docId} {
+      allow read, write: if request.auth != null && request.auth.token.email == 'gilenopaivalima@gmail.com';
+    }
+    match /admin_logs/{docId} {
+      allow read, write: if request.auth != null && request.auth.token.email == 'gilenopaivalima@gmail.com';
+    }
+  }
+}
+```
 
 ---
 
@@ -189,11 +207,7 @@ Nunca tocar nessa função sem dry-run e confirmação dupla.
 ```bash
 cd ~/gestor
 git pull
-# Para beta:
-cp ~/Downloads/index.html beta/index.html
-cp ~/Downloads/sw.js beta/sw.js
-# Para produção direta (hotfix):
-# editar index.html e sw.js no ~/gestor
+# Para produção direta:
 cp ~/Downloads/DIARIO.md DIARIO.md
 git add .
 git commit -m "descrição"
@@ -216,11 +230,36 @@ Checklist obrigatório:
 
 - Stack: HTML/CSS/JS puro, Firebase Firestore, GitHub Pages, Service Worker
 - Arquivo principal: index.html (produção) e beta/index.html
-- Painel admin: admin.html (626 linhas, autenticação por ADMIN_EMAIL)
+- Painel admin: admin.html (admin v1.2.0, autenticação por ADMIN_EMAIL + ADMIN_UID)
 - Dados centralizados no objeto D, persistido no Firestore
 - Funções principais: goPage(), refresh(), rDash(), rExt(), rAgenda(), rCard(), loadFromCloud(), save()
 - Proteções v2.9.48+: _loadedFromCloud, _loadFailed
 - Guarda v2.9.49: verificação projectId no onAuthStateChanged
+- Log admin v1.2.0: logAdmin() grava em admin_logs no Firestore
+
+---
+
+## DETALHES TÉCNICOS DO ADMIN.HTML (admin v1.2.0)
+
+### Estrutura de autenticação
+- ADMIN_EMAIL = 'gilenopaivalima@gmail.com'
+- ADMIN_UID = '9NWXXOwHHUSrxEg7Ygw226zsuHj1'
+- signInWithPopup verifica email + UID, signOut se diferente
+- onAuthStateChanged verifica email + UID, mostra/esconde adminPanel
+
+### Abas do admin
+- Usuários | Sugestões | Métricas | Logs | Backup
+
+### Funções do admin
+- loadAll() → loadUsers(), loadSugestoes(), loadUserData()
+- renderKPIs(), renderUsers(), renderSugestoes(), renderMetricas()
+- downloadBackup('auto'/'manual') — baixa código-fonte do Firestore
+- doDownloadFile(src, version) — cria blob HTML
+- forceBackupNow() — fetch do index.html, salva em chunks no Firestore + logAdmin
+- exportAllUsersData() — exporta coleção users completa como JSON + logAdmin
+- delSug(id) — confirmação dupla + logAdmin
+- logAdmin(action, details) — grava em admin_logs
+- loadLogs() — carrega e renderiza últimos 50 logs
 
 ---
 
@@ -240,30 +279,6 @@ projectId: gestor-financeiro-beta
 
 ---
 
-## DETALHES TÉCNICOS DO ADMIN.HTML (para referência)
-
-### Estrutura de autenticação
-- Linha 187: ADMIN_EMAIL = 'gilenopaivalima@gmail.com'
-- Linha 207: signInWithPopup verifica email === ADMIN_EMAIL, signOut se diferente
-- Linha 220: onAuthStateChanged verifica email, mostra/esconde adminPanel
-- Vulnerabilidade: verifica apenas email, não UID
-
-### Funções do admin
-- loadAll() → loadUsers(), loadSugestoes(), loadUserData()
-- renderKPIs(), renderUsers(), renderSugestoes(), renderMetricas()
-- downloadBackup('auto'/'manual') — baixa código-fonte do Firestore
-- doDownloadFile(src, version) — cria blob HTML com extensão .html
-- forceBackupNow() — fetch do index.html de produção, salva em chunks no Firestore
-- exportAllUsersData() — NOVA: exporta coleção users completa como JSON
-
-### Sistema de backup do admin (conceitual)
-- "Backup" no admin = backup do CÓDIGO-FONTE (index.html) em chunks no Firestore
-- NÃO é backup de dados dos usuários
-- Backup de DADOS é feito por: exportJSON() no app principal, Firebase PITR, scheduled backups
-- Novo botão exportAllUsersData() resolve a lacuna de exportar dados pelo admin
-
----
-
 ## LIÇÕES APRENDIDAS
 
 1. NUNCA copiar beta para produção sem verificar credenciais
@@ -275,3 +290,5 @@ projectId: gestor-financeiro-beta
 7. Backup no admin.html era de CÓDIGO, não de DADOS — confusão conceitual resolvida
 8. sed com emojis no macOS falha — usar Python para manipular HTML com caracteres especiais
 9. SEMPRE cd ~/gestor antes de git e python3 — o terminal pode mudar de diretório
+10. sed no zsh com ! e && falha — usar Python em arquivo para substituições complexas
+11. Firestore Rules devem ser atualizadas ao criar novas coleções (admin_logs)
