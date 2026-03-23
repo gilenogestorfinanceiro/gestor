@@ -381,7 +381,7 @@ Entrar com Google
 <span>Gileno - Gestão Financeira</span>
 </div>
 <div class="header-actions">
-<span id="headerUser" style="font-size:11px;color:var(--text3);margin-right:4px">👤 Gileno Paiva <span style="font-size:10px;color:var(--text3)">v2.9.55</span></span>
+<span id="headerUser" style="font-size:11px;color:var(--text3);margin-right:4px">👤 Gileno Paiva <span style="font-size:10px;color:var(--text3)">v2.9.56</span></span>
 <button class="btn-icon" onclick="openShareModal()" title="Compartilhar com amigos" style="color:var(--green);position:relative"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg></button>
 <button class="btn-icon" onclick="toggleTheme()" id="themeToggleBtn" title="Alternar tema claro/escuro"><span id="themeIcon">☀️</span></button>
 <button class="btn-icon" onclick="exportCSV()" title="Exportar CSV"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg></button>
@@ -888,7 +888,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.55
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.56
 </div>
 
 <!-- BOTTOM NAV -->
@@ -1136,7 +1136,7 @@ async function runAutoBackup(){
             const src=JSON.stringify(D);
             const chunks=[];const chunkSize=900000;
             for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
-            const version='v2.9.55';
+            const version='v2.9.56';
             await bkRef.set({version:version,timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'auto',uid:currentUid||''});
             for(let i=0;i<chunks.length;i++)await db.collection('backups').doc(currentUid).collection('auto').doc('chunk_'+i).set({data:chunks[i],index:i});
             console.log('✅ Backup automático salvo ('+chunks.length+' chunks, '+Math.round(src.length/1024)+'KB)');
@@ -1176,7 +1176,7 @@ async function runManualBackup(){
         const chunks=[];const chunkSize=900000;
         for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
         const bkRef=db.collection('backups').doc(currentUid).collection('manual').doc('meta');
-        await bkRef.set({version:'v2.9.55',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'manual',uid:currentUid||''});
+        await bkRef.set({version:'v2.9.56',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'manual',uid:currentUid||''});
         for(let i=0;i<chunks.length;i++)await db.collection('backups').doc(currentUid).collection('manual').doc('chunk_'+i).set({data:chunks[i],index:i});
         toast('✅ Backup manual salvo! ('+Math.round(src.length/1024)+'KB)');
     }catch(e){toast('❌ Erro no backup manual: '+e.message)}
@@ -2406,9 +2406,102 @@ function saveTx(){
 }
 
 function delTx(id){
+    const tx=D.tx.find(t=>t.id===id);
+    if(!tx)return;
+    // Se recorrente, mostrar opções em lote
+    if(tx.rec && tx.recGroup){
+        showRecDeleteModal(id);
+        return;
+    }
     if(!confirm('Excluir este lançamento?'))return;
     D.ag=(D.ag||[]).filter(e=>e.txId!==id);
     D.tx=D.tx.filter(t=>t.id!==id);save();rExt();toast('Lançamento excluído');
+}
+
+function showRecDeleteModal(id){
+    const tx=D.tx.find(t=>t.id===id);
+    if(!tx)return;
+    const group=D.tx.filter(t=>t.recGroup===tx.recGroup).sort((a,b)=>a.recIdx-b.recIdx);
+    const total=group.length;
+    const efetivadas=group.filter(t=>t.st==='efetivado').length;
+    const agendadas=group.filter(t=>t.st==='agendado').length;
+    const futuras=group.filter(t=>t.recIdx>=tx.recIdx&&t.st==='agendado').length;
+    const futurasEf=group.filter(t=>t.recIdx>=tx.recIdx&&t.st==='efetivado').length;
+
+    const overlay=document.createElement('div');
+    overlay.id='recDelOverlay';
+    overlay.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
+    overlay.innerHTML=`
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:400px;width:100%;text-align:center">
+        <div style="font-size:32px;margin-bottom:8px">♻️</div>
+        <div style="font-size:16px;font-weight:700;margin-bottom:4px">Excluir Recorrência</div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:4px">${tx.desc}</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:16px">${tx.recIdx}/${tx.recDur} · ${tx.recFreq||'Recorrente'} · ${total} parcelas (${efetivadas} efetivadas, ${agendadas} agendadas)</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+            <button onclick="doRecDelete('${id}','single')" style="padding:14px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;text-align:left">
+                🔹 Apenas esta parcela
+                <div style="font-size:11px;color:var(--text3);font-weight:400;margin-top:2px">Remove só a parcela ${tx.recIdx}/${tx.recDur}</div>
+            </button>
+            <button onclick="doRecDelete('${id}','future')" style="padding:14px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;text-align:left">
+                🔸 Esta e todas as futuras
+                <div style="font-size:11px;color:var(--text3);font-weight:400;margin-top:2px">${futuras} agendada${futuras!==1?'s':''} removida${futuras!==1?'s':''}${futurasEf?' · '+futurasEf+' efetivada'+( futurasEf!==1?'s':'')+' preservada'+(futurasEf!==1?'s':''):''}</div>
+            </button>
+            <button onclick="doRecDelete('${id}','all')" style="padding:14px;border-radius:10px;border:1px solid var(--red-bg,rgba(239,68,68,0.1));background:var(--surface2);color:var(--red);font-size:14px;font-weight:600;cursor:pointer;text-align:left">
+                🔴 Toda a recorrência
+                <div style="font-size:11px;color:var(--text3);font-weight:400;margin-top:2px">${agendadas} agendada${agendadas!==1?'s':''} removida${agendadas!==1?'s':''}${efetivadas?' · '+efetivadas+' efetivada'+(efetivadas!==1?'s':'')+' preservada'+(efetivadas!==1?'s':''):''}</div>
+            </button>
+            <button onclick="closeRecDelModal()" style="padding:12px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text3);font-size:13px;cursor:pointer;margin-top:4px">Cancelar</button>
+        </div>
+    </div>`;
+    overlay.addEventListener('click',e=>{if(e.target===overlay)closeRecDelModal()});
+    document.body.appendChild(overlay);
+}
+
+function closeRecDelModal(){
+    const ov=document.getElementById('recDelOverlay');
+    if(ov)ov.remove();
+}
+
+function doRecDelete(id, mode){
+    const tx=D.tx.find(t=>t.id===id);
+    if(!tx||!tx.recGroup)return;
+    const group=D.tx.filter(t=>t.recGroup===tx.recGroup);
+    let toRemoveIds=[];
+
+    if(mode==='single'){
+        toRemoveIds=[id];
+    } else if(mode==='future'){
+        // Esta (se agendada) + futuras agendadas
+        group.forEach(t=>{
+            if(t.recIdx>=tx.recIdx && t.st==='agendado') toRemoveIds.push(t.id);
+        });
+        // Se a própria tx selecionada é efetivada, avisar mas não remover
+        if(tx.st==='efetivado'){
+            toRemoveIds=toRemoveIds.filter(i=>i!==id);
+            toast('⚠️ Parcela '+tx.recIdx+' já efetivada — preservada');
+        }
+    } else if(mode==='all'){
+        group.forEach(t=>{
+            if(t.st==='agendado') toRemoveIds.push(t.id);
+        });
+    }
+
+    if(!toRemoveIds.length){
+        toast('Nenhuma parcela agendada para remover');
+        closeRecDelModal();
+        return;
+    }
+
+    const removeSet=new Set(toRemoveIds);
+    // Remover ag vinculados
+    D.ag=(D.ag||[]).filter(e=>!removeSet.has(e.txId));
+    // Remover tx
+    D.tx=D.tx.filter(t=>!removeSet.has(t.id));
+
+    save();
+    closeRecDelModal();
+    rExt();
+    toast('🗑️ '+toRemoveIds.length+' parcela'+(toRemoveIds.length!==1?'s':'')+' removida'+(toRemoveIds.length!==1?'s':''));
 }
 
 function toggleTxStatus(id){
