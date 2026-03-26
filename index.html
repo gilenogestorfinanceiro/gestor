@@ -3463,15 +3463,19 @@ async function fetchCotacoes(){
         const carteiraT=[...new Set((D.investOps||[]).map(o=>o.ticker))];
         const allTickers=[...new Set([...TOP_TICKERS,...carteiraT])];
         try{
-            const resp2=await fetch('https://brapi.dev/api/quote/'+allTickers.join(',')+`?token=${brapiToken}`);
-            if(resp2.ok){
-                const data2=await resp2.json();
-                if(data2.results){
+            const promises=allTickers.map(ticker=>
+                fetch(`https://brapi.dev/api/quote/${ticker}?token=${brapiToken}`)
+                .then(r=>r.ok?r.json():null)
+                .catch(()=>null)
+            );
+            const results=await Promise.all(promises);
+            results.forEach(data2=>{
+                if(data2&&data2.results){
                     data2.results.forEach(r=>{
-                        cotacoesCache[r.symbol]={price:r.regularMarketPrice,var:r.regularMarketChangePercent,name:r.shortName||r.longName||'',time:r.regularMarketTime||''};
+                        cotacoesCache[r.symbol]={price:r.regularMarketPrice,var:r.regularMarketChangePercent,name:r.shortName||r.longName||'',time:r.regularMarketTime||''}; 
                     });
                 }
-            }
+            });
         }catch(e){console.log('brapi ações:',e)}
         
         // Ibovespa
