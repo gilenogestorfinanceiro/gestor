@@ -7,43 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
 }
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
-async function loadUserBackupStatus(){
-    try{
-        const el=document.getElementById('userBackupStatus');
-        el.innerHTML='⏳ Carregando...';
-        const diasSemana=['dom','seg','ter','qua','qui','sex','sab'];
-        const hoje=diasSemana[new Date().getDay()];
-        const usersSnap=await db.collection('users').get();
-        let html='<table style="width:100%;margin-top:8px"><tr><th style="text-align:left;padding:4px 8px;font-size:11px">USUÁRIO</th>';
-        diasSemana.forEach(d=>{html+='<th style="padding:4px 6px;font-size:11px;'+(d===hoje?'color:var(--green);font-weight:700':'')+'">'+d.toUpperCase()+'</th>'});
-        html+='</tr>';
-        let count=0;
-        for(const userDoc of usersSnap.docs){
-            const uid=userDoc.id;
-            const nome=userDoc.data().data?((typeof userDoc.data().data==='string'?JSON.parse(userDoc.data().data):userDoc.data().data).userName||''):uid.substring(0,8);
-            let row='<tr><td style="padding:4px 8px;font-size:11px">'+nome+'</td>';
-            let hasAny=false;
-            for(const dia of diasSemana){
-                const snap=await db.collection('backups').doc(uid).collection('auto_'+dia).doc('meta').get();
-                if(snap.exists){
-                    hasAny=true;
-                    const ts=snap.data().timestamp?snap.data().timestamp.toDate():null;
-                    const age=ts?Math.round((Date.now()-ts.getTime())/3600000):99;
-                    const color=age<24?'var(--green)':age<72?'var(--amber)':'var(--red)';
-                    row+='<td style="text-align:center;padding:4px 6px"><span style="color:'+color+';font-size:10px">'+( ts?ts.toLocaleDateString('pt-BR').substring(0,5):'—')+'</span></td>';
-                }else{
-                    row+='<td style="text-align:center;padding:4px 6px;color:var(--text3);font-size:10px">—</td>';
-                }
-            }
-            if(hasAny)count++;
-            html+=row+'</tr>';
-        }
-        html+='</table><div style="margin-top:8px;font-size:11px;color:var(--text3)">'+count+' usuário(s) com backup rotativo ativo</div>';
-        el.innerHTML=html;
-    }catch(e){console.error('Load user backup status:',e);document.getElementById('userBackupStatus').textContent='❌ Erro: '+e.message}
-}
-</script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
@@ -122,7 +86,7 @@ Entrar com Google
 <div class="header">
 <h1>⚙️ <span>Painel do Gestor</span></h1>
 <div style="display:flex;gap:8px;align-items:center">
-<span style="color:var(--text2);font-size:0.75rem;margin-right:10px">admin v1.2.3</span><button class="refresh-btn" onclick="loadAll()">🔄 Atualizar</button>
+<span style="color:var(--text2);font-size:0.75rem;margin-right:10px">admin v1.3.0</span><button class="refresh-btn" onclick="loadAll()">🔄 Atualizar</button>
 <button class="logout" onclick="doLogout()">Sair</button>
 </div>
 </div>
@@ -217,6 +181,17 @@ Exportar Dados dos Usuários (JSON)
 <div id="bkStatus" style="margin-top:16px;padding:12px;background:var(--surface2);border-radius:var(--radius-sm);font-size:13px;color:var(--text2);display:none"></div>
 
 <div style="margin-top:20px;padding:16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm)">
+<div style="margin-top:20px;padding:16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm)">
+<div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--text)">📊 Backup Rotativo dos Usuários (v2.9.58+)</div>
+<div style="font-size:12px;color:var(--text3);line-height:1.6">
+- Cada usuário tem backup automático a cada <b style="color:var(--green)">1 hora</b><br>
+- Rotação por dia da semana: <b>dom, seg, ter, qua, qui, sex, sab</b><br>
+- Sempre há até <b>7 dias</b> de histórico disponível por usuário<br>
+- Máximo ~14 docs por usuário (dentro do plano gratuito)
+</div>
+<div id="userBackupStatus" style="margin-top:12px;font-size:12px;color:var(--text3)">Clique no botão para carregar status</div>
+<button onclick="loadUserBackupStatus()" style="margin-top:8px;padding:6px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:11px;cursor:pointer;font-family:var(--font)">🔄 Ver Status dos Backups Rotativos</button>
+</div>
 <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:var(--text)">ℹ️ Como funciona</div>
 <div style="font-size:12px;color:var(--text3);line-height:1.6">
 • 🟢 <b style="color:var(--green)">Automático</b> — salva a cada 1 hora enquanto o admin estiver com o app aberto<br>
@@ -729,34 +704,33 @@ async function exportAllUsersData(){
         st.textContent="Erro: "+e.message;st.style.color="var(--red)";
     }
 }
-
 async function loadUserBackupStatus(){
     try{
-        const el=document.getElementById('userBackupStatus');
-        el.innerHTML='⏳ Carregando...';
-        const diasSemana=['dom','seg','ter','qua','qui','sex','sab'];
+        const el=document.getElementById("userBackupStatus");
+        el.innerHTML="⏳ Carregando...";
+        const diasSemana=["dom","seg","ter","qua","qui","sex","sab"];
         const hoje=diasSemana[new Date().getDay()];
-        const usersSnap=await db.collection('users').get();
+        const usersSnap=await db.collection("users").get();
         let html='<table style="width:100%;margin-top:8px"><tr><th style="text-align:left;padding:4px 8px;font-size:11px">USUÁRIO</th>';
-        diasSemana.forEach(function(d){html+='<th style="padding:4px 6px;font-size:11px;'+(d===hoje?'color:var(--green);font-weight:700':'')+'">'+ d.toUpperCase()+'</th>'});
+        diasSemana.forEach(function(d){html+='<th style="padding:4px 6px;font-size:11px;'+(d===hoje?"color:var(--green);font-weight:700":"")+'">'+ d.toUpperCase()+'</th>'});
         html+='</tr>';
         let count=0;
         for(const userDoc of usersSnap.docs){
             const uid=userDoc.id;
             const userData=userDoc.data().data;
             let nome=uid.substring(0,8);
-            try{if(userData){const parsed=typeof userData==='string'?JSON.parse(userData):userData;if(parsed.userName)nome=parsed.userName;}}catch(e){}
+            try{if(userData){const parsed=typeof userData==="string"?JSON.parse(userData):userData;if(parsed.userName)nome=parsed.userName;}}catch(e){}
             let row='<tr><td style="padding:4px 8px;font-size:11px">'+nome+'</td>';
             let hasAny=false;
             for(const dia of diasSemana){
                 try{
-                    const snap=await db.collection('backups').doc(uid).collection('auto_'+dia).doc('meta').get();
+                    const snap=await db.collection("backups").doc(uid).collection("auto_"+dia).doc("meta").get();
                     if(snap.exists){
                         hasAny=true;
                         const ts=snap.data().timestamp?snap.data().timestamp.toDate():null;
                         const age=ts?Math.round((Date.now()-ts.getTime())/3600000):99;
-                        const color=age<24?'var(--green)':age<72?'var(--amber)':'var(--red)';
-                        row+='<td style="text-align:center;padding:4px 6px"><span style="color:'+color+';font-size:10px">'+(ts?ts.toLocaleDateString("pt-BR").substring(0,5):'—')+'</span></td>';
+                        const color=age<24?"var(--green)":age<72?"var(--amber)":"var(--red)";
+                        row+='<td style="text-align:center;padding:4px 6px"><span style="color:'+color+';font-size:10px">'+(ts?ts.toLocaleDateString("pt-BR").substring(0,5):"—")+'</span></td>';
                     }else{
                         row+='<td style="text-align:center;padding:4px 6px;color:var(--text3);font-size:10px">—</td>';
                     }
@@ -767,9 +741,8 @@ async function loadUserBackupStatus(){
         }
         html+='</table><div style="margin-top:8px;font-size:11px;color:var(--text3)">'+count+' usuário(s) com backup rotativo ativo</div>';
         el.innerHTML=html;
-    }catch(e){console.error('Load user backup status:',e);document.getElementById('userBackupStatus').textContent='❌ Erro: '+e.message;}
+    }catch(e){console.error("Load user backup status:",e);document.getElementById("userBackupStatus").textContent="❌ Erro: "+e.message;}
 }
-
 </script>
 </body>
 </html>
