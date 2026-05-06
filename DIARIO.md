@@ -1,7 +1,66 @@
 # Diário de Bordo Técnico — Gestor Financeiro
-**Atualizado em:** 21/03/2026 — 12:00  
-**Versão atual:** Produção v2.9.52 | Admin v1.2.0  
-**Status:** ✅ ESTÁVEL — Sprints 1, 2 e 3 do admin concluídos
+**Atualizado em:** 06/05/2026 — sessão de fix Bug 4 + correção sistêmica de processo (sessão GG Opus 4.7.3 + Claude Code Desktop)  
+**Versão atual:** Produção v2.9.61 | Admin v1.3.0  
+**Status:** ✅ ESTÁVEL — Bug 4 (CACHE_VERSION dessincronizado) corrigido; processo de deploy reforçado
+
+---
+
+## SESSÃO 06/05/2026 — Fix Bug 4 + Correção Sistêmica de Processo
+
+### v2.9.61 (06/05/2026) — fix Bug 4: ressincronizar CACHE_VERSION
+
+**Problema:** o `sw.js` ficou em `v2.9.56` enquanto o `index.html` foi a v2.9.60.
+4 versões de defasagem — usuários ativos podiam estar servindo HTML antigo
+do cache do Service Worker mesmo após deploy. Bug detectado em sessão anterior
+(03/05) e confirmado nesta sessão (06/05).
+
+**Causa raiz (sintoma):** ausência de checklist obrigatório que force o
+incremento conjunto do `CACHE_VERSION` no `sw.js` e da string de versão no
+`index.html` no MESMO commit.
+
+**Causa raiz (sistêmica):** processo de deploy informal — não havia
+RELEASE_CHECKLIST.md no repo, e o DIARIO.md ficou 8 versões desatualizado
+(parado em v2.9.52, código em v2.9.60). Esta sessão corrige ambos.
+
+**Mudanças:**
+- `sw.js`: `CACHE_VERSION = 'v2.9.61'` (era v2.9.56, salto de 5)
+- `index.html`: 4 ocorrências de v2.9.60 → v2.9.61 (header L384, rodapé L891, backup rotativo L1141, backup manual L1180)
+- `beta/` intocado (mantém v2.9.46 — abandonado, ver STATUS.md)
+- DIARIO.md atualizado com histórico v2.9.53 → v2.9.61
+- RELEASE_CHECKLIST.md criado (checklist obrigatório de deploy)
+- STATUS.md criado (estado canônico do projeto)
+
+**Violação consciente da Regra 6** (deploy beta antes de produção):
+beta/ está em v2.9.46 e foi abandonado após incidente histórico em que
+usuários reais cadastraram dados no beta em vez da produção. Causa raiz
+não investigada. Mitigações substitutas adotadas neste deploy:
+dry-run, validação técnica via diff, backup recente (06/05 15:26).
+
+### Versões anteriores (v2.9.53 → v2.9.60) — reconstrução a partir do git log
+
+DIARIO.md ficou parado em v2.9.52 (Regra 8 violada). Reconstrução honesta
+abaixo, baseada em mensagens de commit — pode haver detalhes técnicos não
+capturados.
+
+| Versão | Data | Commit | O que fez |
+|---|---|---|---|
+| v2.9.53 | 22/03 | ab47126 | fix de 6 bugs de auditoria (delTx ag órfão, delCard sync, saveEdit ag, código morto, payFatura m/y, efetivar cp) |
+| v2.9.54 | 22/03 | 57d29b9 | sincronizarFaturasEmAberto preserva tx faturaAgendada efetivadas |
+| v2.9.55 | 23/03 | 7be43e1 | resultado real inclui cartões; gráfico de 3 barras (receita/despesa/cartões) |
+| v2.9.56 | 23/03 | 1cbe25e | excluir recorrência em lote (esta / futuras / todas) com proteção de efetivadas |
+| v2.9.57 | 26/03 | 2fe75b8 / bd376b3 | fix ações individuais brapi.dev (plano gratuito limita 1 ticker por request) |
+| v2.9.58 | 27/03 | 9ba8abc | backup rotativo por dia da semana, intervalo 1h, regras Firestore corrigidas |
+| v2.9.59 | 08/04 | b1a09d3 | fix bug de save em novos usuários (`_loadedFromCloud` não setado no primeiro acesso) |
+| v2.9.60 | 08/04 | 3c646d9 | fix arredondamento de ponto flutuante em valores monetários (bankBal + saveTx) |
+
+### Sprints admin concorrentes (v1.2.1 → v1.3.0, 27/03/2026)
+
+| Versão admin | Commit | O que fez |
+|---|---|---|
+| v1.2.1 | ef2971a / f7be4e9 | seção de backup rotativo no painel admin |
+| v1.2.2 | 85340df | fix de posicionamento de loadUserBackupStatus |
+| v1.2.3 | 41c763f / a7c79d9 | mover loadUserBackupStatus para script principal |
+| v1.3.0 | dd3b49d | backup rotativo + loadUserBackupStatus (inserção limpa) |
 
 ---
 
@@ -107,14 +166,17 @@
 
 | Commit | Descrição | Arquivo(s) | Status |
 |---|---|---|---|
-| 9a526de | v2.9.52: LGPD secao Acesso Administrativo | index.html, sw.js | ✅ Em produção |
-| 252d84d | admin: fix botao Logs na barra de abas | admin.html | ✅ Ativo |
-| a74aa93 | admin v1.2.0: Sprint 3 R5 log de atividades | admin.html | ✅ Ativo |
-| f5434b4 | admin v1.1.0: fix ADMIN_UID, versao no header | admin.html | ✅ Ativo |
-| 2c8367a | admin Sprint 2: verificacao UID + confirmacao dupla | admin.html | ✅ Ativo |
-| 468bfa1 | admin: fix exportAllUsersData dentro do script | admin.html | ✅ Ativo |
-| 733c315 | admin: renomear botoes backup, exportar dados JSON | admin.html | Substituído |
-| 9aa2689 | v2.9.51: reverter para 3 meses (estável) | index.html, sw.js | Substituído por v2.9.52 |
+| (pendente) | v2.9.61: fix Bug 4 ressincronizar CACHE_VERSION + DIARIO + RELEASE_CHECKLIST + STATUS | index.html, sw.js, DIARIO.md, RELEASE_CHECKLIST.md, STATUS.md | 🚧 Em deploy |
+| 3c646d9 | v2.9.60: floating point rounding fix (bankBal + saveTx) | index.html, sw.js | ✅ Em produção |
+| b1a09d3 | v2.9.59: fix new users save bug (_loadedFromCloud) | index.html, sw.js | Substituído por v2.9.60 |
+| dd3b49d | admin v1.3.0: backup rotativo + loadUserBackupStatus | admin.html | ✅ Ativo |
+| 9ba8abc | v2.9.58: backup rotativo + Firestore rules | index.html, sw.js, firestore.rules | Substituído |
+| 2fe75b8 / bd376b3 | v2.9.57: fix ações individuais brapi.dev | index.html, sw.js | Substituído |
+| 1cbe25e | v2.9.56: excluir recorrência em lote | index.html, sw.js | Substituído |
+| 7be43e1 | v2.9.55: resultado real inclui cartões + gráfico 3 barras | index.html, sw.js | Substituído |
+| 57d29b9 | v2.9.54: fix sincronizar preservar faturaAgendada efetivadas | index.html, sw.js | Substituído |
+| ab47126 | v2.9.53: fix 6 bugs auditoria | index.html, sw.js | Substituído |
+| 9a526de | v2.9.52: LGPD secao Acesso Administrativo | index.html, sw.js | Substituído |
 
 ---
 
@@ -133,6 +195,10 @@
 | sincronizarFaturasEmAberto() só verifica 3 meses — requer refactor upsert v2.10.0 | Alta |
 | SW de produção intercepta /beta/ no iPhone | Média |
 | Sugestão Patricio Mackson (recebimento parcial) | Baixa |
+| Bug 3 — loadFromCloud catch silencioso (anotado para sessão futura) | Média |
+
+### Bugs resolvidos nesta sessão (06/05/2026)
+- **Bug 4** — CACHE_VERSION dessincronizado entre `sw.js` (v2.9.56) e `index.html` (v2.9.60). Ressincronizado em v2.9.61 com salto de 5 versões para forçar refresh em todos os clientes ativos.
 
 ---
 
