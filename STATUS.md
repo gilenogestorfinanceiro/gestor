@@ -1,6 +1,6 @@
 # STATUS — Gestor Financeiro
 
-**Última atualização:** 06/05/2026
+**Última atualização:** 09/05/2026
 **Documento canônico do estado do projeto.** Para histórico completo ver
 `DIARIO.md`. Para procedimento de deploy ver `RELEASE_CHECKLIST.md`.
 
@@ -10,7 +10,7 @@
 
 | Item | Valor |
 |---|---|
-| Versão produção | **v2.9.61** |
+| Versão produção | **v2.9.62** |
 | Versão admin | **v1.3.0** |
 | URL produção | https://gilenogestorfinanceiro.github.io/gestor/ |
 | URL admin | https://gilenogestorfinanceiro.github.io/gestor/admin.html |
@@ -27,12 +27,12 @@
 
 | # | Bug | Prioridade | Notas |
 |---|---|---|---|
-| 3 | Catch silencioso em `loadFromCloud()` — falhas mascaradas, sem rethrow nem log estruturado | Média | Sessão dedicada futura; risco de save() rodar sobre estado parcial |
 | — | `sincronizarFaturasEmAberto()` só verifica 3 meses | Alta | Requer refactor upsert (v2.10.0); ver Débito Técnico |
 | — | SW de produção intercepta `/beta/` no iPhone | Média | **Relacionado à investigação do beta abandonado** — possível vetor do incidente original |
 | — | Sugestão Patricio Mackson — recebimento parcial | Baixa | Feature request, não bug stricto |
 
-> Bug 4 (CACHE_VERSION dessincronizado) foi resolvido em v2.9.61 nesta sessão (06/05/2026).
+> Bug 3 (catch silencioso em `loadFromCloud()`) foi resolvido em v2.9.62 (09/05/2026).
+> Bug 4 (CACHE_VERSION dessincronizado) foi resolvido em v2.9.61 (06/05/2026).
 > Bug 1, Bug 2 e demais bugs históricos estão fechados ou foram absorvidos no DIARIO.md sem numeração persistente.
 
 ---
@@ -88,7 +88,6 @@ Bloqueiam reativação do beta e da Regra 6. Recomendado em sessão dedicada
 ## ROADMAP
 
 ### Curto prazo
-- Sessão dedicada para Bug 3 (catch silencioso de `loadFromCloud()`).
 - Exportar `Roadmap_Migracao_NextJS_Supabase.md` do knowledge do Projeto
   no claude.ai para o repositório (hoje só existe fora do repo, dificulta
   rastreabilidade).
@@ -124,3 +123,4 @@ Bloqueiam reativação do beta e da Regra 6. Recomendado em sessão dedicada
 | Data | Versão | Mudança |
 |---|---|---|
 | 06/05/2026 | v1.0 | Criação na sessão de fix Bug 4 + correção sistêmica de processo (sessão GG Opus 4.7.3 + Claude Code Desktop) |
+| 09/05/2026 | v1.1 | Bug 3 fechado em v2.9.62 (catch silencioso em `loadFromCloud()`); versão produção atualizada |

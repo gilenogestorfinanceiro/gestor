@@ -1,7 +1,61 @@
 # Diário de Bordo Técnico — Gestor Financeiro
-**Atualizado em:** 06/05/2026 — sessão de fix Bug 4 + correção sistêmica de processo (sessão GG Opus 4.7.3 + Claude Code Desktop)  
-**Versão atual:** Produção v2.9.61 | Admin v1.3.0  
-**Status:** ✅ ESTÁVEL — Bug 4 (CACHE_VERSION dessincronizado) corrigido; processo de deploy reforçado
+**Atualizado em:** 09/05/2026 — sessão de fix Bug 3 (catch silencioso em loadFromCloud)  
+**Versão atual:** Produção v2.9.62 | Admin v1.3.0  
+**Status:** ✅ ESTÁVEL — Bug 3 corrigido com fix mínimo; toast visível ao usuário em falha de load
+
+---
+
+## SESSÃO 09/05/2026 — Fix Bug 3: catch silencioso em loadFromCloud()
+
+### v2.9.62 (09/05/2026) — fix Bug 3: feedback visual em falha de load
+
+**Problema:** o `catch` de `loadFromCloud()` apenas gravava `console.error`
+e setava `_loadFailed=true`. Sem toast, sem modal — usuários (23 mobile no
+total, ninguém abre console) não sabiam que a leitura da nuvem falhou.
+Falhas transitórias (rede instável, regras Firestore, quota) viravam
+"dashboard zerado" sem nenhuma pista de que era falha de rede recuperável.
+
+Pior: havia código morto após `return;` no catch — duas linhas que
+construíam `D` com defaults e setavam `_loadedFromCloud=true`. Se alguém
+"limpasse" o `return` achando que era bug, o save() destravado em cima de
+`D` zerado iria **sobrescrever a nuvem com defaults vazios = perda de
+dados**. Armadilha pendurada.
+
+**Causa raiz:** ausência de feedback visual no caminho de erro de
+`loadFromCloud()`. As proteções de `_loadFailed` (v2.9.48) impediam perda
+de dados, mas não comunicavam o erro ao usuário.
+
+**Mudanças (em `index.html`, função `loadFromCloud()`):**
+- `console.error('Load error:',e)` → `console.error('Load error:',e&&e.code||'',e&&e.message||e)`
+  — extrai `code` e `message` do erro Firestore para debug remoto melhor
+- Adicionado `toast('⚠️ Falha ao carregar dados da nuvem. Recarregue a página (verifique sua conexão).',true)`
+  — feedback visual em vermelho (segundo arg `true` = toast de erro)
+- Removidas as 2 linhas mortas após o `return;` — armadilha eliminada
+- Removido o `;return;` final do catch (desnecessário sem código depois)
+- `_loadFailed=true` mantido (proteção save() preservada)
+- `_loadedFromCloud` continua **não** sendo setado no catch (correto)
+- Caminho de sucesso (linhas 1287-1294) totalmente intocado
+
+**Bump de versão (5 pontos, MESMO commit, conforme RELEASE_CHECKLIST):**
+- `sw.js` L3: `CACHE_VERSION = 'v2.9.62'`
+- `index.html` L384: header `v2.9.62`
+- `index.html` L891: rodapé `v2.9.62`
+- `index.html` L1141: backup rotativo `version:'v2.9.62'`
+- `index.html` L1180: backup manual `version:'v2.9.62'`
+
+**Validação anti-Luan-Muniz (todos passaram):**
+- `grep -c v2.9.62 sw.js index.html`: 1 + 4 ✅
+- `grep -c v2.9.61 sw.js index.html`: 0 + 0 (zero residual) ✅
+- `grep -rn gestor-financeiro-beta` (excluindo `beta/`): vazio ✅
+- `grep -n BETA index.html`: vazio ✅
+- `grep -n projectId index.html`: só `gestor-financeiro-pessoa-90a13` ✅
+
+**Mitigações Regra 6 suspensa:** dry-run feito (diff antes/depois apresentado
+e aprovado), backup recente disponível (06/05 15:26), validação técnica
+via diff aprovada antes do Edit.
+
+**Escopo travado mantido:** zero mudança em `sincronizarFaturasEmAberto()`
+(Regra 4) e zero mudança em `beta/` (Regra 6 suspensa).
 
 ---
 
@@ -166,8 +220,9 @@ capturados.
 
 | Commit | Descrição | Arquivo(s) | Status |
 |---|---|---|---|
-| (pendente) | v2.9.61: fix Bug 4 ressincronizar CACHE_VERSION + DIARIO + RELEASE_CHECKLIST + STATUS | index.html, sw.js, DIARIO.md, RELEASE_CHECKLIST.md, STATUS.md | 🚧 Em deploy |
-| 3c646d9 | v2.9.60: floating point rounding fix (bankBal + saveTx) | index.html, sw.js | ✅ Em produção |
+| (pendente) | v2.9.62: fix Bug 3 catch silencioso em loadFromCloud + toast de erro + remoção de código morto | index.html, sw.js, DIARIO.md | 🚧 Em deploy |
+| 4269adf | v2.9.61: fix Bug 4 ressincronizar CACHE_VERSION + DIARIO + RELEASE_CHECKLIST + STATUS | index.html, sw.js, DIARIO.md, RELEASE_CHECKLIST.md, STATUS.md | ✅ Em produção |
+| 3c646d9 | v2.9.60: floating point rounding fix (bankBal + saveTx) | index.html, sw.js | Substituído por v2.9.61 |
 | b1a09d3 | v2.9.59: fix new users save bug (_loadedFromCloud) | index.html, sw.js | Substituído por v2.9.60 |
 | dd3b49d | admin v1.3.0: backup rotativo + loadUserBackupStatus | admin.html | ✅ Ativo |
 | 9ba8abc | v2.9.58: backup rotativo + Firestore rules | index.html, sw.js, firestore.rules | Substituído |
@@ -195,10 +250,12 @@ capturados.
 | sincronizarFaturasEmAberto() só verifica 3 meses — requer refactor upsert v2.10.0 | Alta |
 | SW de produção intercepta /beta/ no iPhone | Média |
 | Sugestão Patricio Mackson (recebimento parcial) | Baixa |
-| Bug 3 — loadFromCloud catch silencioso (anotado para sessão futura) | Média |
 
-### Bugs resolvidos nesta sessão (06/05/2026)
-- **Bug 4** — CACHE_VERSION dessincronizado entre `sw.js` (v2.9.56) e `index.html` (v2.9.60). Ressincronizado em v2.9.61 com salto de 5 versões para forçar refresh em todos os clientes ativos.
+### Bugs resolvidos nesta sessão (09/05/2026)
+- **Bug 3** — Catch silencioso em `loadFromCloud()`: usuário não recebia feedback ao falhar leitura da nuvem; código morto após `return` era armadilha que poderia causar perda de dados se "limpado" sem entender. Resolvido em v2.9.62 com toast de erro + remoção do código morto + log estruturado.
+
+### Bugs resolvidos em sessões anteriores
+- **Bug 4 (06/05/2026)** — CACHE_VERSION dessincronizado entre `sw.js` (v2.9.56) e `index.html` (v2.9.60). Ressincronizado em v2.9.61 com salto de 5 versões para forçar refresh em todos os clientes ativos.
 
 ---
 
