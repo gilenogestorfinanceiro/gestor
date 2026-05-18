@@ -1,10 +1,10 @@
 // Gileno — Gestão Financeira | Service Worker
 // ⚠️ IMPORTANTE: Sempre incrementar CACHE_VERSION junto com a versão do index.html
-const CACHE_VERSION = 'v2.9.62';
+const CACHE_VERSION = 'v2.9.63';
 const CACHE_NAME = `gestor-cache-${CACHE_VERSION}`;
 
 // NUNCA cachear index.html e admin.html — sempre buscar da rede para garantir versão atual
-const NEVER_CACHE = ['/', './index.html', '/gestor/beta/', '/gestor/beta/index.html', '/gestor/admin.html', 'admin.html'];
+const NEVER_CACHE = ['/', './index.html', '/gestor/admin.html', 'admin.html'];
 
 // INSTALAÇÃO — skipWaiting imediato, sem cachear index.html
 self.addEventListener('install', e => {
@@ -42,6 +42,11 @@ self.addEventListener('fetch', e => {
   if (url.includes('firestore') || url.includes('firebase') ||
       url.includes('googleapis') || url.includes('gstatic') ||
       url.includes('google.com')) return;
+
+  // BETA — passa direto pra rede, SW de prod NÃO intercepta.
+  // Corrige bug iPhone: SW capturava /gestor/beta/* e servia do cache de prod.
+  const betaUrl = new URL(e.request.url);
+  if (betaUrl.pathname.includes('/beta/')) return;
 
   // index.html — SEMPRE da rede, nunca do cache
   const isIndex = NEVER_CACHE.some(p => url.endsWith(p) || url.includes('index.html') || url.includes('admin.html'));
