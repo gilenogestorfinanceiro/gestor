@@ -1,6 +1,6 @@
 # STATUS — Gestor Financeiro
 
-**Última atualização:** 09/05/2026
+**Última atualização:** 18/05/2026
 **Documento canônico do estado do projeto.** Para histórico completo ver
 `DIARIO.md`. Para procedimento de deploy ver `RELEASE_CHECKLIST.md`.
 
@@ -10,7 +10,7 @@
 
 | Item | Valor |
 |---|---|
-| Versão produção | **v2.9.62** |
+| Versão produção | **v2.9.63** |
 | Versão admin | **v1.3.0** |
 | URL produção | https://gilenogestorfinanceiro.github.io/gestor/ |
 | URL admin | https://gilenogestorfinanceiro.github.io/gestor/admin.html |
@@ -28,12 +28,12 @@
 | # | Bug | Prioridade | Notas |
 |---|---|---|---|
 | — | `sincronizarFaturasEmAberto()` só verifica 3 meses | Alta | Requer refactor upsert (v2.10.0); ver Débito Técnico |
-| — | SW de produção intercepta `/beta/` no iPhone | Média | **Relacionado à investigação do beta abandonado** — possível vetor do incidente original |
 | — | Sugestão Patricio Mackson — recebimento parcial | Baixa | Feature request, não bug stricto |
 
+> Bug 2 (SW de prod intercepta `/beta/` no iPhone) foi resolvido em v2.9.63 (18/05/2026) — passthrough adicionado em `sw.js`.
 > Bug 3 (catch silencioso em `loadFromCloud()`) foi resolvido em v2.9.62 (09/05/2026).
 > Bug 4 (CACHE_VERSION dessincronizado) foi resolvido em v2.9.61 (06/05/2026).
-> Bug 1, Bug 2 e demais bugs históricos estão fechados ou foram absorvidos no DIARIO.md sem numeração persistente.
+> Bug 1 e demais bugs históricos estão fechados ou foram absorvidos no DIARIO.md sem numeração persistente.
 
 ---
 
@@ -60,11 +60,11 @@ ver `RELEASE_CHECKLIST.md` seção "Quando reativar a Regra 6".
 
 ### Service Worker — colisão de cache prod/beta
 
-O bug "SW de produção intercepta `/beta/` no iPhone" sugere que o
-`gestor-cache-vX.Y.Z` pode estar atendendo requisições destinadas ao beta.
-Investigar se há colisão de escopo entre os dois SWs. **Diagnóstico
-obrigatório** antes de qualquer reativação do beta — pode ser parte da
-causa raiz do incidente original.
+**Mitigado em v2.9.63 (18/05/2026):** SW de prod agora dá passthrough em paths
+que contêm `/beta/` — não intercepta, não cacheia. A investigação da causa
+raiz do incidente histórico (como usuários reais chegaram ao beta) continua
+**pendente** como pré-requisito de reativação do beta + Regra 6 (ver
+"Investigações Pendentes" abaixo).
 
 ---
 
@@ -124,3 +124,4 @@ Bloqueiam reativação do beta e da Regra 6. Recomendado em sessão dedicada
 |---|---|---|
 | 06/05/2026 | v1.0 | Criação na sessão de fix Bug 4 + correção sistêmica de processo (sessão GG Opus 4.7.3 + Claude Code Desktop) |
 | 09/05/2026 | v1.1 | Bug 3 fechado em v2.9.62 (catch silencioso em `loadFromCloud()`); versão produção atualizada |
+| 18/05/2026 | v1.2 | Bug 2 fechado em v2.9.63 (SW passthrough em `/beta/`); seção SW prod/beta atualizada; versão produção atualizada |

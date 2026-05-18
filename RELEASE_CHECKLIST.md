@@ -30,6 +30,10 @@ grep "v2\.9\.YY" sw.js index.html  # YY = versão anterior
 # esperado: vazio (zero ocorrências residuais)
 ```
 
+**Exceção:** releases que só tocam `sw.js` (fix isolado de SW, sem mudança de UI/comportamento)
+podem bumpar APENAS o `CACHE_VERSION` — os bumps em `index.html` deixam de aplicar.
+v2.9.63 é exemplo dessa exceção (passthrough de `/beta/` no `sw.js`; `index.html` intocado).
+
 ### 2. Strings de versão em backups (Firestore)
 
 Se o commit toca `index.html`, conferir também:

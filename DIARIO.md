@@ -1,7 +1,61 @@
 # Diário de Bordo Técnico — Gestor Financeiro
-**Atualizado em:** 09/05/2026 — sessão de fix Bug 3 (catch silencioso em loadFromCloud)  
-**Versão atual:** Produção v2.9.62 | Admin v1.3.0  
-**Status:** ✅ ESTÁVEL — Bug 3 corrigido com fix mínimo; toast visível ao usuário em falha de load
+**Atualizado em:** 18/05/2026 — sessão de saneamento (worktrees + Bug 2 SW/beta)  
+**Versão atual:** Produção v2.9.63 | Admin v1.3.0  
+**Status:** ✅ ESTÁVEL — Bug 2 corrigido (SW de prod não intercepta mais `/beta/`); higiene de worktrees concluída
+
+---
+
+## SESSÃO 18/05/2026 — Saneamento: worktrees + Bug 2 (SW intercepta /beta/)
+
+Sessão interrompível de higiene técnica + 1 bug isolado, conduzida via Claude Code Desktop.
+
+### Limpeza de worktrees
+
+Duas worktrees pendentes de sessões anteriores, ambas com branches já mergeadas em `main`:
+- `wizardly-noyce-5935b7` (branch `claude/wizardly-noyce-5935b7`, era `4269adf` v2.9.61) — limpa, removida.
+- `gifted-tereshkova-960f07` (branch `claude/gifted-tereshkova-960f07`, era `6b8eae2` v2.9.62) — tinha untracked `DIARIO_GG_20260509_OPUS_4_7_4.md` (8895 bytes). MD5 byte-a-byte idêntico ao já preservado em `~/Documents/Gileno_Gestao/Diarios/`. Untracked descartado, worktree removida.
+
+Estado final: só `main` na árvore principal.
+
+### Versão Claude Code Desktop reportada
+
+- Instalada: `1.7196.0` (`/Applications/Claude.app`)
+- Última anotada no roadmap (06/05): `v1.6259.1`
+- Delta: +937 builds à frente — item "update CC Desktop pendente" do roadmap pode ser descartado.
+
+### v2.9.63 (18/05/2026) — fix Bug 2: SW de prod intercepta `/beta/` no iPhone
+
+**Problema:** SW de produção (escopo `/gestor/`) capturava requisições `/gestor/beta/*` no iPhone Safari. Assets do beta (js/css/etc) caíam no ramo network-first do `fetch` listener e eram cacheados no namespace `gestor-cache-v2.9.62` (cache de prod). Na próxima visita pelo iPhone, o cache de prod servia stale do beta. `NEVER_CACHE` cobria só os 2 paths exatos (`/gestor/beta/` e `/gestor/beta/index.html`), nunca os assets.
+
+**Causa raiz:** ausência de filtro de escopo no `fetch` listener — qualquer request fora dos filtros explícitos (Firebase, NEVER_CACHE) caía no caminho de cache de prod, incluindo paths do beta.
+
+**Mudanças (em `sw.js`):**
+- `CACHE_VERSION = 'v2.9.62'` → `'v2.9.63'` (força purge do cache antigo no `activate`)
+- `NEVER_CACHE`: removidas entradas `'/gestor/beta/'` e `'/gestor/beta/index.html'` (redundantes com o novo passthrough)
+- Novo bloco logo após filtro Firebase: `if (new URL(e.request.url).pathname.includes('/beta/')) return;` — passthrough total, SW de prod nunca toca em requests do beta
+- 2 linhas de comentário explicativo mantidas (WHY não-óbvio = corrige bug iPhone)
+
+**Ajuste técnico vs proposta do briefing:** briefing sugeriu `pathname.startsWith('/beta/')`. URL real do GH Pages é `gilenogestorfinanceiro.github.io/gestor/beta/...` — path começa com `/gestor/`, não `/beta/`. Corrigido para `pathname.includes('/beta/')`.
+
+**Bump de versão (1 ponto só):** só `sw.js` tocado. `index.html` não mudou nesta release (sem alteração de UI/comportamento de app — só SW). Exceção legítima ao "bump 3 lugares" do RELEASE_CHECKLIST — nota da exceção adicionada ao próprio checklist nesta sessão.
+
+**Escopo travado:** zero mudança em `sincronizarFaturasEmAberto()` (Regra 4). Zero mudança em `beta/` (Regra 6 suspensa).
+
+**Mitigação parcial à seção "SW — colisão de cache prod/beta" de STATUS.md:** prod já não intercepta beta. Investigação da causa raiz do incidente histórico (como usuários reais chegaram ao beta) continua pendente como pré-requisito para reativação do beta + Regra 6.
+
+### Validação pós-deploy pendente
+
+GitHub Pages CDN delay normal (~1-5 min) após `git push`. Validação no iPhone deferida ao Gileno:
+- Hard refresh em https://gilenogestorfinanceiro.github.io/gestor/beta/
+- Console esperado: nenhum log `[SW]` de prod ao acessar `/beta/`
+- Cache antigo `gestor-cache-v2.9.62` deve ser deletado pelo `activate` do novo SW v2.9.63
+
+### Bugs que continuam abertos
+
+| Bug | Status |
+|---|---|
+| `sincronizarFaturasEmAberto()` 3 meses → refactor upsert | Pendente v2.10.0 (sessão dedicada) |
+| Patricio Mackson — recebimento parcial | Feature request baixa prioridade |
 
 ---
 
