@@ -30,9 +30,11 @@ grep "v2\.9\.YY" sw.js index.html  # YY = versão anterior
 # esperado: vazio (zero ocorrências residuais)
 ```
 
-**Exceção:** releases que só tocam `sw.js` (fix isolado de SW, sem mudança de UI/comportamento)
-podem bumpar APENAS o `CACHE_VERSION` — os bumps em `index.html` deixam de aplicar.
-v2.9.63 é exemplo dessa exceção (passthrough de `/beta/` no `sw.js`; `index.html` intocado).
+**Regra firme — versionamento sempre coerente:** `sw.js` e `index.html` devem
+SEMPRE bumpar juntos no mesmo commit, sem exceções para fixes "SW-only".
+Uma tentativa de exceção em 18/05/2026 (commit `095e03f`, v2.9.63 só no `sw.js`)
+foi revertida no mesmo dia: incoerência de versão entre SW e UI gera confusão
+operacional e dificulta debug remoto. Se o SW muda, a versão muda — ponto.
 
 ### 2. Strings de versão em backups (Firestore)
 

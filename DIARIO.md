@@ -50,6 +50,22 @@ GitHub Pages CDN delay normal (~1-5 min) após `git push`. Validação no iPhone
 - Console esperado: nenhum log `[SW]` de prod ao acessar `/beta/`
 - Cache antigo `gestor-cache-v2.9.62` deve ser deletado pelo `activate` do novo SW v2.9.63
 
+### Correção retroativa: bump index.html + reversão da exceção SW-only
+
+Logo após o push de v2.9.63 (commit `095e03f` só do `sw.js` + `268f15d` dos docs), Gileno apontou inconsistência: `sw.js` em v2.9.63, `index.html` ainda em v2.9.62. Versionamento incoerente entre SW e UI dificulta debug remoto e gera confusão operacional.
+
+**Bump aplicado em `index.html` (4 ocorrências, conforme RELEASE_CHECKLIST):**
+- L384 — header (visível ao usuário)
+- L891 — rodapé (visível ao usuário)
+- L1141 — backup rotativo Firestore (`bkRef.set({version:'v2.9.63', ...})`)
+- L1180 — backup manual Firestore
+
+**Reversão da exceção SW-only no RELEASE_CHECKLIST:** as 3 linhas adicionadas no commit `268f15d` (que esclareciam que "releases SW-only podem bumpar só o `CACHE_VERSION`") foram removidas e substituídas por uma regra firme positiva: `sw.js` e `index.html` devem SEMPRE bumpar juntos, sem exceções. A exceção tentada foi explicitamente marcada como revogada (commit `095e03f` citado como caso revertido).
+
+**Why:** o RELEASE_CHECKLIST nasceu em 06/05/2026 pra forçar consistência após Bug 4 (CACHE_VERSION dessincronizado por 4 versões). Abrir exceção 12 dias depois enfraquece justamente a regra que evita repetir Bug 4. Feedback do Gileno trouxe isso à luz no mesmo dia — reversão preserva o espírito original do checklist.
+
+**Lição:** quando uma regra opera contra "incidentes históricos", exceções de conveniência devem ser ainda mais raras. Coerência > economia de bytes no diff.
+
 ### Bugs que continuam abertos
 
 | Bug | Status |
