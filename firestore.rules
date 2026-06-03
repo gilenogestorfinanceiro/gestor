@@ -1,0 +1,67 @@
+rules_version = '2';
+
+// Firestore Security Rules — Gileno Gestão Financeira (projeto: gestor-financeiro-pessoa-90a13)
+// Espelha o modelo do Gestão Saúde: DEFAULT-DENY + isolamento por usuário (uid) + admin whitelist.
+// Coleções: users, backups, userActivity, sugestoes, admin_logs.
+// Admin = conta Google VERIFICADA do Gileno (email_verified + email exato).
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthed() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // mesmo critério do Gestão Saúde
+    function isAdmin() {
+      return request.auth != null
+             && request.auth.token.email_verified == true
+             && request.auth.token.email == 'gilenopaivalima@gmail.com';
+    }
+
+    // ----- Documento principal de cada usuário (dados financeiros) -----
+    // Dono: lê/cria/atualiza o PRÓPRIO doc. Admin: lê todos (incl. list) + delete p/ limpar órfãos.
+    match /users/{userId} {
+      allow read:           if isOwner(userId) || isAdmin();
+      allow create, update: if isOwner(userId);
+      allow delete:         if isOwner(userId) || isAdmin();
+    }
+
+    // ----- Backups -----
+    // Por-usuário: backups/{uid}/**  → só o dono (uid == auth.uid) ou admin.
+    // Backups de código do admin: backups/index_html, backups/backup_*, *_chunk_N (docId não é uid)
+    //   → isOwner nunca casa, então caem só no admin.
+    match /backups/{docId} {
+      allow read, write: if isOwner(docId) || isAdmin();
+      match /{rest=**} {
+        allow read, write: if isOwner(docId) || isAdmin();
+      }
+    }
+
+    // ----- Atividade do usuário ----- (dono escreve a própria; admin lê tudo p/ painel)
+    match /userActivity/{userId} {
+      allow read:  if isOwner(userId) || isAdmin();
+      allow write: if isOwner(userId);
+    }
+
+    // ----- Sugestões ----- (qualquer logado cria; só admin lê/gerencia)
+    match /sugestoes/{id} {
+      allow create:               if isAuthed();
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ----- Logs de admin ----- (só admin)
+    match /admin_logs/{id} {
+      allow read, create: if isAdmin();
+    }
+
+    // ----- DEFAULT DENY: qualquer outro path é bloqueado -----
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

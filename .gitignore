@@ -1,0 +1,9 @@
+.DS_Store
+*.log
+
+# Firebase / segredos — NUNCA commitar (repo é público)
+.env
+.env.*
+*serviceAccount*.json
+*firebase-adminsdk*.json
+.firebase/
