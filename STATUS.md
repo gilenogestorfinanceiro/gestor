@@ -10,13 +10,13 @@
 
 | Item | Valor |
 |---|---|
-| Versão produção | **v2.9.63** |
+| Versão produção | **v2.9.66** (Gestor Pro piloto — caixa de entrada Telegram, só uid do Gileno) |
 | Versão admin | **v1.3.0** |
 | URL produção | https://gilenogestorfinanceiro.github.io/gestor/ |
 | URL admin | https://gilenogestorfinanceiro.github.io/gestor/admin.html |
 | Repositório | https://github.com/gilenogestorfinanceiro/gestor (público) |
 | Stack | HTML/CSS/JS puro + Firebase Firestore + GitHub Pages + Service Worker |
-| Firebase produção | `gestor-financeiro-pessoa-90a13` (plano Blaze) |
+| Firebase produção | `gestor-financeiro-pessoa-90a13` (plano **Spark** — corrigido 14/07/2026; STATUS anterior dizia Blaze) |
 | Usuários totais | 35 |
 | Usuários ativos (semana) | 7 (23 mobile + 12 desktop no total) |
 | Backup mais recente | 06/05/2026 15:26 — `~/Downloads/backup_dados_2026-05-06.json` |

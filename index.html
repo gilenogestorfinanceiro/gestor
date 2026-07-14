@@ -381,7 +381,7 @@ Entrar com Google
 <span>Gileno - Gestão Financeira</span>
 </div>
 <div class="header-actions">
-<span id="headerUser" style="font-size:11px;color:var(--text3);margin-right:4px">👤 Gileno Paiva <span style="font-size:10px;color:var(--text3)">v2.9.65</span></span>
+<span id="headerUser" style="font-size:11px;color:var(--text3);margin-right:4px">👤 Gileno Paiva <span style="font-size:10px;color:var(--text3)">v2.9.66</span></span>
 <button class="btn-icon" onclick="openShareModal()" title="Compartilhar com amigos" style="color:var(--green);position:relative"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg></button>
 <button class="btn-icon" onclick="toggleTheme()" id="themeToggleBtn" title="Alternar tema claro/escuro"><span id="themeIcon">☀️</span></button>
 <button class="btn-icon" onclick="exportCSV()" title="Exportar CSV"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg></button>
@@ -399,6 +399,8 @@ Entrar com Google
 <div class="month-label" id="ml1">Março 2026</div>
 <button class="month-btn" onclick="chgMonth(1)">›</button>
 </div>
+<!-- GESTOR PRO (piloto): banner da caixa de entrada do Telegram — só renderiza pro uid do Gileno -->
+<div id="proInboxBar"></div>
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
 <div></div>
 <button onclick="toggleValVis()" id="btnVisToggle" style="background:none;border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 12px;color:var(--text2);font-size:12px;display:flex;align-items:center;gap:6px;cursor:pointer;font-family:var(--font)">
@@ -888,7 +890,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.65
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.66
 </div>
 
 <!-- BOTTOM NAV -->
@@ -931,6 +933,16 @@ Mais
 </div>
 
 <!-- PAY FATURA MODAL -->
+<!-- GESTOR PRO (piloto): caixa de entrada do bot Telegram (users/{uid}/inbox) — exclusiva do uid do Gileno -->
+<div class="modal-overlay" id="proInboxModal" onclick="if(event.target===this)closeProInbox()">
+<div class="modal">
+<div class="modal-handle"></div>
+<div class="modal-title">📥 Caixa de Entrada — Telegram</div>
+<div style="font-size:12px;color:var(--text3);margin-bottom:10px">Lançamentos interpretados pela IA do bot. Revise e confirme — nada entra nos seus dados sem o seu OK.</div>
+<div id="proInboxList" style="max-height:62vh;overflow-y:auto"></div>
+</div>
+</div>
+
 <div class="modal-overlay" id="payModal" onclick="if(event.target===this)closePayModal()">
 <div class="modal">
 <div class="modal-handle"></div>
@@ -1138,7 +1150,7 @@ async function runAutoBackup(){
         if(!lastBk||now-lastBk>3600000){
             const src=JSON.stringify(D);const chunks=[];const chunkSize=900000;
             for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
-            await bkRef.set({version:'v2.9.65',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:slotName,uid:currentUid||'',dia:diaSemana});
+            await bkRef.set({version:'v2.9.66',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:slotName,uid:currentUid||'',dia:diaSemana});
             for(let i=0;i<chunks.length;i++)await db.collection('backups').doc(currentUid).collection(slotName).doc('chunk_'+i).set({data:chunks[i],index:i});
             console.log('✅ Backup automático ('+diaSemana+') salvo ('+chunks.length+' chunks, '+Math.round(src.length/1024)+'KB)');
         }else{console.log('⏭️ Backup automático: próximo em '+Math.round((3600000-(now-lastBk))/60000)+' min (slot: '+diaSemana+')')}
@@ -1177,7 +1189,7 @@ async function runManualBackup(){
         const chunks=[];const chunkSize=900000;
         for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
         const bkRef=db.collection('backups').doc(currentUid).collection('manual').doc('meta');
-        await bkRef.set({version:'v2.9.65',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'manual',uid:currentUid||''});
+        await bkRef.set({version:'v2.9.66',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'manual',uid:currentUid||''});
         for(let i=0;i<chunks.length;i++)await db.collection('backups').doc(currentUid).collection('manual').doc('chunk_'+i).set({data:chunks[i],index:i});
         toast('✅ Backup manual salvo! ('+Math.round(src.length/1024)+'KB)');
     }catch(e){toast('❌ Erro no backup manual: '+e.message)}
@@ -1259,6 +1271,7 @@ auth.onAuthStateChanged(async function(user){
         applyTheme();
         if(!D.userName){D.userName=currentUser;save()}
         goPage('dash');
+        proInboxInit(); // GESTOR PRO (piloto): no-op p/ qualquer uid que não seja o do Gileno
         // Track user activity for admin panel
         try{
             const ua=navigator.userAgent;
@@ -1345,6 +1358,131 @@ function checkAutoLogin(){/* handled by onAuthStateChanged */}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5)}
 function fmt(v){if(!v&&v!==0)return'R$ 0,00';const a=Math.abs(v);return(v<0?'-R$ ':'R$ ')+a.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function toast(msg,err){const t=$('toast');t.textContent=msg;t.className='toast'+(err?' error':'')+' show';setTimeout(()=>t.className='toast',2500)}
+
+// ===== GESTOR PRO (piloto Fase 1 — exclusivo do uid do Gileno) =====
+// Caixa de entrada do bot @gestorpro_gileno_bot: a VPS grava lançamentos interpretados pela IA
+// em users/{uid}/inbox com status 'pendente'; aqui o dono revisa e CONFIRMA — só então o dado
+// entra em D (mesmo formato do lançamento manual) e o item vira 'confirmado' na nuvem.
+// Para qualquer outro usuário, proAtivo() é false e nada disso executa nem aparece.
+const PRO_UID='9NWXXOwHHUSrxEg7Ygw226zsuHj1';
+let proInbox=[];
+function proAtivo(){return currentUid===PRO_UID}
+function proEsc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+async function proInboxFetch(){
+    if(!proAtivo())return;
+    try{
+        const snap=await db.collection('users').doc(currentUid).collection('inbox').where('status','==','pendente').get();
+        proInbox=snap.docs.map(d=>Object.assign({fid:d.id},d.data()));
+        proInbox.sort((a,b)=>String(a.criado||'').localeCompare(String(b.criado||'')));
+    }catch(e){console.error('Pro inbox fetch:',e)}
+    proInboxRenderBar();
+    const m=document.getElementById('proInboxModal');
+    if(m&&m.classList.contains('show'))proInboxRenderModal();
+}
+function proInboxInit(){
+    if(!proAtivo())return;
+    proInboxFetch();
+    if(!window._proTimer)window._proTimer=setInterval(proInboxFetch,300000); // re-checa a cada 5 min
+}
+function proInboxRenderBar(){
+    const bar=document.getElementById('proInboxBar');
+    if(!bar)return;
+    if(!proAtivo()||!proInbox.length){bar.innerHTML='';return}
+    bar.innerHTML='<div class="card" style="cursor:pointer;border:1.5px solid var(--purple,#8b5cf6);margin-bottom:12px" onclick="openProInbox()">'
+      +'<div style="display:flex;align-items:center;gap:10px">'
+      +'<span style="font-size:22px">📥</span>'
+      +'<div style="flex:1"><b>'+proInbox.length+' lançamento'+(proInbox.length>1?'s':'')+' do Telegram</b>'
+      +'<div style="font-size:12px;color:var(--text3)">interpretados pela IA · toque para revisar e confirmar</div></div>'
+      +'<span style="font-size:20px;color:var(--text3)">›</span></div></div>';
+}
+function openProInbox(){proInboxRenderModal();$('proInboxModal').classList.add('show')}
+function closeProInbox(){$('proInboxModal').classList.remove('show')}
+function proEhTransf(it){return it.tipo==='Despesa'&&it.cat==='Transferência'}
+function proSelOpts(list,sel){return list.map(x=>'<option value="'+proEsc(x)+'"'+(x===sel?' selected':'')+'>'+proEsc(x)+'</option>').join('')}
+function proMatchConta(pagamento){
+    // casa o "pagamento" do bot com uma conta/cartão do app; devolve "b:NOME" ou "c:NOME"
+    const P=String(pagamento||'').toUpperCase();
+    let hit=getBancos().find(b=>P&&b.toUpperCase()===P)||getCartoes().find(c=>P&&c.toUpperCase()===P);
+    if(!hit)hit=getBancos().find(b=>P&&P.includes(b.toUpperCase()))||getCartoes().find(c=>P&&P.includes(c.toUpperCase()));
+    if(hit)return (getCartoes().indexOf(hit)>=0?'c:':'b:')+hit;
+    return 'b:'+getBancos()[0];
+}
+function proDestTransf(it){
+    // destino provável da transferência: banco citado na desc depois de "->"
+    const T=String(it.desc||'').toUpperCase(),pos=T.indexOf('->');
+    const cauda=pos>=0?T.slice(pos+2):T;
+    const orig=proMatchConta(it.pagamento).slice(2);
+    return getBancos().find(b=>cauda.includes(b.toUpperCase())&&b!==orig)
+        ||getBancos().find(b=>b!==orig)||getBancos()[0];
+}
+function proInboxRenderModal(){
+    const el=$('proInboxList');
+    if(!proInbox.length){el.innerHTML='<div style="text-align:center;color:var(--text3);padding:18px">Caixa de entrada vazia 🎉</div>';return}
+    el.innerHTML=proInbox.map(function(it,i){
+        const transf=proEhTransf(it);
+        const cats=it.tipo==='Receita'?getCatsR().slice():getCatsD().slice();
+        if(it.cat&&cats.indexOf(it.cat)<0)cats.push(it.cat);
+        const dest=proMatchConta(it.pagamento);
+        const optsDest='<optgroup label="Contas">'+getBancos().map(b=>'<option value="b:'+proEsc(b)+'"'+(dest==='b:'+b?' selected':'')+'>'+proEsc(b)+'</option>').join('')+'</optgroup>'
+            +(it.tipo==='Despesa'?'<optgroup label="Cartões">'+getCartoes().map(c=>'<option value="c:'+proEsc(c)+'"'+(dest==='c:'+c?' selected':'')+'>'+proEsc(c)+'</option>').join('')+'</optgroup>':'');
+        const corpo=transf
+            ?'<div class="form-group"><label class="form-label">De (origem)</label><select class="form-input" id="proOrig'+i+'">'+proSelOpts(getBancos(),proMatchConta(it.pagamento).slice(2))+'</select></div>'
+             +'<div class="form-group"><label class="form-label">Para (destino)</label><select class="form-input" id="proDest'+i+'">'+proSelOpts(getBancos(),proDestTransf(it))+'</select></div>'
+            :'<div class="form-group"><label class="form-label">Categoria</label><select class="form-input" id="proCat'+i+'">'+proSelOpts(cats,it.cat||'Outros')+'</select></div>'
+             +'<div class="form-group"><label class="form-label">'+(it.tipo==='Receita'?'Conta':'Conta / Cartão')+'</label><select class="form-input" id="proDest'+i+'">'+optsDest+'</select></div>';
+        return '<div class="card" style="margin-bottom:10px">'
+          +'<div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:6px">'
+          +'<b>'+(transf?'🔄 Transferência':(it.tipo==='Receita'?'💰 Receita':'💸 Despesa'))+'</b>'
+          +'<span style="font-size:11px;color:var(--text3)">via '+(it.origem==='texto'?'texto':'comprovante')+'</span></div>'
+          +'<div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="proDesc'+i+'" value="'+proEsc(it.desc)+'"></div>'
+          +'<div style="display:flex;gap:8px"><div class="form-group" style="flex:1"><label class="form-label">Valor (R$)</label><input class="form-input" type="number" step="0.01" id="proVal'+i+'" value="'+Number(it.valor||0)+'"></div>'
+          +'<div class="form-group" style="flex:1"><label class="form-label">Data</label><input class="form-input" type="date" id="proDt'+i+'" value="'+proEsc(it.data)+'"></div></div>'
+          +corpo
+          +(it.obs?'<div style="font-size:11px;color:var(--text3);margin-bottom:8px">🧠 '+proEsc(it.obs)+'</div>':'')
+          +'<div style="display:flex;gap:8px"><button class="btn btn-green" style="flex:1" onclick="proConfirma('+i+')">✅ Confirmar</button>'
+          +'<button class="btn" style="flex:0 0 auto;background:var(--bg3,#333);color:var(--text3)" onclick="proDescarta('+i+')">🗑 Descartar</button></div>'
+          +'</div>';
+    }).join('');
+}
+function proConfirma(i){
+    const it=proInbox[i];if(!it)return;
+    const dt=$('proDt'+i).value;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(dt)){toast('Data inválida',true);return}
+    const val=Math.round(parseFloat($('proVal'+i).value)*100)/100;
+    if(!val||val<=0){toast('Valor inválido',true);return}
+    const desc=$('proDesc'+i).value.trim()||it.desc;
+    const dobj=new Date(dt+'T12:00:00'),m=dobj.getMonth(),y=dobj.getFullYear();
+    if(proEhTransf(it)){
+        const o=$('proOrig'+i).value,dst=$('proDest'+i).value;
+        if(o===dst){toast('Origem e destino devem ser diferentes',true);return}
+        const transfId=uid();
+        D.tx.push({id:uid(),dt,m,y,desc,v:val,tp:'Despesa',banco:o,cat:'Transferência',sub:dst,st:'efetivado',transf:true,transfId,transfOrigem:o,transfDestino:dst});
+        D.tx.push({id:uid(),dt,m,y,desc,v:val,tp:'Receita',banco:dst,cat:'Transferência',sub:o,st:'efetivado',transf:true,transfId,transfOrigem:o,transfDestino:dst});
+        toast('🔄 Transferência: '+fmt(val)+' de '+o+' → '+dst);
+    }else{
+        const cat=$('proCat'+i).value,dest=$('proDest'+i).value;
+        if(dest.slice(0,2)==='c:'){
+            D.cp.push({id:uid(),dt,m,y,card:dest.slice(2),desc,v:val,tipo:'À Vista',parc:'',cat,sub:'',st:'efetivado'});
+        }else{
+            D.tx.push({id:uid(),dt,m,y,desc,v:val,tp:it.tipo,banco:dest.slice(2),cat,sub:'',st:'efetivado'});
+        }
+        toast('✅ '+it.tipo+': '+desc+' · '+fmt(val));
+    }
+    save();
+    proResolve(i,'confirmado');
+}
+function proDescarta(i){proResolve(i,'descartado');toast('🗑 Descartado (não entrou nos seus dados)')}
+async function proResolve(i,novo){
+    const it=proInbox[i];if(!it)return;
+    proInbox.splice(i,1);
+    try{
+        await db.collection('users').doc(currentUid).collection('inbox').doc(it.fid)
+            .update({status:novo,resolvido:firebase.firestore.FieldValue.serverTimestamp()});
+    }catch(e){console.error('Pro resolve:',e);toast('⚠️ Não consegui atualizar a caixa de entrada na nuvem',true)}
+    proInboxRenderModal();proInboxRenderBar();refresh();
+    if(!proInbox.length)closeProInbox();
+}
+// ===== fim GESTOR PRO =====
 
 function goPage(p,el){
     cPage=p;
@@ -1498,7 +1636,7 @@ function stepMonth(m,y,delta){
 function refresh(){
     const ml=MN[cMonth]+' '+cYear;
     document.querySelectorAll('.month-label').forEach(e=>e.textContent=ml);
-    if(cPage==='dash')rDash();if(cPage==='ext')rExt();if(cPage==='add')rAdd();if(cPage==='agenda')rAgenda();if(cPage==='card')rCard();if(cPage==='cfg')rCfg();if(cPage==='sug')rSug();if(cPage==='invest')rInvest();
+    if(cPage==='dash'){rDash();proInboxRenderBar();}if(cPage==='ext')rExt();if(cPage==='add')rAdd();if(cPage==='agenda')rAgenda();if(cPage==='card')rCard();if(cPage==='cfg')rCfg();if(cPage==='sug')rSug();if(cPage==='invest')rInvest();
 }
 
 function rDash(){

@@ -29,6 +29,13 @@ service cloud.firestore {
       allow read:           if isOwner(userId) || isAdmin();
       allow create, update: if isOwner(userId);
       allow delete:         if isOwner(userId) || isAdmin();
+
+      // Caixa de entrada do piloto Gestor Pro (14/07/2026): o bot do Telegram grava aqui
+      // via service account (Admin, ignora rules). O DONO só lê e resolve (update/delete).
+      // create de CLIENTE segue negado — ninguém planta lançamento pela web.
+      match /inbox/{itemId} {
+        allow read, update, delete: if isOwner(userId);
+      }
     }
 
     // ----- Backups -----

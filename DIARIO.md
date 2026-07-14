@@ -1,7 +1,38 @@
 # Diário de Bordo Técnico — Gestor Financeiro
-**Atualizado em:** 18/05/2026 — sessão de saneamento (worktrees + Bug 2 SW/beta)  
-**Versão atual:** Produção v2.9.63 | Admin v1.3.0  
-**Status:** ✅ ESTÁVEL — Bug 2 corrigido (SW de prod não intercepta mais `/beta/`); higiene de worktrees concluída
+**Atualizado em:** 14/07/2026 — v2.9.66: Gestor Pro piloto (caixa de entrada do bot Telegram)  
+**Versão atual:** Produção v2.9.66 | Admin v1.3.0  
+**Status:** ✅ ESTÁVEL — piloto Pro ativo só pro uid do Gileno; demais usuários sem mudança de comportamento
+
+---
+
+## SESSÃO 14/07/2026 — v2.9.66: Gestor Pro Fase 1 (caixa de entrada Telegram→IA→app)
+
+Sessão Claude Code Desktop (Fable 5). Piloto da futura versão Pro, EXCLUSIVO do uid do Gileno
+(`PRO_UID`); para os demais 35 usuários o app é comportamentalmente idêntico.
+
+**Contexto (fora deste repo):** bot @gestorpro_gileno_bot na VPS (pasta `~/gestor_pro`, clone do
+padrão do bot de despesas) lê comprovantes/textos com IA e grava lançamentos estruturados em
+`users/{uid}/inbox` (status `pendente`) via service account. Teste real: PDF de transferência
+Sicredi→BB R$ 4,59 lido perfeito (bancos casados com os nomes do app, custo US$ 0,036).
+
+**Mudanças neste repo:**
+- `firestore.rules`: match ANINHADO `users/{userId}/inbox/{itemId}` — dono lê/resolve
+  (read, update, delete); create de cliente continua negado (só a service account grava).
+  Default-deny inalterado (probe anônimo na inbox: 403, verificado antes e depois).
+- `index.html`: bloco GESTOR PRO após `toast()` (constantes+9 funções, tudo atrás de
+  `proAtivo()`), banner `#proInboxBar` no page-dash, modal `#proInboxModal`, hook
+  `proInboxInit()` no onAuthStateChanged e `proInboxRenderBar()` no refresh().
+  Confirmar grava em D pelo MESMO formato do lançamento manual (D.tx / D.cp À Vista /
+  par de transferência com transfId) + `save()` debounced; o item vira `confirmado` na nuvem.
+  Descartar marca `descartado` (trilha preservada, nada entra em D).
+- Versão: v2.9.65 → v2.9.66 nos 4 pontos do index.html + CACHE_VERSION do sw.js (grep: zero residual).
+
+**Regras anti-cascata respeitadas:** `sincronizarFaturasEmAberto()` intocada (diff conferido);
+sem save() em loop; sem saveImmediate() em loadFromCloud.
+
+**Nota de manutenção:** v2.9.64 e v2.9.65 (commits e593a14, 006f92c, a6dfccf de sessões
+anteriores) não ganharam entrada no DIARIO na época; registradas aqui de passagem.
+STATUS.md corrigido: projeto Firebase está no plano SPARK (não Blaze como constava).
 
 ---
 
