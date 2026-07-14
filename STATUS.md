@@ -10,7 +10,7 @@
 
 | Item | Valor |
 |---|---|
-| Versão produção | **v2.9.66** (Gestor Pro piloto — caixa de entrada Telegram, só uid do Gileno) |
+| Versão produção | **v2.9.67** (Gestor Pro piloto: caixa de entrada Telegram + selo PRO + zoom mobile liberado) |
 | Versão admin | **v1.3.0** |
 | URL produção | https://gilenogestorfinanceiro.github.io/gestor/ |
 | URL admin | https://gilenogestorfinanceiro.github.io/gestor/admin.html |

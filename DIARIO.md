@@ -1,7 +1,18 @@
 # Diário de Bordo Técnico — Gestor Financeiro
-**Atualizado em:** 14/07/2026 — v2.9.66: Gestor Pro piloto (caixa de entrada do bot Telegram)  
-**Versão atual:** Produção v2.9.66 | Admin v1.3.0  
+**Atualizado em:** 14/07/2026 — v2.9.67: selo PRO no header + zoom liberado no mobile  
+**Versão atual:** Produção v2.9.67 | Admin v1.3.0  
 **Status:** ✅ ESTÁVEL — piloto Pro ativo só pro uid do Gileno; demais usuários sem mudança de comportamento
+
+---
+
+## SESSÃO 14/07/2026 (2ª leva) — v2.9.67: estética Pro (pedidos do Gileno pós-teste)
+
+Teste do piloto aprovado (transferência R$ 4,59 confirmada no app, par no extrato). Dois retoques:
+- **Selo PRO**: classe `.pro-badge` copiada do Gestão Saúde (pílula roxa gradiente); aparece no
+  header ao lado da versão SÓ quando `user.uid===PRO_UID`, e no título do modal da caixa de entrada.
+- **Zoom no mobile**: viewport perdeu o `user-scalable=no` (fica igual ao Gestão Saúde) — pinça
+  volta a funcionar; acessibilidade básica que estava bloqueada desde o início do app.
+- Bump v2.9.67 nos 5 pontos; greps do checklist zerados; funções de dados intocadas.
 
 ---
 
