@@ -1,7 +1,24 @@
 # Diário de Bordo Técnico — Gestor Financeiro
-**Atualizado em:** 14/07/2026 — v2.9.67: selo PRO no header + zoom liberado no mobile  
-**Versão atual:** Produção v2.9.67 | Admin v1.3.0  
+**Atualizado em:** 15/07/2026 — v2.9.68: Subcategoria na caixa de entrada Pro  
+**Versão atual:** Produção v2.9.68 | Admin v1.3.0  
 **Status:** ✅ ESTÁVEL — piloto Pro ativo só pro uid do Gileno; demais usuários sem mudança de comportamento
+
+---
+
+## SESSÃO 15/07/2026 — v2.9.68: Subcategoria no card de confirmação da caixa de entrada Pro
+
+Pedido do Gileno: o card de confirmação da inbox tinha Categoria mas não Subcategoria (o
+lançamento manual tem as duas), e `proConfirma` gravava `sub:''` fixo.
+- **Novo select Subcategoria** no card (só lançamentos não-transferência), logo abaixo de
+  Categoria; mesma fonte do form manual (`D.subCats` via `getSubsFor`), com "— Geral (sem
+  subcategoria)" default. Trocar a Categoria repopula o select (`proSubRefresh`, onchange).
+- **`proConfirma` grava o `sub` escolhido** nos dois destinos (D.cp À Vista e D.tx).
+- Se o item do bot vier com `it.sub` sugerido pela IA, o select pré-seleciona (funciona hoje
+  mesmo sem a VPS mandar; gancho pronto pra estação 2 sugerir).
+- Sem opção "＋ Nova subcategoria" no card de propósito: inbox é superfície de confirmação
+  rápida; taxonomia nova se cria no form manual.
+- Bump v2.9.68 nos 5 pontos; greps anti-Luan zerados; sintaxe validada via JXA (parse do bloco
+  inline inteiro); `sincronizarFaturasEmAberto` intocada.
 
 ---
 

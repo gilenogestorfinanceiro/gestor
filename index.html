@@ -383,7 +383,7 @@ Entrar com Google
 <span>Gileno - Gestão Financeira</span>
 </div>
 <div class="header-actions">
-<span id="headerUser" style="font-size:11px;color:var(--text3);margin-right:4px">👤 Gileno Paiva <span style="font-size:10px;color:var(--text3)">v2.9.67</span></span>
+<span id="headerUser" style="font-size:11px;color:var(--text3);margin-right:4px">👤 Gileno Paiva <span style="font-size:10px;color:var(--text3)">v2.9.68</span></span>
 <button class="btn-icon" onclick="openShareModal()" title="Compartilhar com amigos" style="color:var(--green);position:relative"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg></button>
 <button class="btn-icon" onclick="toggleTheme()" id="themeToggleBtn" title="Alternar tema claro/escuro"><span id="themeIcon">☀️</span></button>
 <button class="btn-icon" onclick="exportCSV()" title="Exportar CSV"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg></button>
@@ -892,7 +892,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.67
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.68
 </div>
 
 <!-- BOTTOM NAV -->
@@ -1152,7 +1152,7 @@ async function runAutoBackup(){
         if(!lastBk||now-lastBk>3600000){
             const src=JSON.stringify(D);const chunks=[];const chunkSize=900000;
             for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
-            await bkRef.set({version:'v2.9.67',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:slotName,uid:currentUid||'',dia:diaSemana});
+            await bkRef.set({version:'v2.9.68',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:slotName,uid:currentUid||'',dia:diaSemana});
             for(let i=0;i<chunks.length;i++)await db.collection('backups').doc(currentUid).collection(slotName).doc('chunk_'+i).set({data:chunks[i],index:i});
             console.log('✅ Backup automático ('+diaSemana+') salvo ('+chunks.length+' chunks, '+Math.round(src.length/1024)+'KB)');
         }else{console.log('⏭️ Backup automático: próximo em '+Math.round((3600000-(now-lastBk))/60000)+' min (slot: '+diaSemana+')')}
@@ -1191,7 +1191,7 @@ async function runManualBackup(){
         const chunks=[];const chunkSize=900000;
         for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
         const bkRef=db.collection('backups').doc(currentUid).collection('manual').doc('meta');
-        await bkRef.set({version:'v2.9.67',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'manual',uid:currentUid||''});
+        await bkRef.set({version:'v2.9.68',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'manual',uid:currentUid||''});
         for(let i=0;i<chunks.length;i++)await db.collection('backups').doc(currentUid).collection('manual').doc('chunk_'+i).set({data:chunks[i],index:i});
         toast('✅ Backup manual salvo! ('+Math.round(src.length/1024)+'KB)');
     }catch(e){toast('❌ Erro no backup manual: '+e.message)}
@@ -1400,6 +1400,17 @@ function proInboxRenderBar(){
 function openProInbox(){proInboxRenderModal();$('proInboxModal').classList.add('show')}
 function closeProInbox(){$('proInboxModal').classList.remove('show')}
 function proEhTransf(it){return it.tipo==='Despesa'&&it.cat==='Transferência'}
+function proSubOpts(cat,sel){
+    // opções de subcategoria p/ a categoria dada (mesma fonte do form manual: D.subCats)
+    const subs=getSubsFor(cat).slice();
+    if(sel&&subs.indexOf(sel)<0)subs.push(sel);
+    return '<option value=""'+(sel?'':' selected')+'>— Geral (sem subcategoria)</option>'
+        +subs.map(s=>'<option value="'+proEsc(s)+'"'+(s===sel?' selected':'')+'>'+proEsc(s)+'</option>').join('');
+}
+function proSubRefresh(i){
+    const catEl=$('proCat'+i),subEl=$('proSub'+i);
+    if(catEl&&subEl)subEl.innerHTML=proSubOpts(catEl.value,'');
+}
 function proSelOpts(list,sel){return list.map(x=>'<option value="'+proEsc(x)+'"'+(x===sel?' selected':'')+'>'+proEsc(x)+'</option>').join('')}
 function proMatchConta(pagamento){
     // casa o "pagamento" do bot com uma conta/cartão do app; devolve "b:NOME" ou "c:NOME"
@@ -1430,7 +1441,8 @@ function proInboxRenderModal(){
         const corpo=transf
             ?'<div class="form-group"><label class="form-label">De (origem)</label><select class="form-input" id="proOrig'+i+'">'+proSelOpts(getBancos(),proMatchConta(it.pagamento).slice(2))+'</select></div>'
              +'<div class="form-group"><label class="form-label">Para (destino)</label><select class="form-input" id="proDest'+i+'">'+proSelOpts(getBancos(),proDestTransf(it))+'</select></div>'
-            :'<div class="form-group"><label class="form-label">Categoria</label><select class="form-input" id="proCat'+i+'">'+proSelOpts(cats,it.cat||'Outros')+'</select></div>'
+            :'<div class="form-group"><label class="form-label">Categoria</label><select class="form-input" id="proCat'+i+'" onchange="proSubRefresh('+i+')">'+proSelOpts(cats,it.cat||'Outros')+'</select></div>'
+             +'<div class="form-group"><label class="form-label">Subcategoria</label><select class="form-input" id="proSub'+i+'">'+proSubOpts(it.cat||'Outros',it.sub||'')+'</select></div>'
              +'<div class="form-group"><label class="form-label">'+(it.tipo==='Receita'?'Conta':'Conta / Cartão')+'</label><select class="form-input" id="proDest'+i+'">'+optsDest+'</select></div>';
         return '<div class="card" style="margin-bottom:10px">'
           +'<div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:6px">'
@@ -1463,10 +1475,11 @@ function proConfirma(i){
         toast('🔄 Transferência: '+fmt(val)+' de '+o+' → '+dst);
     }else{
         const cat=$('proCat'+i).value,dest=$('proDest'+i).value;
+        const sub=($('proSub'+i)&&$('proSub'+i).value)||'';
         if(dest.slice(0,2)==='c:'){
-            D.cp.push({id:uid(),dt,m,y,card:dest.slice(2),desc,v:val,tipo:'À Vista',parc:'',cat,sub:'',st:'efetivado'});
+            D.cp.push({id:uid(),dt,m,y,card:dest.slice(2),desc,v:val,tipo:'À Vista',parc:'',cat,sub,st:'efetivado'});
         }else{
-            D.tx.push({id:uid(),dt,m,y,desc,v:val,tp:it.tipo,banco:dest.slice(2),cat,sub:'',st:'efetivado'});
+            D.tx.push({id:uid(),dt,m,y,desc,v:val,tp:it.tipo,banco:dest.slice(2),cat,sub,st:'efetivado'});
         }
         toast('✅ '+it.tipo+': '+desc+' · '+fmt(val));
     }
