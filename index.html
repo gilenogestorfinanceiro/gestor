@@ -383,7 +383,7 @@ Entrar com Google
 <span>Gileno - Gestão Financeira</span>
 </div>
 <div class="header-actions">
-<span id="headerUser" style="font-size:11px;color:var(--text3);margin-right:4px">👤 Gileno Paiva <span style="font-size:10px;color:var(--text3)">v2.9.69</span></span>
+<span id="headerUser" style="font-size:11px;color:var(--text3);margin-right:4px">👤 Gileno Paiva <span style="font-size:10px;color:var(--text3)">v2.9.70</span></span>
 <button class="btn-icon" onclick="openShareModal()" title="Compartilhar com amigos" style="color:var(--green);position:relative"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg></button>
 <button class="btn-icon" onclick="toggleTheme()" id="themeToggleBtn" title="Alternar tema claro/escuro"><span id="themeIcon">☀️</span></button>
 <button class="btn-icon" onclick="exportCSV()" title="Exportar CSV"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg></button>
@@ -892,7 +892,7 @@ Entrar com Google
 </main>
 
 <div style="text-align:center;padding:8px 0 4px;font-size:11px;color:var(--text3)" id="appFooterLgpd">
-<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.69
+<a href="javascript:void(0)" onclick="openLgpd()" style="color:var(--text3);text-decoration:underline">Política de Privacidade</a> · Gileno - Gestão Financeira © 2026 · v2.9.70
 </div>
 
 <!-- BOTTOM NAV -->
@@ -1152,7 +1152,7 @@ async function runAutoBackup(){
         if(!lastBk||now-lastBk>3600000){
             const src=JSON.stringify(D);const chunks=[];const chunkSize=900000;
             for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
-            await bkRef.set({version:'v2.9.69',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:slotName,uid:currentUid||'',dia:diaSemana});
+            await bkRef.set({version:'v2.9.70',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:slotName,uid:currentUid||'',dia:diaSemana});
             for(let i=0;i<chunks.length;i++)await db.collection('backups').doc(currentUid).collection(slotName).doc('chunk_'+i).set({data:chunks[i],index:i});
             console.log('✅ Backup automático ('+diaSemana+') salvo ('+chunks.length+' chunks, '+Math.round(src.length/1024)+'KB)');
         }else{console.log('⏭️ Backup automático: próximo em '+Math.round((3600000-(now-lastBk))/60000)+' min (slot: '+diaSemana+')')}
@@ -1191,7 +1191,7 @@ async function runManualBackup(){
         const chunks=[];const chunkSize=900000;
         for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
         const bkRef=db.collection('backups').doc(currentUid).collection('manual').doc('meta');
-        await bkRef.set({version:'v2.9.69',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'manual',uid:currentUid||''});
+        await bkRef.set({version:'v2.9.70',timestamp:firebase.firestore.FieldValue.serverTimestamp(),totalChunks:chunks.length,size:src.length,source:'manual',uid:currentUid||''});
         for(let i=0;i<chunks.length;i++)await db.collection('backups').doc(currentUid).collection('manual').doc('chunk_'+i).set({data:chunks[i],index:i});
         toast('✅ Backup manual salvo! ('+Math.round(src.length/1024)+'KB)');
     }catch(e){toast('❌ Erro no backup manual: '+e.message)}
@@ -1429,7 +1429,10 @@ function proParcChg(i){
         if(isP){
             const val=parseFloat($('proVal'+i).value)||0;
             const n=Math.min(48,Math.max(2,parseInt($('proParcN'+i).value)||2));
-            prev.innerHTML=n+'x de <b>'+fmt(Math.round(val/n*100)/100)+'</b> · Total: '+fmt(val);
+            let mrTxt='';
+            const mr=$('proMesRef'+i);
+            if(mr){const b=parseMonthSel(mr.value),end=stepMonth(b.m,b.y,n-1);mrTxt=' · faturas '+MA[b.m]+'/'+b.y+' → '+MA[end.m]+'/'+end.y}
+            prev.innerHTML=n+'x de <b>'+fmt(Math.round(val/n*100)/100)+'</b> · Total: '+fmt(val)+mrTxt;
         }
     }
 }
@@ -1465,6 +1468,13 @@ function proInboxRenderModal(){
         if(it.cat&&cats.indexOf(it.cat)<0)cats.push(it.cat);
         const dest=proMatchConta(it.pagamento);
         const pg=proParcGuess(it),ehCard=dest.slice(0,2)==='c:';
+        // mês referência da fatura: compra em cartão entra por padrão na fatura do MÊS SEGUINTE ao da compra
+        let mesOpts='';
+        {
+            const d0=new Date(String(it.data||'')+'T12:00:00');
+            const bm=isNaN(d0)?(new Date()).getMonth():d0.getMonth(),by=isNaN(d0)?(new Date()).getFullYear():d0.getFullYear();
+            for(let k=0;k<=6;k++){const t=stepMonth(bm,by,k);mesOpts+='<option value="'+t.m+'-'+t.y+'"'+(k===1?' selected':'')+'>'+MN[t.m]+' '+t.y+'</option>'}
+        }
         const optsDest='<optgroup label="Contas">'+getBancos().map(b=>'<option value="b:'+proEsc(b)+'"'+(dest==='b:'+b?' selected':'')+'>'+proEsc(b)+'</option>').join('')+'</optgroup>'
             +(it.tipo==='Despesa'?'<optgroup label="Cartões">'+getCartoes().map(c=>'<option value="c:'+proEsc(c)+'"'+(dest==='c:'+c?' selected':'')+'>'+proEsc(c)+'</option>').join('')+'</optgroup>':'');
         const corpo=transf
@@ -1475,6 +1485,7 @@ function proInboxRenderModal(){
              +'<div class="form-group"><label class="form-label">'+(it.tipo==='Receita'?'Conta':'Conta / Cartão')+'</label><select class="form-input" id="proDest'+i+'" onchange="proDestChg('+i+')">'+optsDest+'</select></div>'
              +(it.tipo==='Despesa'
                ?'<div id="proParcBox'+i+'" style="display:'+(ehCard?'block':'none')+'">'
+                +'<div class="form-group"><label class="form-label">Mês Referência (fatura)</label><select class="form-input" id="proMesRef'+i+'" onchange="proParcChg('+i+')">'+mesOpts+'</select></div>'
                 +'<div style="display:flex;gap:8px"><div class="form-group" style="flex:1"><label class="form-label">Compra</label><select class="form-input" id="proCompTipo'+i+'" onchange="proParcChg('+i+')">'
                 +'<option value="À Vista"'+(pg?'':' selected')+'>À Vista</option><option value="Parcelado"'+(pg?' selected':'')+'>Parcelado</option></select></div>'
                 +'<div class="form-group" style="flex:1;display:'+(pg?'block':'none')+'" id="proParcNBox'+i+'"><label class="form-label">Nº Parcelas</label><input class="form-input" type="number" min="2" max="48" id="proParcN'+i+'" value="'+(pg||2)+'" oninput="proParcChg('+i+')"></div></div>'
@@ -1517,18 +1528,21 @@ function proConfirma(i){
         if(dest.slice(0,2)==='c:'){
             const card=dest.slice(2);
             const compTipo=($('proCompTipo'+i)&&$('proCompTipo'+i).value)||'À Vista';
+            // mês referência da fatura (igual ao form manual): compra fica com dt real, mas entra no m/y escolhido
+            const mrEl=$('proMesRef'+i);
+            const base=mrEl?parseMonthSel(mrEl.value):{m,y};
             if(compTipo==='Parcelado'){
                 // mesmo formato do lançamento manual: valor do comprovante = TOTAL da compra, 1 parcela por mês
                 const pt=Math.min(48,Math.max(2,parseInt(($('proParcN'+i)||{}).value)||2));
                 const parcVal=Math.round((val/pt)*100)/100;
                 for(let p=1;p<=pt;p++){
-                    const target=stepMonth(m,y,p-1);
+                    const target=stepMonth(base.m,base.y,p-1);
                     D.cp.push({id:uid(),dt,m:target.m,y:target.y,card,desc:desc+' ('+p+'/'+pt+')',v:parcVal,tipo:'Parcelado',parc:p+'/'+pt,totalCompra:val,cat,sub,st:'efetivado'});
                 }
-                toast('✅ Parcelado: '+desc+' · '+pt+'x de '+fmt(parcVal));
+                toast('✅ Parcelado: '+desc+' · '+pt+'x de '+fmt(parcVal)+' a partir de '+MA[base.m]+'/'+base.y);
             }else{
-                D.cp.push({id:uid(),dt,m,y,card,desc,v:val,tipo:'À Vista',parc:'',cat,sub,st:'efetivado'});
-                toast('✅ '+it.tipo+': '+desc+' · '+fmt(val));
+                D.cp.push({id:uid(),dt,m:base.m,y:base.y,card,desc,v:val,tipo:'À Vista',parc:'',cat,sub,st:'efetivado'});
+                toast('✅ '+it.tipo+': '+desc+' · '+fmt(val)+' · fatura '+MA[base.m]+'/'+base.y);
             }
             sincronizarFaturasEmAberto();
         }else{
