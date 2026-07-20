@@ -1,9 +1,22 @@
 # Diário de Bordo Técnico — Gestor Financeiro
-**Atualizado em:** 15/07/2026 — v2.9.68: Subcategoria na caixa de entrada Pro  
-**Versão atual:** Produção v2.9.68 | Admin v1.3.0  
+**Atualizado em:** 20/07/2026 — v2.9.71: categorias e subcategorias em ordem alfabética  
+**Versão atual:** Produção v2.9.71 | Admin v1.3.0  
 **Status:** ✅ ESTÁVEL — piloto Pro ativo só pro uid do Gileno; demais usuários sem mudança de comportamento
 
 ---
+
+## SESSÃO 20/07/2026 — v2.9.71: categorias e subcategorias em ordem alfabética
+
+Pedido do Gileno: nos dropdowns de lançamento (Despesa/Receita), Categoria e Subcategoria
+apareciam na ordem de criação (push no fim da lista); ele quer ordem alfabética.
+- **Ordenação na FONTE**: `getCatsD()`, `getCatsR()` e `getSubsFor()` agora ordenam com
+  `localeCompare('pt-BR',{sensitivity:'base'})` (acentos ok: Água antes de Aluguel).
+  Corrige de uma vez form Novo, modal de edição, Agenda, card da inbox Pro e Ajustes.
+- **Sort IN-PLACE de propósito**: remover/renomear em `rCfg` usa índice da lista exibida;
+  ordenando o próprio array salvo, os índices continuam batendo. NÃO trocar por `.slice().sort()`.
+- Agenda: 3 pontos que liam `D.catsD`/`D.subCats` direto passaram a usar os getters.
+- Bump v2.9.71 nos 5 pontos; greps de residual zerados; validado no browser local
+  (console limpo + getters testados com D stub, sem tocar dados reais).
 
 ## SESSÃO 15/07/2026 — v2.9.68: Subcategoria no card de confirmação da caixa de entrada Pro
 
