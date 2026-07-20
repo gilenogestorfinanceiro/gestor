@@ -1,6 +1,6 @@
 # Diário de Bordo Técnico — Gestor Financeiro
-**Atualizado em:** 20/07/2026 — v2.9.71: categorias e subcategorias em ordem alfabética  
-**Versão atual:** Produção v2.9.71 | Admin v1.3.0  
+**Atualizado em:** 20/07/2026 — v2.9.72: "Outros" sempre no fim da lista A-Z  
+**Versão atual:** Produção v2.9.72 | Admin v1.3.0  
 **Status:** ✅ ESTÁVEL — piloto Pro ativo só pro uid do Gileno; demais usuários sem mudança de comportamento
 
 ---
@@ -17,6 +17,10 @@ apareciam na ordem de criação (push no fim da lista); ele quer ordem alfabéti
 - Agenda: 3 pontos que liam `D.catsD`/`D.subCats` direto passaram a usar os getters.
 - Bump v2.9.71 nos 5 pontos; greps de residual zerados; validado no browser local
   (console limpo + getters testados com D stub, sem tocar dados reais).
+- **v2.9.72 (mesmo dia, aprovado pelo Gileno):** "Outros" sempre por ÚLTIMO na lista
+  (antes ficava na posição alfabética, no meio). `sortAZ` ganhou o desempate
+  `(a==='Outros')-(b==='Outros')` antes do `localeCompare`; vale p/ categorias e
+  subcategorias. Bump v2.9.72 nos 5 pontos.
 
 ## SESSÃO 15/07/2026 — v2.9.68: Subcategoria no card de confirmação da caixa de entrada Pro
 
