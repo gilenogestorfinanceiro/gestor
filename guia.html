@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Como Usar · Gileno Gestão Financeira</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0d0d0d;--surface:#1a1a1a;--surface2:#222;--surface3:#2a2a2a;
+  --red:#e63333;--red-soft:rgba(230,51,51,0.1);--red-border:rgba(230,51,51,0.25);
+  --green:#22c584;--green-soft:rgba(34,197,132,0.1);
+  --blue:#4d94ff;--blue-soft:rgba(77,148,255,0.1);
+  --purple:#9d6eff;--purple-soft:rgba(157,110,255,0.1);
+  --amber:#ffb340;--amber-soft:rgba(255,179,64,0.1);--amber-border:rgba(255,179,64,0.3);
+  --text:#f0f0f0;--text2:#aaa;--text3:#777;
+  --font:'Nunito',sans-serif;--mono:'JetBrains Mono',monospace;
+  --radius:20px;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.8;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+::selection{background:var(--red);color:#fff}
+.hero{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 600px 400px at 50% 40%,rgba(230,51,51,0.07) 0%,transparent 70%),radial-gradient(ellipse 300px 300px at 30% 70%,rgba(77,148,255,0.04) 0%,transparent 70%),radial-gradient(ellipse 300px 300px at 70% 80%,rgba(157,110,255,0.04) 0%,transparent 70%);pointer-events:none}
+.hero-wave{font-size:64px;margin-bottom:20px;animation:wave 2s ease-in-out infinite;display:inline-block}
+@keyframes wave{0%,100%{transform:rotate(0deg)}25%{transform:rotate(20deg)}75%{transform:rotate(-10deg)}}
+.hero-title{font-size:clamp(32px,7vw,56px);font-weight:900;line-height:1.15;margin-bottom:16px}
+.hero-title .hl{color:var(--red)}
+.hero-sub{font-size:clamp(16px,3.5vw,20px);color:var(--text2);max-width:500px;font-weight:500;margin-bottom:36px}
+.hero-cta{display:inline-flex;align-items:center;gap:10px;padding:16px 32px;background:var(--red);color:#fff;border:none;border-radius:50px;font-size:17px;font-weight:800;font-family:var(--font);cursor:pointer;text-decoration:none;transition:all .3s;box-shadow:0 6px 24px rgba(230,51,51,0.35)}
+.hero-cta:hover{transform:scale(1.04);box-shadow:0 10px 36px rgba(230,51,51,0.45)}
+.hero-badge{margin-top:28px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center}
+.hero-badge span{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text3);font-weight:600}
+.hero-scroll{margin-top:48px;font-size:13px;color:var(--text3);animation:float 2.5s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+.container{max-width:680px;margin:0 auto;padding:0 20px}
+.section{padding:70px 0}
+.section-header{text-align:center;margin-bottom:40px}
+.step-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 18px;border-radius:50px;font-size:13px;font-weight:800;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px}
+.step-badge.blue{background:var(--blue-soft);color:var(--blue);border:1px solid rgba(77,148,255,0.25)}
+.step-badge.green{background:var(--green-soft);color:var(--green);border:1px solid rgba(34,197,132,0.25)}
+.step-badge.purple{background:var(--purple-soft);color:var(--purple);border:1px solid rgba(157,110,255,0.25)}
+.step-badge.amber{background:var(--amber-soft);color:var(--amber);border:1px solid var(--amber-border)}
+.step-badge.red{background:var(--red-soft);color:var(--red);border:1px solid var(--red-border)}
+.section-title{font-size:clamp(26px,5vw,36px);font-weight:900;line-height:1.25}
+.section-desc{font-size:16px;color:var(--text2);margin-top:8px;font-weight:500}
+.card{background:var(--surface);border:1px solid var(--surface3);border-radius:var(--radius);padding:24px;margin-bottom:16px;transition:all .3s;position:relative;overflow:hidden}
+.card:hover{border-color:var(--red-border);transform:translateY(-2px)}
+.card-emoji{font-size:40px;margin-bottom:12px;display:block}
+.card-title{font-size:18px;font-weight:800;margin-bottom:6px}
+.card-text{font-size:15px;color:var(--text2);line-height:1.8;font-weight:500}
+.card-text strong{color:var(--text);font-weight:700}
+.tip{background:var(--amber-soft);border:1px solid var(--amber-border);border-radius:16px;padding:16px 20px;margin-top:12px;display:flex;gap:10px;align-items:flex-start}
+.tip-icon{font-size:20px;flex-shrink:0;margin-top:2px}
+.tip-text{font-size:14px;color:var(--amber);font-weight:600;line-height:1.6}
+.type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}
+.type-card{background:var(--surface2);border:1px solid var(--surface3);border-radius:16px;padding:20px 12px;text-align:center;transition:all .3s}
+.type-card:hover{transform:translateY(-3px)}
+.type-card .emoji{font-size:36px;display:block;margin-bottom:8px}
+.type-card .label{font-size:14px;font-weight:800}
+.type-card .desc{font-size:11px;color:var(--text3);margin-top:4px;font-weight:500}
+.type-card.t-green .label{color:var(--green)}.type-card.t-red .label{color:var(--red)}.type-card.t-blue .label{color:var(--blue)}
+.flow{display:flex;flex-direction:column;align-items:center;gap:0;margin:24px 0}
+.flow-card{width:100%;max-width:420px;background:var(--surface2);border:1px solid var(--surface3);border-radius:16px;padding:18px 24px;display:flex;align-items:center;gap:16px;transition:all .3s}
+.flow-card:hover{transform:scale(1.02)}
+.flow-emoji{font-size:28px;flex-shrink:0}
+.flow-label{font-size:15px;font-weight:700}
+.flow-arrow{font-size:24px;color:var(--red);padding:6px 0;font-weight:900}
+.field-list{margin:16px 0}
+.field{display:flex;align-items:center;gap:14px;padding:14px 18px;background:var(--surface2);border-radius:14px;margin-bottom:8px;border:1px solid transparent;transition:all .3s}
+.field:hover{border-color:var(--surface3)}
+.field-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.field-dot.red{background:var(--red)}.field-dot.green{background:var(--green)}.field-dot.blue{background:var(--blue)}.field-dot.purple{background:var(--purple)}.field-dot.amber{background:var(--amber)}
+.field-name{font-size:14px;font-weight:700;min-width:90px}
+.field-desc{font-size:13px;color:var(--text2);font-weight:500}
+.tab-card{display:flex;gap:16px;align-items:flex-start;padding:20px;background:var(--surface);border:1px solid var(--surface3);border-radius:var(--radius);margin-bottom:12px;transition:all .3s}
+.tab-card:hover{border-color:var(--red-border);transform:translateX(4px)}
+.tab-emoji{font-size:32px;flex-shrink:0;margin-top:2px}
+.tab-title{font-size:16px;font-weight:800;margin-bottom:3px}
+.tab-desc{font-size:14px;color:var(--text2);line-height:1.7;font-weight:500}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--surface3),transparent);margin:20px auto;max-width:300px}
+.final{text-align:center;padding:80px 20px 60px}
+.final-emoji{font-size:72px;margin-bottom:20px;display:block}
+.final-title{font-size:clamp(28px,6vw,42px);font-weight:900;margin-bottom:12px;line-height:1.2}
+.final-title .hl{color:var(--red)}
+.final-sub{font-size:16px;color:var(--text2);margin-bottom:32px;font-weight:500;max-width:440px;margin-left:auto;margin-right:auto}
+.final-badges{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px}
+.final-badge{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--surface);border-radius:50px;font-size:12px;font-weight:700;color:var(--text2);border:1px solid var(--surface3)}
+.footer{text-align:center;padding:24px;font-size:11px;color:var(--text3);border-top:1px solid var(--surface2)}
+@media(max-width:500px){.type-grid{grid-template-columns:1fr;gap:10px}.type-card{display:flex;align-items:center;gap:12px;text-align:left;padding:16px}.type-card .emoji{font-size:28px;margin-bottom:0}.tab-card{flex-direction:column;gap:10px}.field{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+
+<div class="hero">
+<div class="hero-bg"></div>
+<div class="hero-wave">👋</div>
+<h1 class="hero-title">Bem-vindo ao seu<br><span class="hl">Gestor Financeiro!</span></h1>
+<p class="hero-sub">Vamos te mostrar como usar o app em poucos minutos. É mais fácil do que parece, prometo! 😊</p>
+<a href="#passo1" class="hero-cta">Bora começar! 🚀</a>
+<div class="hero-badge"><span>🔒 Seguro</span><span>☁️ Na nuvem</span><span>📱 Celular ou PC</span><span>💰 Grátis</span></div>
+<div class="hero-scroll">⌄ Role para baixo</div>
+</div>
+
+<div class="section" id="passo1"><div class="container">
+<div class="section-header"><div class="step-badge blue">Passo 1</div><div class="section-title">Criando sua conta 🔑</div><div class="section-desc">Leva menos de 1 minuto, juro!</div></div>
+<div class="card"><span class="card-emoji">📱</span><div class="card-title">Abra o link do app</div><div class="card-text">Pode ser no celular ou no computador — funciona em qualquer um! Você recebeu o link por WhatsApp, email ou alguém te mandou.</div></div>
+<div class="card"><span class="card-emoji">🚪</span><div class="card-title">Escolha como entrar</div><div class="card-text">Tem duas opções:<br><br><strong>🟢 Com Google</strong> — um clique e pronto, sem criar senha!<br><strong>📧 Com e-mail</strong> — digite seu email e crie uma senha (6 caracteres ou mais)</div></div>
+<div class="card"><span class="card-emoji">✅</span><div class="card-title">Aceite os termos</div><div class="card-text">Marque a caixinha confirmando que leu a Política de Privacidade. Seus dados são protegidos — <strong>ninguém além de você tem acesso</strong>.</div><div class="tip"><span class="tip-icon">💡</span><span class="tip-text">Pode clicar no link pra ler a política completa antes de aceitar. Transparência total!</span></div></div>
+</div></div>
+
+<div class="divider"></div>
+
+<div class="section" id="passo2"><div class="container">
+<div class="section-header"><div class="step-badge amber">Passo 2</div><div class="section-title">Configurando tudo ⚙️</div><div class="section-desc">Diga ao app onde seu dinheiro está</div></div>
+<div class="card"><span class="card-emoji">🏦</span><div class="card-title">Cadastre seus bancos</div><div class="card-text">Vá em <strong>Mais → Configurações → Saldos Iniciais</strong>. Adicione suas contas (Nubank, Bradesco, Caixa...) e informe quanto tem em cada uma hoje.</div><div class="tip"><span class="tip-icon">💡</span><span class="tip-text">Não precisa ser o valor exato! Coloque um valor aproximado e vá ajustando com o tempo.</span></div></div>
+<div class="card"><span class="card-emoji">💳</span><div class="card-title">Cadastre seus cartões</div><div class="card-text">Na mesma tela, adicione seus cartões de crédito. Informe o <strong>dia do vencimento</strong> da fatura e qual <strong>conta paga</strong> esse cartão.</div></div>
+<div class="card"><span class="card-emoji">👤</span><div class="card-title">Coloque seu nome</div><div class="card-text">Em <strong>Configurações → Perfil</strong>. Assim o app te chama pelo nome! 😄</div></div>
+</div></div>
+
+<div class="divider"></div>
+
+<div class="section" id="passo3"><div class="container">
+<div class="section-header"><div class="step-badge green">Passo 3</div><div class="section-title">Seu primeiro lançamento 💰</div><div class="section-desc">Simples: o que, quanto, onde e quando</div></div>
+<div class="card"><span class="card-emoji">➕</span><div class="card-title">Clique no botão "+" na barra inferior</div><div class="card-text">É o botão de novo lançamento. Ali você escolhe o tipo:</div>
+<div class="type-grid"><div class="type-card t-green"><span class="emoji">💰</span><span class="label">Receita</span><span class="desc">Dinheiro que entra</span></div><div class="type-card t-red"><span class="emoji">💸</span><span class="label">Despesa</span><span class="desc">Dinheiro que sai</span></div><div class="type-card t-blue"><span class="emoji">🔄</span><span class="label">Transferência</span><span class="desc">Entre suas contas</span></div></div></div>
+<div class="card"><span class="card-emoji">📝</span><div class="card-title">Preencha as informações</div><div class="card-text">Não se preocupe, é rapidinho:</div>
+<div class="field-list"><div class="field"><div class="field-dot red"></div><div class="field-name">Descrição</div><div class="field-desc">O que é? (ex: "Supermercado")</div></div><div class="field"><div class="field-dot green"></div><div class="field-name">Valor</div><div class="field-desc">Quanto custou?</div></div><div class="field"><div class="field-dot blue"></div><div class="field-name">Onde pagou</div><div class="field-desc">Conta bancária ou cartão?</div></div><div class="field"><div class="field-dot purple"></div><div class="field-name">Categoria</div><div class="field-desc">Alimentação, Transporte, Moradia...</div></div><div class="field"><div class="field-dot amber"></div><div class="field-name">Status</div><div class="field-desc">Já pagou? → Efetivado. Vai pagar? → Agendado</div></div></div></div>
+<div class="card"><span class="card-emoji">🎉</span><div class="card-title">Salve e pronto!</div><div class="card-text">O valor já aparece no painel, no extrato e no saldo da sua conta. <strong>Foi isso. Sério.</strong> 😄</div></div>
+</div></div>
+
+<div class="divider"></div>
+
+<div class="section" id="passo4"><div class="container">
+<div class="section-header"><div class="step-badge purple">Passo 4</div><div class="section-title">A Agenda é sua melhor amiga 📅</div><div class="section-desc">Nunca mais esqueça um pagamento</div></div>
+<div class="card"><span class="card-emoji">✨</span><div class="card-title">Como a mágica acontece:</div><div class="card-text">A agenda cria o lançamento automaticamente como "pendente". Quando você pagar de verdade, é só marcar como concluído!</div>
+<div class="flow"><div class="flow-card"><span class="flow-emoji">📅</span><span class="flow-label">Agende um pagamento</span></div><div class="flow-arrow">↓</div><div class="flow-card"><span class="flow-emoji">🕐</span><span class="flow-label">Aparece como "Agendado" no extrato</span></div><div class="flow-arrow">↓</div><div class="flow-card"><span class="flow-emoji">✅</span><span class="flow-label">Marque ✓ quando pagar</span></div><div class="flow-arrow">↓</div><div class="flow-card"><span class="flow-emoji">💰</span><span class="flow-label">Vira "Efetivado" — saldo atualiza!</span></div></div></div>
+<div class="card" style="border-color:var(--amber-border);background:var(--amber-soft)"><span class="card-emoji">⚠️</span><div class="card-title" style="color:var(--amber)">Importante!</div><div class="card-text" style="color:var(--amber)">Lançamentos agendados <strong>NÃO mexem no seu saldo</strong>. Eles ficam separados, só como lembrete. O saldo só muda quando você efetiva o pagamento.</div></div>
+</div></div>
+
+<div class="divider"></div>
+
+<div class="section" id="passo5"><div class="container">
+<div class="section-header"><div class="step-badge red">Passo 5</div><div class="section-title">Conhecendo o app 🗺️</div><div class="section-desc">Cada aba tem sua função</div></div>
+<div class="tab-card"><span class="tab-emoji">📊</span><div><div class="tab-title">Painel</div><div class="tab-desc">Sua visão geral: receitas, despesas, resultado do mês, saldo de cada conta e próximos compromissos.</div></div></div>
+<div class="tab-card"><span class="tab-emoji">📄</span><div><div class="tab-title">Extrato</div><div class="tab-desc">Todos os lançamentos. Filtre por Receita, Despesa, Cartão ou Conta (com saldo corrido, igualzinho o app do banco!).</div></div></div>
+<div class="tab-card"><span class="tab-emoji">📅</span><div><div class="tab-title">Agenda</div><div class="tab-desc">Calendário visual. Agende pagamentos, recebimentos e lembretes. Nunca perca um vencimento!</div></div></div>
+<div class="tab-card"><span class="tab-emoji">💳</span><div><div class="tab-title">Cartões</div><div class="tab-desc">Fatura de cada cartão, parcelas, vencimento com alerta de cores, e pagamento de fatura sem duplicar valores.</div></div></div>
+<div class="tab-card"><span class="tab-emoji">📈</span><div><div class="tab-title">Investimentos</div><div class="tab-desc">Cotações ao vivo (Dólar, Euro, Bitcoin, Ibovespa, Top 12 ações). Carteiras personalizadas com compra/venda e dividendos.</div></div></div>
+<div class="tab-card"><span class="tab-emoji">⚙️</span><div><div class="tab-title">Mais</div><div class="tab-desc">Configurações (bancos, cartões, categorias), Investimentos, Sugestões e este guia de Como Usar.</div></div></div>
+</div></div>
+
+<div class="divider"></div>
+
+<!-- PASSO 6: INVESTIMENTOS -->
+<div class="section" id="passo6"><div class="container">
+<div class="section-header"><div class="step-badge green">Passo 6</div><div class="section-title">Investimentos 📈</div><div class="section-desc">Acompanhe suas ações, FIIs e criptos em tempo real</div></div>
+
+<div class="card"><span class="card-emoji">💹</span><div class="card-title">Cotações ao vivo</div><div class="card-text">Ao abrir a aba Investimentos (em <strong>Mais → Investimentos</strong>), você vê cotações em tempo real: <strong>Dólar, Euro, Bitcoin, Ibovespa</strong> e as <strong>12 principais ações</strong> da B3 (PETR4, VALE3, ITUB4, BBDC4...).</div><div class="tip"><span class="tip-icon">💡</span><span class="tip-text">As cotações de moedas funcionam sem configuração. Para ações, configure seu token gratuito da brapi.dev (veja abaixo).</span></div></div>
+
+<div class="card"><span class="card-emoji">🔑</span><div class="card-title">Configurar token da brapi.dev</div><div class="card-text">Para ver cotações de ações:<br>1. Acesse <strong>brapi.dev</strong> e crie uma conta grátis (1 minuto)<br>2. Vá em <strong>Chaves de API</strong> e copie seu token<br>3. No app, vá em <strong>Config → API de Cotações</strong><br>4. Cole o token e salve<br>5. Pronto! Ações e Ibovespa aparecem na hora!</div><div class="tip"><span class="tip-icon">💡</span><span class="tip-text">O plano gratuito da brapi.dev permite até 15.000 consultas por mês — mais que suficiente!</span></div></div>
+
+<div class="card"><span class="card-emoji">💼</span><div class="card-title">Múltiplas Carteiras</div><div class="card-text">Crie carteiras separadas para diferentes estratégias: <strong>"Longo Prazo"</strong>, <strong>"Day Trade"</strong>, <strong>"Dividendos"</strong>... Cada uma com seu resumo independente. Use os botões <strong>+ Nova</strong>, <strong>✏️ Renomear</strong> e <strong>🗑️ Excluir</strong>.</div></div>
+
+<div class="card"><span class="card-emoji">📊</span><div class="card-title">Compra e Venda</div><div class="card-text">Registre cada operação com <strong>data, quantidade e preço</strong>. O app calcula automaticamente:<br>• <strong>Preço médio</strong> ponderado de suas compras<br>• <strong>Lucro/prejuízo não realizado</strong> (posição atual vs preço médio)<br>• <strong>Lucro realizado</strong> quando você vende<br>• <strong>Patrimônio total</strong> de todas as carteiras</div></div>
+
+<div class="card"><span class="card-emoji">💰</span><div class="card-title">Dividendos</div><div class="card-text">Registre seus proventos: <strong>Dividendos, JCP, Rendimentos de FII e Bonificações</strong>. O app mostra o total recebido no mês e o acumulado.</div></div>
+
+<div class="card"><span class="card-emoji">📋</span><div class="card-title">Histórico de Operações</div><div class="card-text">Na aba <strong>Operações</strong>, veja todo o histórico de compras e vendas em ordem cronológica, com identificação visual (verde = compra, vermelho = venda).</div></div>
+</div></div>
+
+<div class="divider"></div>
+
+<div class="section"><div class="container">
+<div class="section-header"><div class="step-badge amber">⭐ Dicas</div><div class="section-title">Pra virar expert 😎</div><div class="section-desc">Truques que fazem diferença no dia a dia</div></div>
+<div class="card"><span class="card-emoji">👁️</span><div class="card-title">Esconda seus valores</div><div class="card-text">No Painel, clique no <strong>ícone do olho</strong> pra ocultar todos os valores. Perfeito pra usar o app em público sem mostrar suas finanças.</div></div>
+<div class="card"><span class="card-emoji">📱</span><div class="card-title">Coloque na tela inicial</div><div class="card-text"><strong>iPhone:</strong> Safari → botão Compartilhar (↑) → "Adicionar à Tela de Início"<br><strong>Android:</strong> Chrome → Menu (⋮) → "Adicionar à tela inicial"<br><br>Fica igualzinho um app de verdade! Abre rápido e sem barra do navegador.</div></div>
+<div class="card"><span class="card-emoji">♻️</span><div class="card-title">Contas que se repetem</div><div class="card-text">Aluguel, internet, plano de celular... marque como <strong>"Recorrente"</strong> e o app cria as próximas automaticamente. Menos trabalho pra você!</div></div>
+<div class="card"><span class="card-emoji">💾</span><div class="card-title">Faça backup</div><div class="card-text">Em <strong>Configurações</strong>, exporte seus dados em JSON. É seu plano B se precisar restaurar algum dia.</div></div>
+<div class="card"><span class="card-emoji">🏦</span><div class="card-title">Confira com o banco</div><div class="card-text">Na aba Extrato → filtro <strong>"Conta"</strong>, você vê um extrato estilo banco, com saldo corrido. Compare com o app do seu banco pra ter certeza que tá tudo batendo.</div></div>
+</div></div>
+
+<div class="final">
+<span class="final-emoji">🚀</span>
+<div class="final-title">Bora organizar suas <span class="hl">finanças?</span></div>
+<p class="final-sub">Você já sabe tudo que precisa. Agora é só começar — e qualquer dúvida, o guia tá sempre aqui! 😊</p>
+<a href="https://gilenogestorfinanceiro.github.io/gestor/" class="hero-cta" target="_blank">Abrir o App →</a>
+<div class="final-badges"><div class="final-badge">🔒 Seus dados são só seus</div><div class="final-badge">☁️ Salvo na nuvem</div><div class="final-badge">💰 100% gratuito</div></div>
+</div>
+
+<div class="footer">Feito com ❤️ por Gileno - Gestão Financeira © 2026 · v2.5</div>
+</body>
+</html>

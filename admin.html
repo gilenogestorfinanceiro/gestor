@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Admin · Gileno Gestão Financeira</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+}
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0d0d0d;--surface:#1a1a1a;--surface2:#222;--border:#2a2a2a;--primary:#e63333;--green:#10b981;--blue:#3b82f6;--amber:#f59e0b;--purple:#8b5cf6;--red:#ef4444;--text:#e8e8e8;--text2:#aaa;--text3:#666;--font:'Nunito',sans-serif;--mono:'JetBrains Mono',monospace;--radius:16px;--radius-sm:10px}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header h1{font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px}
+.header h1 span{color:var(--primary)}
+.header .logout{background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:8px 16px;border-radius:var(--radius-sm);cursor:pointer;font-family:var(--font);font-size:13px}
+.container{max-width:1100px;margin:0 auto;padding:20px}
+.login-box{max-width:380px;margin:100px auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:32px;text-align:center}
+.login-box h2{font-size:20px;margin-bottom:8px}
+.login-box p{color:var(--text3);font-size:13px;margin-bottom:20px}
+.login-box input{width:100%;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:14px;margin-bottom:10px}
+.login-box button{width:100%;padding:12px;background:var(--primary);border:none;border-radius:var(--radius-sm);color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer}
+#loginError{color:var(--red);font-size:12px;margin-top:8px;display:none}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:24px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:20px;text-align:center}
+.kpi-label{font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.kpi-value{font-family:var(--mono);font-size:28px;font-weight:800}
+.kpi-sub{font-size:11px;color:var(--text3);margin-top:4px}
+.section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.section-title{font-size:16px;font-weight:800;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--surface2);border-radius:var(--radius-sm);padding:3px}
+.tab{flex:1;padding:8px;border:none;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer;background:transparent;color:var(--text3)}
+.tab.active{background:var(--primary);color:#fff}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;padding:8px 12px;border-bottom:1px solid var(--border)}
+td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:13px}
+tr:hover{background:var(--surface2)}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;text-transform:uppercase}
+.badge-green{background:rgba(16,185,129,0.15);color:var(--green)}
+.badge-amber{background:rgba(245,158,11,0.15);color:var(--amber)}
+.badge-red{background:rgba(239,68,68,0.15);color:var(--red)}
+.badge-blue{background:rgba(59,130,246,0.15);color:var(--blue)}
+.badge-purple{background:rgba(139,92,246,0.15);color:var(--purple)}
+.sug-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:8px}
+.sug-card.unread{border-left:3px solid var(--primary)}
+.sug-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.sug-meta{font-size:11px;color:var(--text3)}
+.sug-text{font-size:13px;line-height:1.6}
+.sug-actions{display:flex;gap:6px;margin-top:8px}
+.sug-actions button{padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:11px;cursor:pointer;font-family:var(--font)}
+.sug-actions button:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+.online-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+.online-dot.active{background:var(--green)}
+.online-dot.recent{background:var(--amber)}
+.online-dot.inactive{background:var(--text3)}
+.refresh-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:8px 14px;border-radius:var(--radius-sm);cursor:pointer;font-family:var(--font);font-size:12px;font-weight:600}
+.refresh-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+@media(max-width:600px){
+    .kpis{grid-template-columns:1fr 1fr}
+    .kpi-value{font-size:22px}
+    .container{padding:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+<div class="login-box">
+<h2>🔒 Painel Admin</h2>
+<p>Acesso restrito ao gestor</p>
+<button onclick="doAdminLogin()" style="display:flex;align-items:center;justify-content:center;gap:10px">
+<svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#34A853" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#FBBC05" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+Entrar com Google
+</button>
+<div id="loginError"></div>
+</div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminPanel" style="display:none">
+<div class="header">
+<h1>⚙️ <span>Painel do Gestor</span></h1>
+<div style="display:flex;gap:8px;align-items:center">
+<span style="color:var(--text2);font-size:0.75rem;margin-right:10px">admin v1.3.0</span><button class="refresh-btn" onclick="loadAll()">🔄 Atualizar</button>
+<button class="logout" onclick="doLogout()">Sair</button>
+</div>
+</div>
+
+<div class="container">
+<!-- KPIs -->
+<div class="kpis" id="kpis"></div>
+
+<!-- TABS -->
+<div class="tabs">
+<button class="tab active" onclick="setTab('users',this)">👥 Usuários</button>
+<button class="tab" onclick="setTab('sugestoes',this)">💬 Sugestões</button>
+<button class="tab" onclick="setTab('metricas',this)">📊 Métricas</button>
+<button class="tab" onclick="setTab('logs',this)">📋 Logs</button>
+<button class="tab" onclick="setTab('backup',this)">💾 Backup</button>
+</div>
+
+<!-- USERS -->
+<div id="tabUsers" class="section">
+<div class="section-title">👥 Usuários Cadastrados</div>
+<div style="overflow-x:auto">
+<table>
+<thead><tr><th>Status</th><th>Nome</th><th>Email</th><th>Último Acesso</th><th>Dispositivo</th></tr></thead>
+<tbody id="usersTable"></tbody>
+</table>
+</div>
+</div>
+
+<!-- SUGESTÕES -->
+<div id="tabSugestoes" class="section" style="display:none">
+<div class="section-title" style="justify-content:space-between">
+<span>💬 Sugestões e Feedback</span>
+<span id="sugCount" style="font-size:12px;color:var(--text3)"></span>
+</div>
+<div id="sugFilter" style="margin-bottom:12px">
+<div class="tabs" style="max-width:400px">
+<button class="tab active" onclick="filterSug('todas',this)">Todas</button>
+<button class="tab" onclick="filterSug('nao_lidas',this)">Não lidas</button>
+<button class="tab" onclick="filterSug('respondidas',this)">Respondidas</button>
+</div>
+</div>
+<div id="sugList"></div>
+</div>
+
+<!-- MÉTRICAS -->
+<div id="tabMetricas" class="section" style="display:none">
+<div class="section-title">📊 Métricas da Plataforma</div>
+<div id="metricsList"></div>
+</div>
+
+<div id="tabLogs" class="section" style="display:none">
+<div class="section-title">📋 Log de Atividades do Admin</div>
+<div style="margin-bottom:10px"><button class="refresh-btn" onclick="loadLogs()" style="font-size:12px;padding:6px 12px">🔄 Atualizar Logs</button> <span id="logCount" style="color:var(--text2);font-size:0.85rem"></span></div>
+<div id="logList" style="font-size:0.85rem"></div>
+</div>
+<div id="tabBackup" class="section" style="display:none">
+<div class="section-title">💾 Backup do Sistema</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+<div class="kpi" style="border-left:3px solid var(--green)">
+<div class="kpi-label">🟢 Último Backup Automático</div>
+<div class="kpi-value" id="bkAutoDate" style="font-size:16px;color:var(--green)">—</div>
+<div class="kpi-sub" id="bkAutoInfo">Carregando...</div>
+</div>
+<div class="kpi" style="border-left:3px solid var(--blue)">
+<div class="kpi-label">🔵 Último Backup Manual</div>
+<div class="kpi-value" id="bkManualDate" style="font-size:16px;color:var(--blue)">—</div>
+<div class="kpi-sub" id="bkManualInfo">Carregando...</div>
+</div>
+</div>
+
+<div style="display:flex;gap:12px;flex-wrap:wrap">
+<button onclick="downloadBackup('auto')" style="flex:1;min-width:200px;padding:14px 20px;background:var(--green);border:none;border-radius:var(--radius-sm);color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+⬇️ Baixar Código-Fonte (Auto)
+</button>
+<button onclick="downloadBackup('manual')" style="flex:1;min-width:200px;padding:14px 20px;background:var(--blue);border:none;border-radius:var(--radius-sm);color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+⬇️ Baixar Código-Fonte (Manual)
+</button>
+</div>
+
+<div style="margin-top:12px">
+<button onclick="forceBackupNow()" style="width:100%;padding:14px 20px;background:var(--blue);border:none;border-radius:var(--radius-sm);color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+🔄 Forçar Backup Código-Fonte
+</button>
+</div>
+
+<div style="margin-top:12px">
+<button onclick="exportAllUsersData()" style="width:100%;padding:14px 20px;background:var(--red);border:none;border-radius:var(--radius-sm);color:#fff;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+Exportar Dados dos Usuários (JSON)
+</button>
+</div>
+<div id="bkStatus" style="margin-top:16px;padding:12px;background:var(--surface2);border-radius:var(--radius-sm);font-size:13px;color:var(--text2);display:none"></div>
+
+<div style="margin-top:20px;padding:16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm)">
+<div style="margin-top:20px;padding:16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm)">
+<div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--text)">📊 Backup Rotativo dos Usuários (v2.9.58+)</div>
+<div style="font-size:12px;color:var(--text3);line-height:1.6">
+- Cada usuário tem backup automático a cada <b style="color:var(--green)">1 hora</b><br>
+- Rotação por dia da semana: <b>dom, seg, ter, qua, qui, sex, sab</b><br>
+- Sempre há até <b>7 dias</b> de histórico disponível por usuário<br>
+- Máximo ~14 docs por usuário (dentro do plano gratuito)
+</div>
+<div id="userBackupStatus" style="margin-top:12px;font-size:12px;color:var(--text3)">Clique no botão para carregar status</div>
+<button onclick="loadUserBackupStatus()" style="margin-top:8px;padding:6px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);font-size:11px;cursor:pointer;font-family:var(--font)">🔄 Ver Status dos Backups Rotativos</button>
+</div>
+<div style="font-size:13px;font-weight:700;margin-bottom:8px;color:var(--text)">ℹ️ Como funciona</div>
+<div style="font-size:12px;color:var(--text3);line-height:1.6">
+• 🟢 <b style="color:var(--green)">Automático</b> — salva a cada 1 hora enquanto o admin estiver com o app aberto<br>
+• 🔵 <b style="color:var(--blue)">Manual</b> — usa o botão "Forçar Backup" para salvar imediatamente<br>
+• Os dois backups são independentes (um não interfere no outro)<br>
+• Use "Baixar" para ter uma cópia local no seu Mac<br>
+• Em caso de emergência, restaure enviando o arquivo baixado ao GitHub
+</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<script>
+// ADMIN EMAIL - only this email can access
+const ADMIN_EMAIL = 'gilenopaivalima@gmail.com';
+const ADMIN_UID = '9NWXXOwHHUSrxEg7Ygw226zsuHj1';
+
+const firebaseConfig={
+    apiKey:"AIzaSyDNq64Kqr2kt1baYlgPduSo5LbTsfdxdWQ",
+    authDomain:"gestor-financeiro-pessoa-90a13.firebaseapp.com",
+    projectId:"gestor-financeiro-pessoa-90a13",
+    storageBucket:"gestor-financeiro-pessoa-90a13.firebasestorage.app",
+    messagingSenderId:"465890133373",
+    appId:"1:465890133373:web:ac58f801c60992b2b83814"
+};
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth();
+const db=firebase.firestore();
+
+let allUsers=[], allSugs=[], allUserData=[];
+let sugFilterMode='todas';
+
+function doAdminLogin(){
+    const provider=new firebase.auth.GoogleAuthProvider();
+    const err=document.getElementById('loginError');
+    auth.signInWithPopup(provider).then(result=>{
+        if(result.user.email.toLowerCase()!==ADMIN_EMAIL || result.user.uid!==ADMIN_UID){
+            err.style.display='block';err.textContent='⛔ Acesso não autorizado';
+            auth.signOut();
+        } else {
+            err.style.display='none';
+        }
+    }).catch(e=>{
+        err.style.display='block';
+        err.textContent='Erro: '+e.message;
+    });
+}
+
+auth.onAuthStateChanged(user=>{
+    if(user && user.email.toLowerCase()===ADMIN_EMAIL && user.uid===ADMIN_UID){
+        document.getElementById('loginScreen').style.display='none';
+        document.getElementById('adminPanel').style.display='block';
+        loadAll();
+        logAdmin('LOGIN','Acesso ao painel admin');
+    } else {
+        document.getElementById('loginScreen').style.display='block';
+        document.getElementById('adminPanel').style.display='none';
+    }
+});
+
+function doLogout(){auth.signOut()}
+
+async function loadAll(){
+    await Promise.all([loadUsers(),loadSugestoes(),loadUserData()]);
+    renderKPIs();
+    renderUsers();
+    renderSugestoes();
+    renderMetricas();
+}
+
+async function loadUsers(){
+    try{
+        const snap=await db.collection('userActivity').get();
+        allUsers=[];
+        snap.forEach(doc=>{
+            allUsers.push({id:doc.id,...doc.data()});
+        });
+    }catch(e){console.error('Load users:',e)}
+}
+
+async function loadSugestoes(){
+    try{
+        const snap=await db.collection('sugestoes').orderBy('createdAt','desc').get();
+        allSugs=[];
+        snap.forEach(doc=>{
+            allSugs.push({id:doc.id,...doc.data()});
+        });
+    }catch(e){console.error('Load sugs:',e)}
+}
+
+async function loadUserData(){
+    try{
+        const snap=await db.collection('users').get();
+        allUserData=[];
+        snap.forEach(doc=>{
+            const d=doc.data();
+            allUserData.push({id:doc.id,data:d.data||{},updated:d.updated});
+        });
+    }catch(e){console.error('Load user data:',e)}
+}
+
+function renderKPIs(){
+    const now=new Date();
+    const today=now.toDateString();
+    const weekAgo=new Date(now-7*86400000);
+    const monthAgo=new Date(now-30*86400000);
+
+    const totalUsers=allUsers.length;
+    const activeToday=allUsers.filter(u=>{
+        if(!u.lastAccess)return false;
+        const d=u.lastAccess.toDate?u.lastAccess.toDate():new Date(u.lastAccess);
+        return d.toDateString()===today;
+    }).length;
+    const activeWeek=allUsers.filter(u=>{
+        if(!u.lastAccess)return false;
+        const d=u.lastAccess.toDate?u.lastAccess.toDate():new Date(u.lastAccess);
+        return d>=weekAgo;
+    }).length;
+    const activeMonth=allUsers.filter(u=>{
+        if(!u.lastAccess)return false;
+        const d=u.lastAccess.toDate?u.lastAccess.toDate():new Date(u.lastAccess);
+        return d>=monthAgo;
+    }).length;
+    const mobileCount=allUsers.filter(u=>u.device==='mobile').length;
+    const desktopCount=allUsers.filter(u=>u.device==='desktop').length;
+    const unreadSugs=allSugs.filter(s=>!s.lida).length;
+
+    document.getElementById('kpis').innerHTML=`
+        <div class="kpi"><div class="kpi-label">Total Usuários</div><div class="kpi-value" style="color:var(--blue)">${totalUsers}</div><div class="kpi-sub">📱 ${mobileCount} mobile · 💻 ${desktopCount} desktop</div></div>
+        <div class="kpi"><div class="kpi-label">Ativos Hoje</div><div class="kpi-value" style="color:var(--green)">${activeToday}</div><div class="kpi-sub">Online agora ou hoje</div></div>
+        <div class="kpi"><div class="kpi-label">Ativos 7 dias</div><div class="kpi-value" style="color:var(--amber)">${activeWeek}</div><div class="kpi-sub">Última semana</div></div>
+        <div class="kpi"><div class="kpi-label">Sugestões</div><div class="kpi-value" style="color:var(--primary)">${allSugs.length}</div><div class="kpi-sub">${unreadSugs} não lidas</div></div>
+    `;
+}
+
+function renderUsers(){
+    const now=new Date();
+    const sorted=[...allUsers].sort((a,b)=>{
+        const da=a.lastAccess?(a.lastAccess.toDate?a.lastAccess.toDate():new Date(a.lastAccess)):new Date(0);
+        const db2=b.lastAccess?(b.lastAccess.toDate?b.lastAccess.toDate():new Date(b.lastAccess)):new Date(0);
+        return db2-da;
+    });
+    document.getElementById('usersTable').innerHTML=sorted.map(u=>{
+        const la=u.lastAccess?(u.lastAccess.toDate?u.lastAccess.toDate():new Date(u.lastAccess)):null;
+        const diffMin=la?Math.floor((now-la)/60000):99999;
+        let statusClass='inactive',statusLabel='Inativo';
+        if(diffMin<15){statusClass='active';statusLabel='Online'}
+        else if(diffMin<1440){statusClass='recent';statusLabel='Hoje'}
+        else if(diffMin<10080){statusClass='recent';statusLabel='Recente'}
+        const laStr=la?la.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'Nunca';
+        const device=u.device==='mobile'?'📱 Mobile':'💻 Desktop';
+        return `<tr>
+            <td><span class="online-dot ${statusClass}"></span>${statusLabel}</td>
+            <td style="font-weight:600">${u.name||'—'}</td>
+            <td style="color:var(--text3);font-size:12px">${u.email||'—'}</td>
+            <td style="font-family:var(--mono);font-size:12px">${laStr}</td>
+            <td>${device}</td>
+        </tr>`;
+    }).join('');
+}
+
+function renderSugestoes(){
+    let filtered=allSugs;
+    if(sugFilterMode==='nao_lidas')filtered=allSugs.filter(s=>!s.lida);
+    if(sugFilterMode==='respondidas')filtered=allSugs.filter(s=>s.respondida);
+    
+    document.getElementById('sugCount').textContent=filtered.length+' sugestões';
+    
+    if(!filtered.length){
+        document.getElementById('sugList').innerHTML='<div style="text-align:center;padding:30px;color:var(--text3)">Nenhuma sugestão</div>';
+        return;
+    }
+    
+    const tipoColors={ideia:'badge-blue',problema:'badge-red',melhoria:'badge-amber',elogio:'badge-green',outro:'badge-purple'};
+    
+    document.getElementById('sugList').innerHTML=filtered.map(s=>{
+        const dt=s.createdAt?(s.createdAt.toDate?s.createdAt.toDate():new Date(s.createdAt)):new Date();
+        const dtStr=dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
+        const badgeClass=tipoColors[s.tipo]||'badge-purple';
+        const unreadClass=s.lida?'':'unread';
+        const temEmail=s.email&&s.email.includes('@');
+        return `<div class="sug-card ${unreadClass}" id="sug-card-${s.id}">
+            <div class="sug-header">
+                <div><strong>${s.user||'Anônimo'}</strong> <span style="color:var(--text3);font-size:11px">${s.email||''}</span></div>
+                <span class="badge ${badgeClass}">${s.tipo||'outro'}</span>
+            </div>
+            <div class="sug-text">${s.texto}</div>
+            ${s.respostaTexto?`<div style="margin-top:10px;padding:10px;background:rgba(16,185,129,0.08);border-left:3px solid var(--green);border-radius:6px;font-size:13px;color:var(--text2)"><span style="font-size:11px;color:var(--green);font-weight:600">✅ Sua resposta:</span><br>${s.respostaTexto}</div>`:''}
+            <div class="sug-meta">${dtStr}</div>
+            <div class="sug-actions">
+                ${s.lida?'<button disabled style="opacity:0.5">✅ Lida</button>':'<button onclick="markRead(\''+s.id+'\')">Marcar como lida</button>'}
+                <button onclick="toggleResposta('${s.id}')" style="background:var(--green);color:#fff;border-color:var(--green)">💬 Responder</button>
+                <button onclick="delSug('${s.id}')" style="color:var(--red)">Excluir</button>
+            </div>
+            <div id="resposta-box-${s.id}" style="display:none;margin-top:12px">
+                <textarea id="resposta-txt-${s.id}" placeholder="Digite sua resposta para ${s.user||'o usuário'}..." style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-family:inherit;resize:vertical;min-height:80px"></textarea>
+                <div style="display:flex;gap:8px;margin-top:8px">
+                    <button onclick="enviarResposta('${s.id}','${s.email||''}','${(s.user||'usuario').replace(/'/g,'')}','${s.texto.substring(0,50).replace(/'/g,'').split('\n').join(' ')}')" style="background:var(--green);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:inherit">📤 Enviar resposta</button>
+                    <button onclick="toggleResposta('${s.id}')" style="background:none;border:1px solid var(--border);border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;color:var(--text3);font-family:inherit">Cancelar</button>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function renderMetricas(){
+    let totalTx=0,totalCp=0,totalAg=0,totalInvOps=0;
+    allUserData.forEach(u=>{
+        const d=u.data;
+        totalTx+=(d.tx||[]).length;
+        totalCp+=(d.cp||[]).length;
+        totalAg+=(d.ag||[]).length;
+        totalInvOps+=(d.investOps||[]).length;
+    });
+    
+    document.getElementById('metricsList').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
+        <div class="kpi"><div class="kpi-label">Lançamentos</div><div class="kpi-value" style="color:var(--green)">${totalTx}</div><div class="kpi-sub">Receitas e Despesas</div></div>
+        <div class="kpi"><div class="kpi-label">Compras Cartão</div><div class="kpi-value" style="color:var(--amber)">${totalCp}</div><div class="kpi-sub">Parceladas e à vista</div></div>
+        <div class="kpi"><div class="kpi-label">Agenda</div><div class="kpi-value" style="color:var(--blue)">${totalAg}</div><div class="kpi-sub">Compromissos agendados</div></div>
+        <div class="kpi"><div class="kpi-label">Investimentos</div><div class="kpi-value" style="color:var(--purple)">${totalInvOps}</div><div class="kpi-sub">Operações de compra/venda</div></div>
+    </div>
+    <div style="margin-top:20px">
+        <div class="section-title">📋 Detalhes por Usuário</div>
+        <div style="overflow-x:auto">
+        <table>
+        <thead><tr><th>Usuário</th><th>Lançamentos</th><th>Cartão</th><th>Agenda</th><th>Investimentos</th><th>Última Atualização</th></tr></thead>
+        <tbody>${allUserData.map(u=>{
+            const d=u.data;
+            const name=d.userName||u.id.substring(0,8);
+            const upd=u.updated?(u.updated.toDate?u.updated.toDate():new Date(u.updated)):null;
+            const updStr=upd?upd.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—';
+            return `<tr><td style="font-weight:600">${name}</td><td style="font-family:var(--mono)">${(d.tx||[]).length}</td><td style="font-family:var(--mono)">${(d.cp||[]).length}</td><td style="font-family:var(--mono)">${(d.ag||[]).length}</td><td style="font-family:var(--mono)">${(d.investOps||[]).length}</td><td style="font-size:12px;color:var(--text3)">${updStr}</td></tr>`;
+        }).join('')}</tbody>
+        </table>
+        </div>
+    </div>`;
+}
+
+function setTab(tab,el){
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('tabUsers').style.display=tab==='users'?'block':'none';
+    document.getElementById('tabSugestoes').style.display=tab==='sugestoes'?'block':'none';
+    document.getElementById('tabMetricas').style.display=tab==='metricas'?'block':'none';
+    document.getElementById('tabBackup').style.display=tab==='backup'?'block':'none';
+    document.getElementById('tabLogs').style.display=tab==='logs'?'block':'none';
+    if(tab==='backup')loadBackupInfo();
+    if(tab==='logs')loadLogs();
+}
+
+function filterSug(mode,el){
+    sugFilterMode=mode;
+    el.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    el.classList.add('active');
+    renderSugestoes();
+}
+
+async function markRead(id){
+    await db.collection('sugestoes').doc(id).update({lida:true});
+    const s=allSugs.find(x=>x.id===id);if(s)s.lida=true;
+    renderSugestoes();renderKPIs();
+}
+
+async function markResponded(id){
+    await db.collection('sugestoes').doc(id).update({respondida:true,lida:true});
+    const s=allSugs.find(x=>x.id===id);if(s){s.respondida=true;s.lida=true}
+    renderSugestoes();renderKPIs();
+}
+
+function toggleResposta(id){
+    const box=document.getElementById('resposta-box-'+id);
+    if(box) box.style.display=box.style.display==='none'?'block':'none';
+}
+
+async function enviarResposta(id,email,user,textoOriginal){
+    const txt=document.getElementById('resposta-txt-'+id).value.trim();
+    if(!txt){alert('Digite uma resposta antes de enviar.');return}
+    if(!email||!email.includes('@')){alert('Usuário sem email válido.');return}
+    
+    const btn=event.target;
+    btn.textContent='Enviando...';btn.disabled=true;
+    
+    try{
+        // Enviar email via FormSubmit
+        const res=await fetch('https://formsubmit.co/ajax/'+email,{
+            method:'POST',
+            headers:{'Content-Type':'application/json','Accept':'application/json'},
+            body:JSON.stringify({
+                _subject:'💬 Resposta do Gileno - Gestão Financeira',
+                _replyto:'gilenopaivalima@gmail.com',
+                Mensagem:txt,
+                'Em resposta a':textoOriginal+'...',
+                De:'Gileno - Gestão Financeira'
+            })
+        });
+        const data=await res.json();
+        
+        // Salvar resposta no Firestore
+        await db.collection('sugestoes').doc(id).update({
+            respondida:true,
+            lida:true,
+            respostaTexto:txt,
+            respondidaEm:firebase.firestore.FieldValue.serverTimestamp()
+        });
+        const s=allSugs.find(x=>x.id===id);
+        if(s){s.respondida=true;s.lida=true;s.respostaTexto=txt;}
+        
+        if(data.success){
+            alert('✅ Resposta enviada para '+email+'!');
+        } else {
+            alert('⚠️ Email pode não ter chegado, mas resposta salva no sistema.');
+        }
+        renderSugestoes();renderKPIs();
+    }catch(e){
+        alert('❌ Erro ao enviar: '+e.message);
+        btn.textContent='📤 Enviar resposta';btn.disabled=false;
+    }
+}
+
+async function delSug(id){
+    if(!confirm('Excluir esta sugestão?'))return;
+    if(!confirm('DEFINITIVO — esta ação não pode ser desfeita. Confirma exclusão?'))return;
+    await db.collection('sugestoes').doc(id).delete();
+    logAdmin('EXCLUIR_SUGESTAO','ID: '+id);
+    allSugs=allSugs.filter(x=>x.id!==id);
+    renderSugestoes();renderKPIs();
+}
+
+// === LOG ADMIN ===
+async function logAdmin(action, details=''){
+    try{
+        const user=auth.currentUser;
+        if(!user)return;
+        await db.collection('admin_logs').add({
+            email:user.email,
+            uid:user.uid,
+            action:action,
+            details:details,
+            userAgent:navigator.userAgent,
+            timestamp:firebase.firestore.FieldValue.serverTimestamp()
+        });
+    }catch(e){console.error('logAdmin erro:',e);}
+}
+
+async function loadLogs(){
+    const snap=await db.collection('admin_logs').orderBy('timestamp','desc').limit(50).get();
+    const el=document.getElementById('logList');
+    document.getElementById('logCount').textContent=snap.size+' registros (max 50)';
+    if(snap.empty){el.innerHTML='<div style="color:var(--text2);padding:20px;text-align:center">Nenhum log registrado</div>';return;}
+    let html='<table style="width:100%;border-collapse:collapse"><tr style="border-bottom:1px solid var(--border)"><th style="text-align:left;padding:8px;color:var(--text2)">Data/Hora</th><th style="text-align:left;padding:8px;color:var(--text2)">Acao</th><th style="text-align:left;padding:8px;color:var(--text2)">Detalhes</th><th style="text-align:left;padding:8px;color:var(--text2)">Agente</th></tr>';
+    snap.forEach(doc=>{
+        const d=doc.data();
+        const ts=d.timestamp?d.timestamp.toDate().toLocaleString('pt-BR'):'--';
+        const ua=d.userAgent?(d.userAgent.length>40?d.userAgent.substring(0,40)+'...':d.userAgent):'--';
+        html+='<tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 8px;white-space:nowrap">'+ts+'</td><td style="padding:6px 8px;font-weight:600">'+d.action+'</td><td style="padding:6px 8px;color:var(--text2)">'+( d.details||'--')+'</td><td style="padding:6px 8px;color:var(--text3);font-size:0.75rem">'+ua+'</td></tr>';
+    });
+    html+='</table>';
+    el.innerHTML=html;
+}
+
+// Auto-refresh every 60 seconds
+setInterval(()=>{
+    if(document.getElementById('adminPanel').style.display!=='none') loadAll();
+},60000);
+
+// Enter key login
+document.getElementById('adminPass').addEventListener('keyup',e=>{if(e.key==='Enter')doAdminLogin()});
+
+// ===== BACKUP FUNCTIONS =====
+async function loadBackupInfo(){
+    try{
+        // Load auto backup info
+        const autoSnap=await db.collection('backups').doc('backup_auto').get();
+        if(autoSnap.exists){
+            const d=autoSnap.data();
+            const date=d.timestamp?d.timestamp.toDate():null;
+            document.getElementById('bkAutoDate').textContent=date?date.toLocaleDateString('pt-BR')+' '+date.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'—';
+            document.getElementById('bkAutoInfo').textContent=(d.version||'')+(d.size?' · '+Math.round(d.size/1024)+'KB':'');
+        }else{
+            document.getElementById('bkAutoDate').textContent='Nenhum';
+            document.getElementById('bkAutoInfo').textContent='Aguardando primeiro backup';
+        }
+        // Load manual backup info
+        const manSnap=await db.collection('backups').doc('backup_manual').get();
+        if(manSnap.exists){
+            const d=manSnap.data();
+            const date=d.timestamp?d.timestamp.toDate():null;
+            document.getElementById('bkManualDate').textContent=date?date.toLocaleDateString('pt-BR')+' '+date.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'—';
+            document.getElementById('bkManualInfo').textContent=(d.version||'')+(d.size?' · '+Math.round(d.size/1024)+'KB':'');
+        }else{
+            document.getElementById('bkManualDate').textContent='Nenhum';
+            document.getElementById('bkManualInfo').textContent='Use o botão para criar';
+        }
+        // Also check legacy backup (from old system)
+        if(!autoSnap.exists&&!manSnap.exists){
+            const legSnap=await db.collection('backups').doc('index_html').get();
+            if(legSnap.exists){
+                const d=legSnap.data();
+                const date=d.timestamp?d.timestamp.toDate():null;
+                document.getElementById('bkManualDate').textContent=date?date.toLocaleDateString('pt-BR')+' '+date.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'—';
+                document.getElementById('bkManualInfo').textContent=(d.version||'')+' · '+Math.round((d.size||0)/1024)+'KB (legado)';
+            }
+        }
+    }catch(e){console.error('Load backup info:',e)}
+}
+
+async function downloadBackup(type){
+    const st=document.getElementById('bkStatus');
+    st.style.display='block';st.style.color='var(--amber)';
+    const docName=type==='auto'?'backup_auto':'backup_manual';
+    const chunkPrefix=type==='auto'?'backup_auto_chunk_':'backup_manual_chunk_';
+    const label=type==='auto'?'automático':'manual';
+    st.textContent='⏳ Recuperando backup '+label+' do Firebase...';
+    try{
+        let snap=await db.collection('backups').doc(docName).get();
+        // Fallback to legacy
+        if(!snap.exists&&type==='manual'){
+            snap=await db.collection('backups').doc('index_html').get();
+            if(snap.exists){
+                const meta=snap.data();
+                let fullSrc='';
+                for(let i=0;i<meta.totalChunks;i++){
+                    const chunk=await db.collection('backups').doc('index_html_chunk_'+i).get();
+                    if(chunk.exists)fullSrc+=chunk.data().data;
+                    st.textContent='⏳ Baixando chunk '+(i+1)+'/'+meta.totalChunks+'...';
+                }
+                doDownloadFile(fullSrc,meta.version||'legacy');
+                st.textContent='✅ Backup legado baixado!';st.style.color='var(--green)';return;
+            }
+        }
+        if(!snap.exists){st.textContent='❌ Nenhum backup '+label+' encontrado';st.style.color='var(--red)';return}
+        const meta=snap.data();
+        let fullSrc='';
+        for(let i=0;i<meta.totalChunks;i++){
+            const chunk=await db.collection('backups').doc(chunkPrefix+i).get();
+            if(chunk.exists)fullSrc+=chunk.data().data;
+            st.textContent='⏳ Baixando chunk '+(i+1)+'/'+meta.totalChunks+'...';
+        }
+        if(!fullSrc){st.textContent='❌ Chunks não encontrados';st.style.color='var(--red)';return}
+        doDownloadFile(fullSrc,meta.version||'unknown');
+        st.textContent='✅ Backup '+label+' baixado! ('+Math.round(fullSrc.length/1024)+'KB, '+meta.version+')';st.style.color='var(--green)';
+    }catch(e){
+        st.textContent='❌ Erro: '+e.message;st.style.color='var(--red)';
+    }
+}
+
+function doDownloadFile(src,version){
+    let finalSrc=src;
+    if(!finalSrc.trim().startsWith('<!DOCTYPE'))finalSrc='<!DOCTYPE html>\n'+finalSrc;
+    const blob=new Blob([finalSrc],{type:'text/html'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='index_backup_'+version+'_'+new Date().toISOString().slice(0,10)+'.html';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+async function forceBackupNow(){
+    logAdmin("BACKUP_FORCADO","Backup manual do codigo-fonte");
+    const st=document.getElementById('bkStatus');
+    st.style.display='block';st.textContent='⏳ Buscando código-fonte do app...';st.style.color='var(--amber)';
+    try{
+        const resp=await fetch('https://gilenogestorfinanceiro.github.io/gestor/index.html?nocache='+Date.now());
+        if(!resp.ok)throw new Error('Erro ao buscar index.html: '+resp.status);
+        const src=await resp.text();
+        if(src.length<5000)throw new Error('Arquivo muito pequeno ('+src.length+' chars) - possível erro');
+        st.textContent='⏳ Salvando backup manual no Firebase...';
+        const chunks=[];const chunkSize=900000;
+        for(let i=0;i<src.length;i+=chunkSize)chunks.push(src.substring(i,i+chunkSize));
+        const verMatch=src.match(/[·]\s*v([\d.]+)/);
+        const version=verMatch?'v'+verMatch[1]:'unknown';
+        await db.collection('backups').doc('backup_manual').set({
+            version:version,
+            timestamp:firebase.firestore.FieldValue.serverTimestamp(),
+            totalChunks:chunks.length,
+            size:src.length,
+            source:'manual_admin'
+        });
+        for(let i=0;i<chunks.length;i++){
+            await db.collection('backups').doc('backup_manual_chunk_'+i).set({data:chunks[i],index:i});
+            st.textContent='⏳ Salvando chunk '+(i+1)+'/'+chunks.length+'...';
+        }
+        st.textContent='✅ Backup manual salvo! ('+Math.round(src.length/1024)+'KB, '+version+')';
+        st.style.color='var(--green)';
+        loadBackupInfo();
+    }catch(e){
+        st.textContent='❌ Erro: '+e.message;st.style.color='var(--red)';
+    }
+}
+async function exportAllUsersData(){
+    logAdmin("EXPORTAR_DADOS","Exportacao JSON de todos os usuarios");
+    const st=document.getElementById("bkStatus");
+    st.style.display="block";st.textContent="Exportando dados...";st.style.color="var(--amber)";
+    try{
+        const snap=await db.collection("users").get();
+        const allData={};
+        snap.forEach(doc=>{allData[doc.id]=doc.data();});
+        const json=JSON.stringify(allData,null,2);
+        const blob=new Blob([json],{type:"application/json"});
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement("a");
+        a.href=url;a.download="backup_dados_"+new Date().toISOString().slice(0,10)+".json";
+        document.body.appendChild(a);a.click();document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        st.textContent="Dados exportados! ("+snap.size+" usuarios, "+Math.round(json.length/1024)+"KB)";st.style.color="var(--green)";
+    }catch(e){
+        st.textContent="Erro: "+e.message;st.style.color="var(--red)";
+    }
+}
+async function loadUserBackupStatus(){
+    try{
+        const el=document.getElementById("userBackupStatus");
+        el.innerHTML="⏳ Carregando...";
+        const diasSemana=["dom","seg","ter","qua","qui","sex","sab"];
+        const hoje=diasSemana[new Date().getDay()];
+        const usersSnap=await db.collection("users").get();
+        let html='<table style="width:100%;margin-top:8px"><tr><th style="text-align:left;padding:4px 8px;font-size:11px">USUÁRIO</th>';
+        diasSemana.forEach(function(d){html+='<th style="padding:4px 6px;font-size:11px;'+(d===hoje?"color:var(--green);font-weight:700":"")+'">'+ d.toUpperCase()+'</th>'});
+        html+='</tr>';
+        let count=0;
+        for(const userDoc of usersSnap.docs){
+            const uid=userDoc.id;
+            const userData=userDoc.data().data;
+            let nome=uid.substring(0,8);
+            try{if(userData){const parsed=typeof userData==="string"?JSON.parse(userData):userData;if(parsed.userName)nome=parsed.userName;}}catch(e){}
+            let row='<tr><td style="padding:4px 8px;font-size:11px">'+nome+'</td>';
+            let hasAny=false;
+            for(const dia of diasSemana){
+                try{
+                    const snap=await db.collection("backups").doc(uid).collection("auto_"+dia).doc("meta").get();
+                    if(snap.exists){
+                        hasAny=true;
+                        const ts=snap.data().timestamp?snap.data().timestamp.toDate():null;
+                        const age=ts?Math.round((Date.now()-ts.getTime())/3600000):99;
+                        const color=age<24?"var(--green)":age<72?"var(--amber)":"var(--red)";
+                        row+='<td style="text-align:center;padding:4px 6px"><span style="color:'+color+';font-size:10px">'+(ts?ts.toLocaleDateString("pt-BR").substring(0,5):"—")+'</span></td>';
+                    }else{
+                        row+='<td style="text-align:center;padding:4px 6px;color:var(--text3);font-size:10px">—</td>';
+                    }
+                }catch(e){row+='<td style="text-align:center;padding:4px 6px;color:var(--red);font-size:10px">err</td>';}
+            }
+            if(hasAny)count++;
+            html+=row+'</tr>';
+        }
+        html+='</table><div style="margin-top:8px;font-size:11px;color:var(--text3)">'+count+' usuário(s) com backup rotativo ativo</div>';
+        el.innerHTML=html;
+    }catch(e){console.error("Load user backup status:",e);document.getElementById("userBackupStatus").textContent="❌ Erro: "+e.message;}
+}
+</script>
+</body>
+</html>
